@@ -1,0 +1,41 @@
+.container {
+  height: 70px;
+  line-height: 70px;
+  display: flex;
+  &,
+  a {
+    color: white;
+  }
+  .toolbar {
+    padding-left: 15px;
+    flex: 1;
+    flex-direction: row;
+    align-items: center;
+    display: flex;
+  }
+  .logo {
+    margin-right: 20px;
+    padding-left: 30px;
+  }
+  .button {
+    border: 1px solid white;
+    color: white;
+    display: inline-block;
+    text-decoration: none;
+    line-height: 35px;
+    padding: 0 15px;
+    align-self: center;
+    i {
+      position: relative;
+      top: 6px;
+    }
+  }
+  .whoami {
+    :global .material-icons {
+      margin-left: 15px;
+      font-size: 26px;
+      position: relative;
+      top: 6px;
+    }
+  }
+}

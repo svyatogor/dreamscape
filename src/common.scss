@@ -1,0 +1,27 @@
+.section {
+  flex: 1;
+  background: white;
+  display: flex;
+  flex-direction: row;
+}
+
+.sectionSidebar {
+  background: #c7d7e3;
+  padding: 35px 25px;
+  flex: 2;
+}
+
+.sectionBody {
+  padding: 30px;
+  position: relative;
+  overflow: scroll; // display: flex;
+}
+
+.formControl {
+  // display: block !important;
+  margin-bottom: 20px;
+}
+
+.formActions {
+  margin-top: 20px;
+}
