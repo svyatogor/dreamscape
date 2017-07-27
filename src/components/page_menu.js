@@ -15,7 +15,7 @@ import {
 } from 'material-ui'
 import {map} from 'lodash'
 
-let SelectableList = makeSelectable(List);
+let SelectableList = makeSelectable(List)
 
 class PageMenu extends React.Component {
   static contextTypes = {
@@ -24,14 +24,14 @@ class PageMenu extends React.Component {
 
   componentWillMount() {
     this.state = {
-      selectedBlock: `${this.props.section}-${this.props.block}`
+      selectedBlock: `${this.props.section}-${this.props.block}`,
     }
   }
 
   render() {
     const {layout} = this.props
     return (
-      <Paper zDepth={1}>
+      <Paper zDepth={0}>
         {map(layout.sections, this.renderSection.bind(this))}
       </Paper>
     )
@@ -49,7 +49,6 @@ class PageMenu extends React.Component {
     const {modules, page: {sections, id}} = this.props
     return (
       <div key={key}>
-        <Divider />
         <SelectableList value={this.state.selectedBlock}>
           <Subheader key={key}>
             {name}
@@ -81,6 +80,7 @@ class PageMenu extends React.Component {
             />
           ))}
         </SelectableList>
+        <Divider />
       </div>
     )
   }

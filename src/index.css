@@ -4,7 +4,6 @@
 
 html,
 body, #root {
-  background: #374b6a;
   padding: 0;
   margin: 0;
   display: flex;
@@ -15,4 +14,57 @@ body, #root {
 
 label {
   font-weight: normal;
+}
+
+.menuIcon {
+  font-size: 24px;
+  line-height: 26px;
+  color: #757575;
+}
+
+.active [role=menuitem] {
+  background: #ECEFF1 !important;
+  color: #1E88E5 !important;
+}
+.active [role=menuitem] i {
+  color: #1E88E5 !important;
+}
+
+footer.copyright {
+  position: absolute;
+  bottom: 0;
+  font-size: 14px;
+  padding: 10px 15px;
+}
+
+.redactor-toolbar {
+  background: #f8f8f8;
+}
+
+.redactor-box-fullscreen {
+  width: 80vw !important;
+  height: 80vh !important;
+  left: 10vw !important;
+  top: 10vh !important;
+
+  transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 6px, rgba(0, 0, 0, 0.12) 0px 1px 4px;
+  border-radius: 2px;
+}
+
+.redactor-body-fullscreen #root:before {
+  content: '';
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  position: absolute;
+  z-index: 10;
+  opacity: 0.2;
+  transition: all 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms;
+}
+
+.m-node .inner {
+  padding-left: 0 !important;
 }

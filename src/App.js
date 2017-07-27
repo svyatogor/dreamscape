@@ -1,53 +1,65 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react'
 import {
-  BrowserRouter as Router,
   Route,
-  NavLink
+  NavLink,
 } from 'react-router-dom'
-import { createStore, applyMiddleware} from 'redux'
+import {Drawer, MenuItem, Divider} from 'material-ui'
+import {createStore, applyMiddleware} from 'redux'
 import {Provider} from 'react-redux'
 import thunk from 'redux-thunk'
+import createHistory from 'history/createBrowserHistory'
+import {ConnectedRouter, routerMiddleware} from 'react-router-redux'
+
 import reducers from './reducers'
-import styles from './App.scss';
+import styles from './App.scss'
 import Header from './components/header'
+import Logo from './assets/logo-c.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 
 
-let store = createStore(reducers, applyMiddleware(thunk))
-window.store = store
+const history = createHistory()
+const middleware = routerMiddleware(history)
+const store = createStore(reducers, applyMiddleware(thunk, middleware))
+
 class App extends Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      open: false,
+    }
+  }
+
   render() {
     return (
       <Provider store={store}>
-        <Router>
-          <div className={styles.container}>
-            <nav className={styles.mainNav}>
-              <header></header>
+        <ConnectedRouter history={history}>
+          <div className={styles.appContainer}>
+            <Header onMenu={() => this.setState({open: true})} />
+            <Drawer
+              open={this.state.open} docked={false} width={300}
+              onRequestChange={(open) => this.setState({open})}
+            >
+              <img src={Logo} alt="" style={{margin: 20, marginBottom: 40}} />
               <NavLink to="/site">
-                <i className="mdi mdi-sitemap"></i>
-                Structure
+                <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-sitemap" /></div>}>Site</MenuItem>
               </NavLink>
-              <a href="/">
-                <i className="material-icons">view_list</i>
-                Catalog
-              </a>
-              <a href="/">Assets</a>
-              <a href="/">Blocks</a>
-              <a href="/">Articles</a>
-            </nav>
+              <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">view_list</i></div>}>Catalog</MenuItem>
+              <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">photo_library</i></div>}>Assets</MenuItem>
+              <Divider />
 
-            <section className={styles.main}>
-              <Header />
+              <footer className="copyright">&copy; 2014-2017 Dreamscape CMS</footer>
+            </Drawer>
+
+            <section className={styles.appBody}>
               <Route exact path="/" component={Welcome} />
               <Route path="/site" component={SiteEditor} />
-              <footer>&copy; 2014-2017 Dreamscape CMS</footer>
             </section>
           </div>
-        </Router>
+        </ConnectedRouter>
       </Provider>
-    );
+    )
   }
 }
 
-export default App;
+export default App

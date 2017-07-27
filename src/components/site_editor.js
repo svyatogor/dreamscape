@@ -1,23 +1,45 @@
 import React from 'react'
-import {Route} from 'react-router-dom'
+import {Route, Switch} from 'react-router-dom'
 import SiteTree from './site_tree'
 import common from '../common.scss'
 import SiteEditorWelcome from './site_editor_welcome'
 import PageEditor from './page_editor'
+import {FloatingActionButton, Paper} from 'material-ui'
+import ContentAdd from 'material-ui/svg-icons/content/add'
 
 class SiteEditor extends React.Component {
   render() {
+    console.log(this.props.match.params);
     return (
-      <div className={common.section}>
-        <nav className={common.sectionSidebar}>
-          <SiteTree />
-        </nav>
-        <div style={{flex: 8}}>
-          <Route exact path="/site" component={SiteEditorWelcome} />
-          <Route path="/site/(\d+)" component={PageEditor} />
-        </div>
-      </div>
+      <Switch>
+        <Route exact path="/site" render={this.renderRoute(SiteEditorWelcome)} />
+        <Route path="/site/(\d+)" render={this.renderRoute(PageEditor)} />
+      </Switch>
     )
+  }
+
+  renderRoute(Component) {
+    return ({match}) => {
+      return (
+        <div style={{display: 'flex', width: '100%'}}>
+          <div style={{flex: 3, minWidth: 300}}>
+            <SiteTree activePage={match.params[0]} />
+          </div>
+          <div style={{flex: 15}}>
+            <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20}}>
+              <Component />
+            </Paper>
+          </div>
+          <div style={{flex: '1 4 5%', minWidth: 100}}></div>
+
+          <div style={{position: 'fixed', bottom: 20, right: 20}}>
+            <FloatingActionButton secondary>
+              <ContentAdd />
+            </FloatingActionButton>
+          </div>
+        </div>
+      )
+    }
   }
 }
 

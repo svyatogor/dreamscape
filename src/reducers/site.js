@@ -3,12 +3,27 @@ const initialState = {
   pages: [
     {
       id: 1,
-      name: 'Home',
+      title: {en: 'Home'},
     },
     {
       id: 2,
-      name: 'About us',
+      title: {en: 'About Us'},
       parent_id: 1,
+    },
+    {
+      id: 3,
+      title: {en: 'Services'},
+      parent_id: 1,
+    },
+    {
+      id: 4,
+      title: {en: 'Legal'},
+      parent_id: 3,
+    },
+    {
+      id: 5,
+      title: {en: 'Finance Consulting'},
+      parent_id: 3,
     },
   ],
   modules: {

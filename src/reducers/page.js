@@ -1,10 +1,10 @@
 const initialState = {
   id: 2,
   title: {
-    en: 'About XyZ'
+    en: 'About XyZ',
   },
   link: {
-    en: 'About'
+    en: 'About',
   },
   slug: 'about',
   published: true,
@@ -13,13 +13,14 @@ const initialState = {
   sections: {
     main_area: {
       abc: {
-        module: 'static_text'
-      }
-    }
-  }
+        module: 'static_text',
+        content: '<h1>Some text</h1>',
+      },
+    },
+  },
 }
 
-export default function (state = initialState, action) {
+export default function(state = initialState, action) {
   switch (action.type) {
     default:
       return state
