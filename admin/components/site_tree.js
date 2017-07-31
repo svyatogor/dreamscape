@@ -4,19 +4,23 @@ import {isEmpty, isEqual, filter, map, find} from 'lodash'
 import {NavLink} from 'react-router-dom'
 import {ListItem, List, Paper} from 'material-ui'
 import {push} from 'react-router-redux'
+import {get} from 'lodash'
 import cx from 'classnames'
+import {compose} from 'recompose'
+import {gql, graphql} from 'react-apollo'
 import 'react-ui-tree/dist/react-ui-tree.css'
 
 const documentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575'}} />
+const inactiveDocumentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575', opacity: 0.7}} />
 class Tree extends React.Component {
-  constructor() {
-    super()
+  constructor(props) {
+    super(props)
     this.state = {}
   }
 
   renderPage(page) {
     let props = {}
-    const subPages = filter(this.props.pages, ({parent_id}) => parent_id === page.id)
+    const subPages = filter(this.props.pages, ({parent}) => parent === page.id)
     if (!isEmpty(subPages)) {
       props = {
         // primaryTogglesNestedList: true,
@@ -26,17 +30,21 @@ class Tree extends React.Component {
     }
     return (
       <ListItem
-        leftIcon={documentIcon}
-        primaryText={page.title[this.props.locale]}
+        leftIcon={page.published ? documentIcon : inactiveDocumentIcon}
+        primaryText={page.title[0].value}
         key={page.id}
         {...props}
-        onTouchTap={() => this.props.push(`/site/${page.id}`)}
+        style={{color: page.published ?  '#000' : '#888'}}
+        onTouchTap={() => this.props.push(`/site/page/${page.id}`)}
       />
     )
   }
 
   render() {
-    const topPages = this.props.pages.filter(page => !page.parent_id)
+    if (this.props.data.loading) {
+      return null
+    }
+    const topPages = this.props.pages.filter(page => !page.parent)
     return (
         <List>
           {topPages.map((page, id) => this.renderPage(page, id))}
@@ -45,7 +53,6 @@ class Tree extends React.Component {
   }
 
   renderNode(node) {
-    console.log(node);
     return (
       <span
         className={cx('node', {
@@ -69,7 +76,7 @@ class Tree extends React.Component {
 }
 
 const buildTree = (pages, parent) => {
-  return pages.filter(page => page.parent_id === parent).map(page => {
+  return pages.filter(page => page.parent === parent).map(page => {
     const children = buildTree(pages, page.id)
     return {
       ...page,
@@ -81,15 +88,19 @@ const buildTree = (pages, parent) => {
 }
 
 const buildFullPath = (pages, page, path = []) => {
-  if (page.parent_id) {
-    return buildFullPath(pages, find(pages, {id: page.parent_id}), [...path, page.id])
+  if (!page) {
+    return []
+  }
+  if (page.parent) {
+    return buildFullPath(pages, find(pages, {id: page.parent}), [...path, page.id])
   } else {
     return [...path, page.id]
   }
 }
 
-const mapStateToProps = ({site: {pages, locale}, routing}, ownProps) => {
-  const page = find(pages, {id: Number(ownProps.activePage)})
+const mapStateToProps = ({site: {locale}, routing}, {data, activePage}) => {
+  const pages = map(data.pages, page => ({...page, parent: get(page.parent, 'id')}))
+  const page = find(pages, {id: activePage})
   return {
     pages,
     locale,
@@ -98,4 +109,24 @@ const mapStateToProps = ({site: {pages, locale}, routing}, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, {push})(Tree)
+const listAllPages = gql`
+  query {
+    pages {
+      id
+      title {
+        locale
+        value
+      }
+      published
+      parent {
+        id
+      }
+    }
+  }
+`
+
+const enhance = compose(
+  graphql(listAllPages),
+  connect(mapStateToProps, {push}),
+)
+export default enhance(Tree)

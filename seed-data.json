@@ -1,0 +1,66 @@
+{
+    "pages": {
+        "_model": "Page",
+        "home": {
+            "slug": "index",
+            "title": [
+                {
+                    "locale": "en",
+                    "value": "Home"
+                }
+            ],
+            "published": true,
+            "layout": "main"
+        },
+        "about": {
+            "slug": "about",
+            "title": [
+                {
+                    "locale": "en",
+                    "value": "About"
+                },
+                {
+                    "locale": "ru",
+                    "value": "О нас"
+                }
+            ],
+            "published": true,
+            "parent": "->pages.home",
+            "layout": "main",
+            "sections": [
+                {
+                    "key": "main_area",
+                    "blocks": [
+                        {
+                            "_type": "StaticText",
+                            "content": [{
+                                "locale": "en",
+                                "value": "A few words about the company."
+                            }]
+                        },
+                        {
+                            "_type": "StaticText",
+                            "content": [{
+                                "locale": "en",
+                                "value": "Second text block"
+                            }]
+                        }
+                    ]
+                },
+
+                {
+                    "key": "left_area",
+                    "blocks": [
+                        {
+                            "_type": "StaticText",
+                            "content": [{
+                                "locale": "en",
+                                "value": "Side text block"
+                            }]
+                        }
+                    ]
+                }
+            ]
+        }
+    }
+}

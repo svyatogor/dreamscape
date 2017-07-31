@@ -27,7 +27,7 @@ const initialState = {
     },
   ],
   modules: {
-    static_text: {
+    StaticText: {
       name: 'Static text',
     },
   },

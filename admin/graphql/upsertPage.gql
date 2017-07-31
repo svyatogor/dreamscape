@@ -1,0 +1,16 @@
+mutation upsertPage($page: PageInput!) {
+    upsertPage(page: $page) {
+      id
+      slug
+      title {locale value}
+      parent {id}
+      layout
+      published
+      sections {
+        key
+        blocks {
+          _type
+        }
+      }
+    }
+  }

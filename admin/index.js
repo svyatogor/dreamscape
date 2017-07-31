@@ -27,4 +27,4 @@ injectTapEventPlugin()
 
 ReactDOM.render((<MuiThemeProvider muiTheme={muiTheme}><App /></MuiThemeProvider>),
   global.document.getElementById('root'))
-registerServiceWorker()
+// registerServiceWorker()

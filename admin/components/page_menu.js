@@ -13,7 +13,7 @@ import {
   IconButton,
   makeSelectable,
 } from 'material-ui'
-import {map} from 'lodash'
+import {map, get, find} from 'lodash'
 
 let SelectableList = makeSelectable(List)
 
@@ -32,6 +32,16 @@ class PageMenu extends React.Component {
     const {layout} = this.props
     return (
       <Paper zDepth={0}>
+        <SelectableList value={this.state.selectedBlock}>
+          <ListItem
+            primaryText="Settings"
+            value="settings"
+            onTouchTap={() => {
+              this.context.router.history.push(`/site/page/${this.props.page.id}/settings`)
+              // this.setState({selectedBlock: `${key}-${blockKey}`})
+            }}
+          />
+        </SelectableList>
         {map(layout.sections, this.renderSection.bind(this))}
       </Paper>
     )
@@ -47,6 +57,7 @@ class PageMenu extends React.Component {
       top: 10,
     }
     const {modules, page: {sections, id}} = this.props
+    const blocks = get(find(sections, {key}), 'blocks', [])
     return (
       <div key={key}>
         <SelectableList value={this.state.selectedBlock}>
@@ -60,13 +71,13 @@ class PageMenu extends React.Component {
             </IconMenu>
           </Subheader>
 
-          {map(sections[key], ({module}, blockKey) => (
+          {map(blocks, ({__typename}, blockKey) => (
             <ListItem
               key={blockKey}
-              primaryText={modules[module].name}
+              primaryText={modules[__typename].name}
               value={`${key}-${blockKey}`}
               onTouchTap={() => {
-                this.context.router.history.push(`/site/${id}/section/${key}/block/${blockKey}`)
+                this.context.router.history.push(`/site/page/${id}/section/${key}/block/${blockKey}`)
                 this.setState({selectedBlock: `${key}-${blockKey}`})
               }}
               rightIconButton={
@@ -86,11 +97,10 @@ class PageMenu extends React.Component {
   }
 }
 
-const mapStateToProps = ({site, page}, ownProps) => {
+const mapStateToProps = ({site}, ownProps) => {
   return {
     locale: site.locale,
-    page,
-    layout: site.layouts[page.layout],
+    layout: site.layouts[ownProps.page.layout],
     modules: site.modules,
   }
 }

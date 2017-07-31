@@ -9,11 +9,10 @@ import ContentAdd from 'material-ui/svg-icons/content/add'
 
 class SiteEditor extends React.Component {
   render() {
-    console.log(this.props.match.params);
     return (
       <Switch>
         <Route exact path="/site" render={this.renderRoute(SiteEditorWelcome)} />
-        <Route path="/site/(\d+)" render={this.renderRoute(PageEditor)} />
+        <Route path="/site/page/:pageId" render={this.renderRoute(PageEditor)} />
       </Switch>
     )
   }
@@ -23,11 +22,11 @@ class SiteEditor extends React.Component {
       return (
         <div style={{display: 'flex', width: '100%'}}>
           <div style={{flex: 3, minWidth: 300}}>
-            <SiteTree activePage={match.params[0]} />
+            <SiteTree activePage={match.params.pageId} />
           </div>
           <div style={{flex: 15}}>
             <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20}}>
-              <Component />
+              <Component match={match} />
             </Paper>
           </div>
           <div style={{flex: '1 4 5%', minWidth: 100}}></div>

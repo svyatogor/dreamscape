@@ -1,0 +1,67 @@
+type StaticText implements Block {
+  _type: String!
+  content: [I18nString]
+}
+
+interface Block {
+  _type: String!
+}
+
+type I18nString {
+  locale: String
+  value: String
+}
+
+type Section {
+  key: String
+  blocks: [Block]
+}
+
+type PageDefinition {
+  id: ID!
+  slug: String
+  published: Boolean
+  parent: ID
+  title: [I18nString]
+}
+
+type Page {
+  id: ID!
+  slug: String
+  published: Boolean
+  layout: String
+  parent: Page
+  title: [I18nString]
+  sections: [Section]
+}
+
+input I18nStringInput {
+  locale: String
+  value: String
+}
+
+input PageInput {
+  id: ID
+  slug: String
+  published: Boolean
+  layout: String
+  parent: ID
+  title: I18nStringInput
+}
+
+input BlockRef {
+  page: ID!
+  section: String!
+  block: Int!
+}
+
+type Query {
+  pages: [Page]
+  page(id: ID!): Page
+  staticText(ref: BlockRef!): StaticText
+}
+
+type Mutation {
+  upsertPage(page: PageInput!): Page
+  saveStaticText(ref: BlockRef!, content: I18nStringInput!): StaticText
+}

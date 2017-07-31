@@ -5,11 +5,10 @@ import {
 } from 'react-router-dom'
 import {Drawer, MenuItem, Divider} from 'material-ui'
 import {createStore, applyMiddleware} from 'redux'
-import {Provider} from 'react-redux'
 import thunk from 'redux-thunk'
 import createHistory from 'history/createBrowserHistory'
 import {ConnectedRouter, routerMiddleware} from 'react-router-redux'
-
+import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo'
 import reducers from './reducers'
 import styles from './App.scss'
 import Header from './components/header'
@@ -22,6 +21,13 @@ const history = createHistory()
 const middleware = routerMiddleware(history)
 const store = createStore(reducers, applyMiddleware(thunk, middleware))
 
+const networkInterface = createNetworkInterface({
+  uri: 'http://localhost:3000/graphql'
+})
+const client = new ApolloClient({
+  networkInterface: networkInterface
+})
+
 class App extends Component {
   constructor(props) {
     super(props)
@@ -32,7 +38,7 @@ class App extends Component {
 
   render() {
     return (
-      <Provider store={store}>
+      <ApolloProvider client={client} store={store}>
         <ConnectedRouter history={history}>
           <div className={styles.appContainer}>
             <Header onMenu={() => this.setState({open: true})} />
@@ -57,7 +63,7 @@ class App extends Component {
             </section>
           </div>
         </ConnectedRouter>
-      </Provider>
+      </ApolloProvider>
     )
   }
 }
