@@ -34,6 +34,7 @@ class PageMenu extends React.Component {
       <Paper zDepth={0}>
         <SelectableList value={this.state.selectedBlock}>
           <ListItem
+            leftIcon={<i className="mdi mdi-settings" style={{fontSize: 24, top: 4, color: '#757575'}}/>}
             primaryText="Settings"
             value="settings"
             onTouchTap={() => {
@@ -56,7 +57,7 @@ class PageMenu extends React.Component {
       right: 5,
       top: 10,
     }
-    const {modules, page: {sections, id}} = this.props
+    const {modules, page: {sections, id: pageId}} = this.props
     const blocks = get(find(sections, {key}), 'blocks', [])
     return (
       <div key={key}>
@@ -71,14 +72,15 @@ class PageMenu extends React.Component {
             </IconMenu>
           </Subheader>
 
-          {map(blocks, ({__typename}, blockKey) => (
+          {map(blocks, ({__typename, ref}) => (
             <ListItem
-              key={blockKey}
+              key={ref}
+              leftIcon={<i className="mdi mdi-view-dashboard" style={{fontSize: 24, top: 4, color: '#757575'}}/>}
               primaryText={modules[__typename].name}
-              value={`${key}-${blockKey}`}
+              value={`${key}-${ref}`}
               onTouchTap={() => {
-                this.context.router.history.push(`/site/page/${id}/section/${key}/block/${blockKey}`)
-                this.setState({selectedBlock: `${key}-${blockKey}`})
+                this.context.router.history.push(`/site/page/${pageId}/section/${key}/block/${ref}`)
+                this.setState({selectedBlock: `${key}-${ref}`})
               }}
               rightIconButton={
                 <IconButton

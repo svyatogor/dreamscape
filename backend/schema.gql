@@ -1,10 +1,13 @@
 type StaticText implements Block {
+  id: ID!
+  ref: ID
   _type: String!
   content: [I18nString]
 }
 
 interface Block {
   _type: String!
+  ref: ID
 }
 
 type I18nString {
@@ -58,10 +61,10 @@ input BlockRef {
 type Query {
   pages: [Page]
   page(id: ID!): Page
-  staticText(ref: BlockRef!): StaticText
+  staticText(id: ID!): StaticText
 }
 
 type Mutation {
   upsertPage(page: PageInput!): Page
-  saveStaticText(ref: BlockRef!, content: I18nStringInput!): StaticText
+  saveStaticText(id: ID!, content: I18nStringInput!): StaticText
 }

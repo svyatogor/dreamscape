@@ -22,15 +22,30 @@ class StaticText extends React.Component {
     return (<div>
       <Redactor value={value} onChange={(value) => this.setState({value})} />
       <div className={common.formActions}>
-        <RaisedButton label="Save" primary={true} disabled={!this.state.value} type="submit" />
+        <RaisedButton label="Save" primary={true} disabled={!this.state.value} type="submit" onTouchTap={() => this.save()} />
       </div>
     </div>)
+  }
+
+  save() {
+    this.props.save(this.state.value)
   }
 }
 
 const getStaticText = gql`
-  query staticText($ref: BlockRef!) {
-    staticText(ref: $ref) {
+  query staticText($id: ID!) {
+    staticText(id: $id) {
+      content {
+        locale
+        value
+      }
+    }
+  }
+`
+
+const saveStaticText = gql`
+  mutation saveStaticText($id: ID!, $content: I18nStringInput!) {
+    saveStaticText(id: $id, content: $content) {
       content {
         locale
         value
@@ -44,11 +59,20 @@ const mapStateToProps = ({site: {locale}}) => ({
 })
 
 const enhance = compose(
-  graphql(getStaticText, {
-    options: ({page: {id}, section, block}) => ({
-      variables: {ref: {page: id, section, block}}
-    })
+  connect(mapStateToProps),
+  graphql(getStaticText),
+  graphql(saveStaticText, {
+    props: ({mutate, ownProps: {locale, page: {id}, section, block}}) => ({
+      save: (value) => {
+        mutate({variables: {
+          id: block,
+          content: {
+            locale,
+            value
+          }
+        }})
+      },
+    }),
   }),
-  connect(mapStateToProps)
 )
 export default enhance(StaticText)

@@ -1,4 +1,4 @@
-import {omit} from 'lodash'
+import {omit, forEach, mapKeys, findIndex} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
 
@@ -14,14 +14,27 @@ export default class {
   }
 
   @mutation
-  static upsertPage(context, {page}) {
-    const condtions = page.id ? {_id: page.id} : {}
-    condtions.title = {$elemMatch: {locale: {$eq: page.title.locale}}}
-    page["title.$.value"] = page.title.value
-    page = omit(page, ['title', 'id'])
-    return Page
-      .findOneAndUpdate(condtions, {$set: page}, {new: true, upsert: true, runValidators: true})
-      .populate('parent')
+  static async upsertPage(context, {page}) {
+    let _page
+    if (page.id) {
+      _page = await Page.findById(page.id).populate('parent')
+      forEach(['title'], i18nField => {
+        page = mapKeys(page, (value, key) => {
+          if (key === i18nField) {
+            const idx = findIndex(_page[i18nField], {locale: value.locale})
+            return `${key}.${idx}`
+          } else {
+            return key
+          }
+        })
+      })
+      console.log(page);
+      _page.set(page)
+    } else {
+      _page = new Page(page)
+    }
+    await _page.save()
+    return _page
   }
 
   static queries = {}

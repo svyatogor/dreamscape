@@ -7,7 +7,8 @@ import {push} from 'react-router-redux'
 import {get} from 'lodash'
 import cx from 'classnames'
 import {compose} from 'recompose'
-import {gql, graphql} from 'react-apollo'
+import {graphql} from 'react-apollo'
+import pages from '../graphql/pages.gql'
 import 'react-ui-tree/dist/react-ui-tree.css'
 
 const documentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575'}} />
@@ -109,24 +110,8 @@ const mapStateToProps = ({site: {locale}, routing}, {data, activePage}) => {
   }
 }
 
-const listAllPages = gql`
-  query {
-    pages {
-      id
-      title {
-        locale
-        value
-      }
-      published
-      parent {
-        id
-      }
-    }
-  }
-`
-
 const enhance = compose(
-  graphql(listAllPages),
+  graphql(pages),
   connect(mapStateToProps, {push}),
 )
 export default enhance(Tree)

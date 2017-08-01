@@ -68,3 +68,7 @@ footer.copyright {
 .m-node .inner {
   padding-left: 0 !important;
 }
+
+form {
+  max-width: 300px;
+}

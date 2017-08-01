@@ -14,10 +14,18 @@ const pageSchema = new Schema({
   linkName: [i18nString],
   sections: [{
     key: String,
-    blocks: Object
+    blocks: [{
+      _type: String,
+      ref: {type: Schema.Types.ObjectId, refPath: 'sections.blocks.type'}
+    }]
   }],
+})
+
+const staticTextSchema = new Schema({
+  content: [i18nString]
 })
 
 export {
   pageSchema,
+  staticTextSchema,
 }

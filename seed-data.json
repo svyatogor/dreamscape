@@ -1,4 +1,25 @@
 {
+    "staticTexts": {
+        "_model": "StaticText",
+        "t1": {
+            "content": [{
+                "locale": "en",
+                "value": "A few words about the company."
+            }]
+        },
+        "t2": {
+            "content": [{
+                "locale": "en",
+                "value": "Second text block"
+            }]
+        },
+        "t3": {
+            "content": [{
+                "locale": "en",
+                "value": "Side text block"
+            }]
+        }
+    },
     "pages": {
         "_model": "Page",
         "home": {
@@ -33,17 +54,11 @@
                     "blocks": [
                         {
                             "_type": "StaticText",
-                            "content": [{
-                                "locale": "en",
-                                "value": "A few words about the company."
-                            }]
+                            "ref": "->staticTexts.t1"
                         },
                         {
                             "_type": "StaticText",
-                            "content": [{
-                                "locale": "en",
-                                "value": "Second text block"
-                            }]
+                            "ref": "->staticTexts.t2"
                         }
                     ]
                 },
@@ -53,10 +68,7 @@
                     "blocks": [
                         {
                             "_type": "StaticText",
-                            "content": [{
-                                "locale": "en",
-                                "value": "Side text block"
-                            }]
+                            "ref": "->staticTexts.t3"
                         }
                     ]
                 }

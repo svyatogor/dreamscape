@@ -1,0 +1,13 @@
+query pages {
+  pages {
+    id
+    title {
+      locale
+      value
+    }
+    published
+    parent {
+      id
+    }
+  }
+}

@@ -37,9 +37,11 @@ export default () => {
 		formatError: error => {
 			let originalErrors = get(error, 'originalError.errors')
 			let errors = {}
-			Object.keys(originalErrors).forEach(field => {
-				errors[field] = originalErrors[field].message
-			})
+			if (originalErrors) {
+				Object.keys(originalErrors).forEach(field => {
+					errors[field] = originalErrors[field].message
+				})
+			}
 			return {
 				message: error.message,
 				errors,

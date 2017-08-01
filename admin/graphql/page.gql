@@ -10,6 +10,7 @@ query page($id: ID!) {
       key
       blocks {
         _type
+        ref
       }
     }
   }
