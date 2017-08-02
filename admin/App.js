@@ -36,7 +36,7 @@ const store = createStore(
     (typeof window.__REDUX_DEVTOOLS_EXTENSION__ !== 'undefined') ? window.__REDUX_DEVTOOLS_EXTENSION__() : f => f,
   )
 )
-persistStore(store, {blacklist: ['apollo']})
+persistStore(store, {whitelist: ['app', 'session']})
 
 class App extends Component {
   constructor(props) {
