@@ -20,7 +20,7 @@ import SiteEditor from './components/site_editor'
 
 
 const networkInterface = createNetworkInterface({
-  uri: 'http://localhost:3000/graphql'
+  uri: process.env.REACT_APP_GRAPHQL
 })
 const client = new ApolloClient({
   networkInterface: networkInterface
