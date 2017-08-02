@@ -1,9 +1,10 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {logout} from '../actions'
+import {logout, setLocale} from '../actions'
 import Logo from '../assets/logo.png'
-import {AppBar, IconButton} from 'material-ui'
+import {AppBar, IconButton, SelectField, MenuItem} from 'material-ui'
 import styles from './header.scss'
+import {map} from 'lodash'
 
 const Title = ({title}) =>
   <div style={{display: 'flex', width: '100%'}}>
@@ -18,18 +19,21 @@ const Title = ({title}) =>
     </div>
   </div>
 
-const Header = ({session, logout, onMenu, title}) =>
+const Header = ({session, logout, onMenu, locale, setLocale}) =>
   (<AppBar
-    title={<Title title={title} />}
+    title={<Title title="" />}
     onLeftIconButtonTouchTap={onMenu}
     iconElementRight={(
       <div className={styles.whoami}>
+        <SelectField value={locale} className={styles.languagePicker} onChange={(e, key, value) => setLocale(value)}>
+          {map(['en', 'ru'], l => <MenuItem value={l} key={l} primaryText={l} />)}
+        </SelectField>
         <IconButton style={{color: 'white'}}><i className="material-icons">exit_to_app</i></IconButton>
       </div>
     )}
   />)
 
-const mapStateToProps = ({session, app: {title}}, ownProps) => {
-  return {session, title}
+const mapStateToProps = ({session, app: {locale}}, ownProps) => {
+  return {session, locale}
 }
-export default connect(mapStateToProps, {logout})(Header)
+export default connect(mapStateToProps, {logout, setLocale})(Header)

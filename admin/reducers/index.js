@@ -4,15 +4,14 @@ import {routerReducer} from 'react-router-redux'
 import session from './session'
 import app from './app'
 import site from './site'
-import page from './page'
 
-const reducers = combineReducers({
+const reducers = client => combineReducers({
   session,
   site,
-  page,
   app,
   form: formReducer,
   routing: routerReducer,
+  apollo: client.reducer(),
 })
 
 export default reducers

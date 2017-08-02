@@ -4,11 +4,12 @@ import {
   NavLink,
 } from 'react-router-dom'
 import {Drawer, MenuItem, Divider} from 'material-ui'
-import {createStore, applyMiddleware} from 'redux'
+import {createStore, applyMiddleware, compose} from 'redux'
 import thunk from 'redux-thunk'
 import createHistory from 'history/createBrowserHistory'
 import {ConnectedRouter, routerMiddleware} from 'react-router-redux'
 import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo'
+import {persistStore, autoRehydrate} from 'redux-persist'
 import reducers from './reducers'
 import styles from './App.scss'
 import Header from './components/header'
@@ -17,16 +18,24 @@ import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 
 
-const history = createHistory()
-const middleware = routerMiddleware(history)
-const store = createStore(reducers, applyMiddleware(thunk, middleware))
-
 const networkInterface = createNetworkInterface({
   uri: 'http://localhost:3000/graphql'
 })
 const client = new ApolloClient({
   networkInterface: networkInterface
 })
+const history = createHistory()
+const middleware = routerMiddleware(history)
+const store = createStore(
+  reducers(client),
+  {},
+  compose(
+    applyMiddleware(client.middleware(), thunk, middleware),
+    autoRehydrate(),
+    (typeof window.__REDUX_DEVTOOLS_EXTENSION__ !== 'undefined') ? window.__REDUX_DEVTOOLS_EXTENSION__() : f => f,
+  )
+)
+persistStore(store, {blacklist: ['apollo']})
 
 class App extends Component {
   constructor(props) {

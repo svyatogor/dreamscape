@@ -54,7 +54,7 @@ const saveStaticText = gql`
   }
 `
 
-const mapStateToProps = ({site: {locale}}) => ({
+const mapStateToProps = ({app: {locale}}) => ({
   locale
 })
 

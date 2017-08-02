@@ -39,3 +39,14 @@
     }
   }
 }
+
+.languagePicker {
+  width: 60px !important;
+  float: left;
+  & > div > div > div {
+    color: white !important;
+  }
+  hr {
+    display: none;
+  }
+}

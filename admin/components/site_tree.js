@@ -8,6 +8,7 @@ import {get} from 'lodash'
 import cx from 'classnames'
 import {compose} from 'recompose'
 import {graphql} from 'react-apollo'
+import {t} from '../utils'
 import pages from '../graphql/pages.gql'
 import 'react-ui-tree/dist/react-ui-tree.css'
 
@@ -32,7 +33,7 @@ class Tree extends React.Component {
     return (
       <ListItem
         leftIcon={page.published ? documentIcon : inactiveDocumentIcon}
-        primaryText={page.title[0].value}
+        primaryText={t(page.title, this.props.locale)}
         key={page.id}
         {...props}
         style={{color: page.published ?  '#000' : '#888'}}
@@ -99,7 +100,7 @@ const buildFullPath = (pages, page, path = []) => {
   }
 }
 
-const mapStateToProps = ({site: {locale}, routing}, {data, activePage}) => {
+const mapStateToProps = ({app: {locale}, routing}, {data, activePage}) => {
   const pages = map(data.pages, page => ({...page, parent: get(page.parent, 'id')}))
   const page = find(pages, {id: activePage})
   return {

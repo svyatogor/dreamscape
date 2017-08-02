@@ -1,31 +1,4 @@
 const initialState = {
-  locale: 'en',
-  pages: [
-    {
-      id: 1,
-      title: {en: 'Home'},
-    },
-    {
-      id: 2,
-      title: {en: 'About Us'},
-      parent_id: 1,
-    },
-    {
-      id: 3,
-      title: {en: 'Services'},
-      parent_id: 1,
-    },
-    {
-      id: 4,
-      title: {en: 'Legal'},
-      parent_id: 3,
-    },
-    {
-      id: 5,
-      title: {en: 'Finance Consulting'},
-      parent_id: 3,
-    },
-  ],
   modules: {
     StaticText: {
       name: 'Static text',
