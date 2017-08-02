@@ -1,0 +1,6 @@
+mutation addBlock($block: BlockInput!) {
+  addBlock(block: $block) {
+    _type
+    ref
+  }
+}

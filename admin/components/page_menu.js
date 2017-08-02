@@ -14,6 +14,10 @@ import {
   makeSelectable,
 } from 'material-ui'
 import {map, get, find} from 'lodash'
+import {graphql} from 'react-apollo'
+import {push} from 'react-router-redux'
+import addBlock from '../graphql/addBlock.gql'
+import removeBlock from '../graphql/removeBlock.gql'
 
 let SelectableList = makeSelectable(List)
 
@@ -22,9 +26,27 @@ class PageMenu extends React.Component {
     router: PropTypes.object,
   }
 
+  addBlock(section, type) {
+    const {page} = this.props
+    const block = {page: page.id, section, _type: type}
+    this.props.addBlock({variables: {block}})
+    .then(({data: {addBlock}}) => {
+      this.props.push(`/site/page/${this.props.page.id}/section/${section}/block/${addBlock.ref}`)
+    })
+  }
+
+  removeBlock(ref) {
+    const {page} = this.props
+    const block = {page: page.id, ref}
+    this.props.removeBlock({variables: {block}})
+    .then(() => {
+      this.props.push(`/site/page/${this.props.page.id}/settings`)
+    })
+  }
+
   componentWillMount() {
     this.state = {
-      selectedBlock: `${this.props.section}-${this.props.block}`,
+      selectedBlock: this.props.selectedBlock,
     }
   }
 
@@ -38,7 +60,7 @@ class PageMenu extends React.Component {
             primaryText="Settings"
             value="settings"
             onTouchTap={() => {
-              this.context.router.history.push(`/site/page/${this.props.page.id}/settings`)
+              this.props.push(`/site/page/${this.props.page.id}/settings`)
               // this.setState({selectedBlock: `${key}-${blockKey}`})
             }}
           />
@@ -48,7 +70,7 @@ class PageMenu extends React.Component {
     )
   }
 
-  renderSection({name}, key) {
+  renderSection({name}, section) {
     const smallIcon = {width: 24, height: 24}
     const small = {
       width: 36,
@@ -58,17 +80,17 @@ class PageMenu extends React.Component {
       top: 10,
     }
     const {modules, page: {sections, id: pageId}} = this.props
-    const blocks = get(find(sections, {key}), 'blocks', [])
+    const blocks = get(find(sections, {key: section}), 'blocks', [])
     return (
-      <div key={key}>
+      <div key={section}>
         <SelectableList value={this.state.selectedBlock}>
-          <Subheader key={key}>
+          <Subheader key={section}>
             {name}
             <IconMenu
               iconButtonElement={<IconButton><i className="material-icons">add</i></IconButton>}
               style={{float: 'right'}}
             >
-              {map(modules, ({name}, key) => <MenuItem primaryText={name} key={key} />)}
+              {map(modules, ({name}, type) => <MenuItem primaryText={name} key={type} onTouchTap={() => this.addBlock(section, type)} />)}
             </IconMenu>
           </Subheader>
 
@@ -77,14 +99,15 @@ class PageMenu extends React.Component {
               key={ref}
               leftIcon={<i className="mdi mdi-view-dashboard" style={{fontSize: 24, top: 4, color: '#757575'}}/>}
               primaryText={modules[__typename].name}
-              value={`${key}-${ref}`}
+              value={ref}
               onTouchTap={() => {
-                this.context.router.history.push(`/site/page/${pageId}/section/${key}/block/${ref}`)
-                this.setState({selectedBlock: `${key}-${ref}`})
+                this.context.router.history.push(`/site/page/${pageId}/section/${section}/block/${ref}`)
+                this.setState({selectedBlock: ref})
               }}
               rightIconButton={
                 <IconButton
                   iconStyle={smallIcon}
+                  onTouchTap={() => this.removeBlock(ref)}
                   style={small} tooltip="delete the block"
                 >
                   <i className="material-icons">delete_forever</i>
@@ -108,7 +131,23 @@ const mapStateToProps = ({site}, ownProps) => {
 }
 
 const enhance = compose(
-  connect(mapStateToProps),
+  graphql(addBlock, {
+    name: 'addBlock',
+    options: {
+      refetchQueries: [
+        'page',
+      ],
+    }
+  }),
+  graphql(removeBlock, {
+    name: 'removeBlock',
+    options: {
+      refetchQueries: [
+        'page',
+      ],
+    }
+  }),
+  connect(mapStateToProps, {push}),
 )
 
 

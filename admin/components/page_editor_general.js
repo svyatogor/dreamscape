@@ -21,9 +21,8 @@ const required = value => isEmpty(value) && 'Cannot be blank'
 class PageEditorGeneral extends React.Component {
   onSubmit(data) {
     const page = omit(data, '__typename', 'linkText', 'sections')
-    page.title = {locale: this.props.locale, value: page.title}
     const newPage = !data.id
-    return this.props.mutate({variables: {page}})
+    return this.props.mutate({variables: {page, locale: this.props.locale}})
       .then(({data}) => {
         this.props.showNotification("Page saved")
         if (newPage) {

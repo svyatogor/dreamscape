@@ -1,0 +1,3 @@
+mutation removeBlock($block: BlockRefInput!) {
+  removeBlock(block: $block)
+}

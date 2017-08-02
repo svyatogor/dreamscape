@@ -49,13 +49,18 @@ input PageInput {
   published: Boolean
   layout: String
   parent: ID
-  title: I18nStringInput
+  title: String
 }
 
-input BlockRef {
+input BlockInput {
   page: ID!
   section: String!
-  block: Int!
+  _type: String!
+}
+
+input BlockRefInput {
+  page: ID!
+  ref: ID!
 }
 
 type Query {
@@ -65,6 +70,8 @@ type Query {
 }
 
 type Mutation {
-  upsertPage(page: PageInput!): Page
+  upsertPage(page: PageInput!, locale: String): Page
+  addBlock(block: BlockInput!): Block
+  removeBlock(block: BlockRefInput!): Boolean
   saveStaticText(id: ID!, content: I18nStringInput!): StaticText
 }

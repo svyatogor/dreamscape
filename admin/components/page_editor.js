@@ -22,17 +22,26 @@ const withMenu = (Module) => {
       let content = null
       if (section && block) {
         const pageSection = find(page.sections, {key: section})
-        const {__typename} = find(pageSection.blocks, {ref: block})
-        Module = require(`./modules/${underscore(__typename)}`).default
+        if (!pageSection) return null
+        const _block = find(pageSection.blocks, {ref: block})
+        if (!_block) return null
+        Module = require(`./modules/${underscore(_block.__typename)}`).default
       }
       content = <Module page={page} id={block} />
       return (
-        <div className="row">
-          <div className="col-md-4">
-            <PageMenu section={section} block={block} page={page} />
+        <div>
+          <div className="row">
+            <div className="col-md-12">
+              <h1 style={{paddingLeft: 70, marginBottom: 20}}>{t(page.title, this.props.locale)}</h1>
+            </div>
           </div>
-          <div className="col-md-8">
-            {content}
+          <div className="row">
+            <div className="col-md-4">
+              <PageMenu selectedBlock={block} page={page} />
+            </div>
+            <div className="col-md-8">
+              {content}
+            </div>
           </div>
         </div>
       )
@@ -40,7 +49,7 @@ const withMenu = (Module) => {
   }
   return graphql(page, {
     options: ({match: {params: {pageId}}}) => ({variables: {id: pageId}})
-  })(PageWithMenu)
+  })(connect(({app}) => ({locale: app.locale}))(PageWithMenu))
 }
 
 const NewPage = () =>

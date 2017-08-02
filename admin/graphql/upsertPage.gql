@@ -1,5 +1,5 @@
-mutation upsertPage($page: PageInput!) {
-    upsertPage(page: $page) {
+mutation upsertPage($page: PageInput!, $locale: String) {
+    upsertPage(page: $page, locale: $locale) {
       id
       slug
       title {locale value}
