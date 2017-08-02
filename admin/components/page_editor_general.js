@@ -1,6 +1,7 @@
 import React from 'react'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
+import {push} from 'react-router-redux'
 import {reduxForm, Field, SubmissionError} from 'redux-form'
 import {RaisedButton, MenuItem} from 'material-ui'
 import {
@@ -21,11 +22,17 @@ class PageEditorGeneral extends React.Component {
   onSubmit(data) {
     const page = omit(data, '__typename', 'linkText', 'sections')
     page.title = {locale: this.props.locale, value: page.title}
+    const newPage = !data.id
     return this.props.mutate({variables: {page}})
-      .then(data => this.props.showNotification("Page saved"))
+      .then(({data}) => {
+        this.props.showNotification("Page saved")
+        if (newPage) {
+          this.props.push(`/site/page/${data.upsertPage.id}`)
+        }
+      })
       .catch((error) => {
-      throw new SubmissionError(error.graphQLErrors[0].errors)
-    });
+        throw new SubmissionError(error.graphQLErrors[0].errors)
+      })
   }
 
   render() {
@@ -110,7 +117,7 @@ const enhance = compose(
       ],
     }
   }),
-  connect(mapStateToProps, {showNotification}),
+  connect(mapStateToProps, {showNotification, push}),
   reduxForm({form: 'page', enableReinitialize: true, keepDirtyOnReinitialize: true}),
 )
 
