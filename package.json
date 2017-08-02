@@ -83,7 +83,8 @@
     "backend": "babel-watch scripts/backend.js",
     "seed": "babel-node scripts/seed.js",
     "build": "node scripts/build.js",
-    "test": "node scripts/test.js --env=jsdom"
+    "test": "node scripts/test.js --env=jsdom",
+    "heroku-postbuild": "yarn build"
   },
   "jest": {
     "collectCoverageFrom": [

@@ -12,6 +12,7 @@ import {
 	addResolveFunctionsToSchema,
 } from 'graphql-tools'
 import {readFileSync} from 'fs'
+import path from 'path'
 import resolvers from './resolvers'
 import './models'
 mongoose.Promise = require('bluebird')
@@ -52,6 +53,14 @@ export default () => {
 	app.use('/graphiql', graphiqlExpress({
 		endpointURL: '/graphql',
 	}));
+
+	// Serve static assets
+	app.use(express.static(path.resolve(__dirname, '..', 'build-admin')));
+
+	// Always return the main index.html, so react-router render the route in the client
+	app.get('*', (req, res) => {
+		res.sendFile(path.resolve(__dirname, '..', 'build-admin', 'index.html'));
+	});
 
 	app.listen(3000)
 }
