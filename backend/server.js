@@ -54,13 +54,15 @@ export default () => {
 		endpointURL: '/graphql',
 	}));
 
-	// Serve static assets
-	app.use(express.static(path.resolve(__dirname, '..', 'build-admin')));
+	if (process.env.NODE_ENV === 'production') {
+		// Serve static assets
+		app.use(express.static(path.resolve(__dirname, '..', 'build-admin')))
 
-	// Always return the main index.html, so react-router render the route in the client
-	app.get('*', (req, res) => {
-		res.sendFile(path.resolve(__dirname, '..', 'build-admin', 'index.html'));
-	});
+		// Always return the main index.html, so react-router render the route in the client
+		app.get('*', (req, res) => {
+			res.sendFile(path.resolve(__dirname, '..', 'build-admin', 'index.html'))
+		})
+	}
 
 	app.listen(process.env.PORT || 3000)
 }
