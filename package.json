@@ -48,6 +48,7 @@
     "mdi": "^2.0.46",
     "mongoose": "^4.11.4",
     "mongoose-seeder": "^1.2.1",
+    "node-sass": "^4.5.3",
     "object-assign": "4.1.1",
     "postcss-flexbugs-fixes": "3.0.0",
     "postcss-loader": "2.0.6",
@@ -70,6 +71,7 @@
     "redux-form-material-ui": "^4.2.0",
     "redux-persist": "^4.8.3",
     "redux-thunk": "^2.2.0",
+    "sass-loader": "^6.0.6",
     "style-loader": "0.18.2",
     "sw-precache-webpack-plugin": "0.11.3",
     "url-loader": "0.5.9",
@@ -147,8 +149,6 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-decorators": "^6.24.1",
-    "babel-watch": "^2.0.7",
-    "node-sass": "^4.5.3",
-    "sass-loader": "^6.0.6"
+    "babel-watch": "^2.0.7"
   }
 }
