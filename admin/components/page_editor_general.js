@@ -10,6 +10,7 @@ import {
 } from 'redux-form-material-ui'
 import {omit, isEmpty, map, get, reject} from 'lodash'
 import {graphql, gql} from 'react-apollo'
+import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
 import {t} from '../utils'
 import common from '../common.scss'
@@ -20,8 +21,9 @@ class PageEditorGeneral extends React.Component {
   onSubmit(data) {
     const page = omit(data, '__typename', 'linkText', 'sections')
     page.title = {locale: this.props.locale, value: page.title}
-    return this.props.mutate({variables: {page}}).then(data => console.log(data)).catch((error) => {
-      console.log(error);
+    return this.props.mutate({variables: {page}})
+      .then(data => this.props.showNotification("Page saved"))
+      .catch((error) => {
       throw new SubmissionError(error.graphQLErrors[0].errors)
     });
   }
@@ -108,7 +110,7 @@ const enhance = compose(
       ],
     }
   }),
-  connect(mapStateToProps),
+  connect(mapStateToProps, {showNotification}),
   reduxForm({form: 'page', enableReinitialize: true, keepDirtyOnReinitialize: true}),
 )
 

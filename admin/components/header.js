@@ -1,7 +1,7 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {logout, setLocale} from '../actions'
-import Logo from '../assets/logo.png'
+import Logo from '../assets/logo_white_2x.png'
 import {AppBar, IconButton, SelectField, MenuItem} from 'material-ui'
 import styles from './header.scss'
 import {map} from 'lodash'
@@ -9,7 +9,7 @@ import {map} from 'lodash'
 const Title = ({title}) =>
   <div style={{display: 'flex', width: '100%'}}>
     <div style={{flex: 3, minWidth: 300}}>
-      <img src={Logo} alt="" />
+      <img src={Logo} alt="" width="50%" />
     </div>
     <div style={{flex: 15, color: '#ddd', fontWeight: 300}}>
       {title}

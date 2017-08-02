@@ -10,10 +10,11 @@ import createHistory from 'history/createBrowserHistory'
 import {ConnectedRouter, routerMiddleware} from 'react-router-redux'
 import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo'
 import {persistStore, autoRehydrate} from 'redux-persist'
+import Notification from './components/notification'
 import reducers from './reducers'
 import styles from './App.scss'
 import Header from './components/header'
-import Logo from './assets/logo-c.png'
+import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 
@@ -55,7 +56,7 @@ class App extends Component {
               open={this.state.open} docked={false} width={300}
               onRequestChange={(open) => this.setState({open})}
             >
-              <img src={Logo} alt="" style={{margin: 20, marginBottom: 40}} />
+              <img src={Logo} alt="" style={{margin: 20, marginBottom: 40, width: '50%'}} />
               <NavLink to="/site">
                 <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-sitemap" /></div>}>Site</MenuItem>
               </NavLink>
@@ -70,6 +71,7 @@ class App extends Component {
               <Route exact path="/" component={Welcome} />
               <Route path="/site" component={SiteEditor} />
             </section>
+            <Notification />
           </div>
         </ConnectedRouter>
       </ApolloProvider>
