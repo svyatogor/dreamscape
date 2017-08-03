@@ -10,10 +10,9 @@ export default class {
   }
 
   @mutation
-  static async saveStaticText(context, {id, content}) {
+  static async saveStaticText(context, {input: {id, content, locale}}) {
     const text = await StaticText.findById(id)
-    const string = find(text.content, {locale: content.locale})
-    string.value = content.value
+    text.set(`content.${locale}`, content)
     await text.save()
     return text
   }

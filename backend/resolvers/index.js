@@ -1,3 +1,5 @@
+import GraphQLJSON from 'graphql-type-json'
+
 const resolvers = {
   Query: {
     ...require('./page').default.queries,
@@ -7,6 +9,7 @@ const resolvers = {
     ...require('./page').default.mutations,
     ...require('./static_text').default.mutations
   },
+  JSON: GraphQLJSON
 }
 
 export default resolvers

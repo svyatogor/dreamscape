@@ -4,8 +4,10 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {find, get} from 'lodash'
 import {RaisedButton} from 'material-ui'
+import {t} from '../../utils'
 import Redactor from '../redactor'
 import common from '../../common.scss'
+import {showNotification} from '../../actions'
 
 class StaticText extends React.Component {
   constructor(props) {
@@ -18,7 +20,7 @@ class StaticText extends React.Component {
       return null
     }
     const {locale} = this.props
-    const value = this.state.value || get(find(this.props.data.staticText.content, {locale}), 'value', '')
+    const value = this.state.value || t(this.props.data.staticText.content, locale)
     return (<div>
       <Redactor value={value} onChange={(value) => this.setState({value})} />
       <div className={common.formActions}>
@@ -27,30 +29,33 @@ class StaticText extends React.Component {
     </div>)
   }
 
+  componentWillUpdate({locale}) {
+    if (locale !== this.props.locale) {
+      this.setState({value: null})
+    }
+  }
+
   save() {
-    this.props.save(this.state.value)
+    const input = {
+      id: this.props.id,
+      locale: this.props.locale,
+      content: this.state.value,
+    }
+    this.props.mutate({variables: {input}, refetchQueries: ['staticText']}).then(() =>
+      this.props.showNotification("Text saved")
+    )
   }
 }
 
 const getStaticText = gql`
   query staticText($id: ID!) {
-    staticText(id: $id) {
-      content {
-        locale
-        value
-      }
-    }
+    staticText(id: $id) { content }
   }
 `
 
 const saveStaticText = gql`
-  mutation saveStaticText($id: ID!, $content: I18nStringInput!) {
-    saveStaticText(id: $id, content: $content) {
-      content {
-        locale
-        value
-      }
-    }
+  mutation saveStaticText($input: StaticTextInput!) {
+    saveStaticText(input: $input) { content }
   }
 `
 
@@ -59,20 +64,8 @@ const mapStateToProps = ({app: {locale}}) => ({
 })
 
 const enhance = compose(
-  connect(mapStateToProps),
+  connect(mapStateToProps, {showNotification}),
   graphql(getStaticText),
-  graphql(saveStaticText, {
-    props: ({mutate, ownProps: {locale, page: {id}, section, block}}) => ({
-      save: (value) => {
-        mutate({variables: {
-          id: block,
-          content: {
-            locale,
-            value
-          }
-        }})
-      },
-    }),
-  }),
+  graphql(saveStaticText),
 )
 export default enhance(StaticText)

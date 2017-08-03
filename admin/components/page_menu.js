@@ -31,7 +31,7 @@ class PageMenu extends React.Component {
     const block = {page: page.id, section, _type: type}
     this.props.addBlock({variables: {block}})
     .then(({data: {addBlock}}) => {
-      this.props.push(`/site/page/${this.props.page.id}/section/${section}/block/${addBlock.ref}`)
+      this.props.push(`/site/page/${this.props.page.id}/block/${addBlock}`)
     })
   }
 
@@ -80,7 +80,7 @@ class PageMenu extends React.Component {
       top: 10,
     }
     const {modules, page: {sections, id: pageId}} = this.props
-    const blocks = get(find(sections, {key: section}), 'blocks', [])
+    const blocks = get(sections, section, [])
     return (
       <div key={section}>
         <SelectableList value={this.state.selectedBlock}>
@@ -94,14 +94,14 @@ class PageMenu extends React.Component {
             </IconMenu>
           </Subheader>
 
-          {map(blocks, ({__typename, ref}) => (
+          {map(blocks, ({_type, ref}) => (
             <ListItem
               key={ref}
               leftIcon={<i className="mdi mdi-view-dashboard" style={{fontSize: 24, top: 4, color: '#757575'}}/>}
-              primaryText={modules[__typename].name}
+              primaryText={modules[_type].name}
               value={ref}
               onTouchTap={() => {
-                this.context.router.history.push(`/site/page/${pageId}/section/${section}/block/${ref}`)
+                this.context.router.history.push(`/site/page/${pageId}/block/${ref}`)
                 this.setState({selectedBlock: ref})
               }}
               rightIconButton={

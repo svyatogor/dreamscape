@@ -39,6 +39,7 @@
     "fs-extra": "3.0.1",
     "graphql-server-express": "^1.0.4",
     "graphql-tools": "^1.1.0",
+    "graphql-type-json": "^0.1.4",
     "history": "^4.6.3",
     "html-webpack-plugin": "2.29.0",
     "inflection": "^1.12.0",

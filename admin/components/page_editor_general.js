@@ -20,7 +20,7 @@ const required = value => isEmpty(value) && 'Cannot be blank'
 
 class PageEditorGeneral extends React.Component {
   onSubmit(data) {
-    const page = omit(data, '__typename', 'linkText', 'sections')
+    const page = omit(data, '__typename', 'sections')
     const newPage = !data.id
     return this.props.mutate({variables: {page, locale: this.props.locale}})
       .then(({data}) => {
@@ -90,7 +90,8 @@ const mapStateToProps = ({site, app}, {page}) => {
     initialValues: {
       ...page,
       parent: get(page.parent, 'id'),
-      title: t(page.title, app.locale)
+      title: t(page.title, app.locale),
+      linkText: t(page.linkText, app.locale)
     }
   }
 }
@@ -99,10 +100,7 @@ const listAllPages = gql`
   query {
     pages {
       id
-      title {
-        locale
-        value
-      }
+      title
     }
   }
 `

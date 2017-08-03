@@ -2,77 +2,58 @@
     "staticTexts": {
         "_model": "StaticText",
         "t1": {
-            "content": [{
-                "locale": "en",
-                "value": "A few words about the company."
-            }]
+            "content": {
+                "en": "A few words about the company."
+            }
         },
         "t2": {
-            "content": [{
-                "locale": "en",
-                "value": "Second text block"
-            }]
+            "content": {
+                "en": "Second text block"
+            }
         },
         "t3": {
-            "content": [{
-                "locale": "en",
-                "value": "Side text block"
-            }]
+            "content": {
+                "en": "Side text block"
+            }
         }
     },
     "pages": {
         "_model": "Page",
         "home": {
             "slug": "index",
-            "title": [
-                {
-                    "locale": "en",
-                    "value": "Home"
-                }
-            ],
+            "title": {
+                "en": "Home"
+            },
             "published": true,
             "layout": "main"
         },
         "about": {
             "slug": "about",
-            "title": [
-                {
-                    "locale": "en",
-                    "value": "About"
-                },
-                {
-                    "locale": "ru",
-                    "value": "О нас"
-                }
-            ],
+            "title": {
+                "en": "About",
+                "ru": "О нас"
+            },
             "published": true,
             "parent": "->pages.home",
             "layout": "main",
-            "sections": [
-                {
-                    "key": "main_area",
-                    "blocks": [
-                        {
-                            "_type": "StaticText",
-                            "ref": "->staticTexts.t1"
-                        },
-                        {
-                            "_type": "StaticText",
-                            "ref": "->staticTexts.t2"
-                        }
-                    ]
-                },
-
-                {
-                    "key": "left_area",
-                    "blocks": [
-                        {
-                            "_type": "StaticText",
-                            "ref": "->staticTexts.t3"
-                        }
-                    ]
-                }
-            ]
+            "sections": {
+                "main_area": [
+                    {
+                        "_type": "StaticText",
+                        "ref": "->staticTexts.t1"
+                    },
+                    {
+                        "_type": "StaticText",
+                        "ref": "->staticTexts.t2"
+                    }
+                ],
+                "left_area": [
+                    {
+                        "_type": "StaticText",
+                        "ref": "->staticTexts.t3"
+                    }
+                ]
+            }
         }
     }
 }

@@ -2,16 +2,11 @@ query page($id: ID!) {
   page(id: $id) {
     id
     slug
-    title {locale value}
+    title
+    linkText
     parent {id}
     layout
     published
-    sections {
-      key
-      blocks {
-        _type
-        ref
-      }
-    }
+    sections
   }
 }

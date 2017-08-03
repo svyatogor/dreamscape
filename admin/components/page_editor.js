@@ -3,7 +3,7 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {Route, Switch} from 'react-router-dom'
 import {graphql} from 'react-apollo'
-import {find} from 'lodash'
+import _, {find} from 'lodash'
 import {underscore} from 'inflection'
 import {t} from '../utils'
 import {setTitle} from '../actions'
@@ -17,15 +17,16 @@ const withMenu = (Module) => {
       if (this.props.data.loading) {
         return null
       }
-      const {section, block} = this.props.match.params
+      const {block} = this.props.match.params
       const {page} = this.props.data
       let content = null
-      if (section && block) {
-        const pageSection = find(page.sections, {key: section})
-        if (!pageSection) return null
-        const _block = find(pageSection.blocks, {ref: block})
-        if (!_block) return null
-        Module = require(`./modules/${underscore(_block.__typename)}`).default
+      if (block) {
+        const blockObj = _(page.sections).values().flatten().find({ref: block})
+        if (blockObj) {
+          Module = require(`./modules/${underscore(blockObj._type)}`).default
+        } else {
+          return null
+        }
       }
       content = <Module page={page} id={block} />
       return (
@@ -64,7 +65,7 @@ const NewPage = () =>
 
 const PageEditor = () =>
   <Switch>
-    <Route path="/site/page/:pageId/section/:section/block/:block" component={withMenu()} />
+    <Route path="/site/page/:pageId/block/:block" component={withMenu()} />
     <Route path="/site/page/new" component={NewPage} />
     <Route component={withMenu(PageEditorGeneral)} />
   </Switch>

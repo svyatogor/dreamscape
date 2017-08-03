@@ -1,10 +1,7 @@
 query pages {
   pages {
     id
-    title {
-      locale
-      value
-    }
+    title
     published
     parent {
       id

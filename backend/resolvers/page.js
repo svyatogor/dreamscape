@@ -1,4 +1,5 @@
-import {omitBy, isNil, forEach, mapKeys, findIndex, find, last, map, reject, get} from 'lodash'
+import mongoose from 'mongoose'
+import {omit, isNil, forEach, mapKeys, mapValues, has, findIndex, find, last, map, reject, get} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
 
@@ -18,22 +19,11 @@ export default class {
     let _page
     if (page.id) {
       _page = await Page.findById(page.id).populate('parent')
-      forEach(['title'], i18nField => {
-        page = mapKeys(page, (value, key) => {
-          if (key === i18nField) {
-            const idx = findIndex(_page[i18nField], {locale})
-            if (idx >= 0) {
-              return `${key}.${idx}.value`
-            } else {
-              _page[i18nField].push({locale, value})
-              return null
-            }
-          } else {
-            return key
-          }
-        })
+      const i18nfields = ['title', 'linkText']
+      i18nfields.filter(f => has(page, f)).forEach(field => {
+        _page.set(`${field}.${locale}`, page[field])
       })
-      page = omitBy(page, isNil)
+      page = omit(page, i18nfields)
       _page.set(page)
     } else {
       _page = new Page(page)
@@ -44,27 +34,28 @@ export default class {
 
   @mutation
   static async addBlock(context, {block}) {
-    let page = await Page.findById(block.page)
-    let section = await page.findOrCreateSection(block.section)
-    const klass = require('../models')[block._type]
+    const {page: id, section, _type} = block
+    let page = await Page.findById(id)
+    page.sections = page.sections || {}
+    page.sections[section] = page.sections[section] || []
+    const klass = require('../models')[_type]
     const blockObj = new klass()
     await blockObj.save()
-    section.blocks.push({_type: block._type, ref: blockObj})
+    page.sections[section].push({ref: mongoose.Types.ObjectId(blockObj.id), _type})
+    page.markModified('sections')
     await page.save()
-    return last(section.blocks)
+    return blockObj.id
   }
 
   @mutation
   static async removeBlock(context, {block: {page: pageId, ref}}) {
     let page = await Page.findById(pageId)
-    let sectionIndex = findIndex(page.sections, s => map(s.blocks, b => String(b.ref)).includes(ref))
-    const section = page.sections[sectionIndex]
-    const blockIndex = findIndex(section.blocks, b => String(b.ref) === ref)
-    const kp =`sections.${sectionIndex}.blocks.${blockIndex}`
-
-    page = await page.populate(kp)
-    await get(page, kp).remove()
-    section.blocks = reject(section.blocks, b => String(b.ref) === ref)
+    forEach(page.sections, (section, key) => {
+      if (map(section, block => String(block.ref)).includes(ref)) {
+        page.sections[key] = reject(section, block => String(block.ref) === ref)
+      }
+    })
+    page.markModified('sections')
     await page.save()
   }
 

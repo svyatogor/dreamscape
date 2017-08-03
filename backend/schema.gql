@@ -1,31 +1,22 @@
-type StaticText implements Block {
-  id: ID!
-  ref: ID
-  _type: String!
-  content: [I18nString]
-}
+scalar JSON
 
 interface Block {
   _type: String!
   ref: ID
 }
 
-type I18nString {
-  locale: String
-  value: String
-}
-
-type Section {
-  key: String
-  blocks: [Block]
-}
-
-type PageDefinition {
+type StaticText implements Block {
   id: ID!
-  slug: String
-  published: Boolean
-  parent: ID
-  title: [I18nString]
+  ref: ID
+  _type: String!
+  content: JSON
+}
+
+
+input StaticTextInput {
+  id: ID!
+  content: String!
+  locale: String!
 }
 
 type Page {
@@ -34,13 +25,9 @@ type Page {
   published: Boolean
   layout: String
   parent: Page
-  title: [I18nString]
-  sections: [Section]
-}
-
-input I18nStringInput {
-  locale: String
-  value: String
+  title: JSON
+  linkText: JSON
+  sections: JSON
 }
 
 input PageInput {
@@ -50,6 +37,7 @@ input PageInput {
   layout: String
   parent: ID
   title: String
+  linkText: String
 }
 
 input BlockInput {
@@ -71,7 +59,7 @@ type Query {
 
 type Mutation {
   upsertPage(page: PageInput!, locale: String): Page
-  addBlock(block: BlockInput!): Block
+  addBlock(block: BlockInput!): ID
   removeBlock(block: BlockRefInput!): Boolean
-  saveStaticText(id: ID!, content: I18nStringInput!): StaticText
+  saveStaticText(input: StaticTextInput!): StaticText
 }
