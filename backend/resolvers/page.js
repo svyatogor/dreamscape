@@ -17,17 +17,18 @@ export default class {
   @mutation
   static async upsertPage(context, {page, locale = 'en'}) {
     let _page
+    const i18nfields = ['title', 'linkText']
     if (page.id) {
       _page = await Page.findById(page.id).populate('parent')
-      const i18nfields = ['title', 'linkText']
-      i18nfields.filter(f => has(page, f)).forEach(field => {
-        _page.set(`${field}.${locale}`, page[field])
-      })
-      page = omit(page, i18nfields)
-      _page.set(page)
+      _page.set(omit(page, i18nfields))
     } else {
-      _page = new Page(page)
+      locale = 'en'
+      _page = new Page(omit(page, i18nfields))
     }
+
+    i18nfields.filter(f => has(page, f)).forEach(field => {
+      _page.set(`${field}.${locale}`, page[field])
+    })
     await _page.save()
     return _page
   }
