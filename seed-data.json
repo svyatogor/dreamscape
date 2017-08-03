@@ -1,4 +1,14 @@
 {
+    "sites": {
+        "_model": "Site",
+        "demo": {
+            "key": "demo",
+            "domains": [
+                "site.dreamscape.space",
+                "site.dreamscape.tech"
+            ]
+        }
+    },
     "staticTexts": {
         "_model": "StaticText",
         "t1": {
@@ -25,6 +35,7 @@
                 "en": "Home"
             },
             "published": true,
+            "site": "->sites.demo",
             "layout": "main"
         },
         "about": {
@@ -35,6 +46,7 @@
             },
             "published": true,
             "parent": "->pages.home",
+            "site": "->sites.demo",
             "layout": "main",
             "sections": {
                 "main_area": [

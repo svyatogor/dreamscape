@@ -6,13 +6,16 @@ import {
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import mongoose from 'mongoose'
-import {get} from 'lodash'
+import {get, map} from 'lodash'
 import {
 	makeExecutableSchema,
 	addResolveFunctionsToSchema,
 } from 'graphql-tools'
 import {readFileSync} from 'fs'
 import path from 'path'
+import multer from 'multer'
+import cloudinaryStorage from 'multer-storage-cloudinary'
+import cloudinary from 'cloudinary'
 import resolvers from './resolvers'
 import './models'
 mongoose.Promise = require('bluebird')
@@ -48,11 +51,36 @@ export default () => {
 				errors,
 			}
 		},
-	}));
+	}))
 
 	app.use('/graphiql', graphiqlExpress({
 		endpointURL: '/graphql',
-	}));
+	}))
+
+
+	const storage = cloudinaryStorage({
+		cloudinary,
+		folder: 'demo',
+	})
+	app.post('/upload-image', multer({storage}).single('file'), async (req, res) => {
+		const {_type, id} = req.query
+		const Model = require('./models')[_type]
+		const object = await Model.findById(id)
+		console.log(object.attach);
+		if (object.attach) {
+			await object.attach(req.file)
+		}
+		res.json({url: req.file.url, id: req.file.public_id})
+	})
+
+	app.get('/images', async (req, res) => {
+		const {_type, id} = req.query
+		const Model = require('./models')[_type]
+		const object = await Model.findById(id)
+		res.json(map(object.images, image => (
+			{thumb: image.url, url: image.url, id: image.public_id}
+		)))
+	})
 
 	if (process.env.NODE_ENV === 'production') {
 		// Serve static assets
