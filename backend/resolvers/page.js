@@ -60,6 +60,13 @@ export default class {
     await page.save()
   }
 
+  @mutation
+  static async attachImage(context, {type, id, url}) {
+    const klass = require('../models')[type]
+    const object = await klass.findById(id)
+    return object.attach(url)
+  }
+
   static queries = {}
   static mutations = {}
 }

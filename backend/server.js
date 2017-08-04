@@ -6,16 +6,15 @@ import {
 import bodyParser from 'body-parser'
 import cors from 'cors'
 import mongoose from 'mongoose'
-import {get, map} from 'lodash'
+import {get, last, map} from 'lodash'
 import {
 	makeExecutableSchema,
 	addResolveFunctionsToSchema,
 } from 'graphql-tools'
 import {readFileSync} from 'fs'
 import path from 'path'
-import multer from 'multer'
-import cloudinaryStorage from 'multer-storage-cloudinary'
-import cloudinary from 'cloudinary'
+import aws from 'aws-sdk'
+import shortid from 'shortid'
 import resolvers from './resolvers'
 import './models'
 mongoose.Promise = require('bluebird')
@@ -57,29 +56,37 @@ export default () => {
 		endpointURL: '/graphql',
 	}))
 
-
-	const storage = cloudinaryStorage({
-		cloudinary,
-		folder: 'demo',
-	})
-	app.post('/upload-image', multer({storage}).single('file'), async (req, res) => {
-		const {_type, id} = req.query
-		const Model = require('./models')[_type]
-		const object = await Model.findById(id)
-		console.log(object.attach);
-		if (object.attach) {
-			await object.attach(req.file)
+	app.get('/sign-s3', async (req, res) => {
+		const s3 = new aws.S3({region: 'eu-west-1'})
+		const ext = last(req.query.name.split('.'))
+		const fileName = 'demo' + '/' + shortid.generate() + '.' + ext
+		const fileType = req.query.type
+		const s3Params = {
+			Bucket: process.env.S3_BUCKET,
+			Key: fileName,
+			Expires: 60,
+			ContentType: fileType,
+			ACL: 'public-read',
 		}
-		res.json({url: req.file.url, id: req.file.public_id})
+		s3.getSignedUrl('putObject', s3Params, (err, data) => {
+			if(err){
+				console.log(err)
+				return res.end()
+			}
+			res.write(data)
+			res.end()
+		});
 	})
 
 	app.get('/images', async (req, res) => {
-		const {_type, id} = req.query
-		const Model = require('./models')[_type]
-		const object = await Model.findById(id)
-		res.json(map(object.images, image => (
-			{thumb: image.url, url: image.url, id: image.public_id}
-		)))
+		const {type, id} = req.query
+		const klass = require('./models')[type]
+    const object = await klass.findById(id)
+		res.json(map(object.images, url => ({
+			thumb: url,
+			url,
+			id: url,
+		})))
 	})
 
 	if (process.env.NODE_ENV === 'production') {

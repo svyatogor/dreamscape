@@ -1,7 +1,9 @@
 import React from 'react'
 import querystring from 'querystring'
+import {graphql} from 'react-apollo'
+import attachImage from '../graphql/attachImage.gql'
 
-export default class extends React.Component {
+class Redactor extends React.Component {
   render() {
     return <textarea id="redactor" defaultValue={this.props.value} />
   }
@@ -21,8 +23,17 @@ export default class extends React.Component {
     }
   }
 
+  onUpload(json) {
+    this.props.mutate({variables: {
+      type: this.props.parent.type,
+      id: this.props.parent.id,
+      url: json.url,
+    }})
+  }
+
   componentDidMount() {
     const onChange = this.props.onChange.bind(this)
+    const onUpload = this.onUpload.bind(this)
     const self = this
     const {parent} = this.props
     global.$('#redactor').redactor({
@@ -33,14 +44,22 @@ export default class extends React.Component {
           mode: 'htmlmixed',
           indentUnit: 4
       },
-      imageUpload: `${process.env.REACT_APP_BACKEND}/upload-image?${querystring.stringify(parent)}`,
+      s3: `${process.env.REACT_APP_BACKEND}/sign-s3`,
+      imageUpload: true,
       imageManagerJson: `${process.env.REACT_APP_BACKEND}/images?${querystring.stringify(parent)}`,
+      imageResizable: true,
+      imagePosition: true,
       callbacks: {
         change: function() {
           self.value = this.code.get()
           onChange(self.value)
         },
+        imageUpload: function(_, json) {
+          onUpload(json)
+        }
       },
     })
   }
 }
+
+export default graphql(attachImage)(Redactor)

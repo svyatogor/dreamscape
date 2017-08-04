@@ -21,7 +21,7 @@ class StaticText extends React.Component {
     }
     const {locale} = this.props
     const value = this.state.value || t(this.props.data.staticText.content, locale)
-    const parent = {_type: 'StaticText', id: this.props.id}
+    const parent = {type: 'StaticText', id: this.props.id}
     return (<div>
       <Redactor value={value} onChange={(value) => this.setState({value})} parent={parent} />
       <div className={common.formActions}>

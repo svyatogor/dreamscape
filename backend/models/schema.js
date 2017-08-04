@@ -18,7 +18,7 @@ const pageSchema = new Schema({
 
 const staticTextSchema = new Schema({
   content: Object,
-  images: Object
+  images: [String]
 })
 
 export {

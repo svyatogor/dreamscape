@@ -62,4 +62,5 @@ type Mutation {
   addBlock(block: BlockInput!): ID
   removeBlock(block: BlockRefInput!): Boolean
   saveStaticText(input: StaticTextInput!): StaticText
+  attachImage(type: String!, id: ID!, url: String!): Boolean
 }

@@ -1,0 +1,3 @@
+mutation attachImage($type: String!, $id: ID!, $url: String!) {
+  attachImage(type: $type, id: $id, url: $url)
+}
