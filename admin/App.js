@@ -18,7 +18,9 @@ import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 
-
+if (!process.env.REACT_APP_BACKEND) {
+  process.env.REACT_APP_BACKEND = ''
+}
 const networkInterface = createNetworkInterface({
   uri: `${process.env.REACT_APP_BACKEND}/graphql`
 })
