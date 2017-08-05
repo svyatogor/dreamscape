@@ -6,6 +6,18 @@
             "domains": [
                 "site.dreamscape.space",
                 "site.dreamscape.tech"
+            ],
+            "supportedLanguages": ["en", "ru"],
+            "layouts": {
+                "main": {
+                    "label": "Main",
+                    "sections": {
+                        "left_menu_column": {"name": "Menu column"}
+                    }
+                }
+            },
+            "allowedModules": [
+                "StaticText"
             ]
         }
     },
@@ -49,7 +61,7 @@
             "site": "->sites.demo",
             "layout": "main",
             "sections": {
-                "main_area": [
+                "left_menu_column": [
                     {
                         "_type": "StaticText",
                         "ref": "->staticTexts.t1"
@@ -57,12 +69,6 @@
                     {
                         "_type": "StaticText",
                         "ref": "->staticTexts.t2"
-                    }
-                ],
-                "left_area": [
-                    {
-                        "_type": "StaticText",
-                        "ref": "->staticTexts.t3"
                     }
                 ]
             }

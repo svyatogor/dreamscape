@@ -3,6 +3,9 @@ import {Schema} from 'mongoose'
 const siteSchema = new Schema({
   key: {type: String, required: true},
   domains: [String],
+  layouts: Object,
+  allowedModules: [String],
+  supportedLanguages: [String],
 })
 
 const pageSchema = new Schema({
