@@ -7,14 +7,6 @@
                 "dreamscape-demo.dev"
             ],
             "supportedLanguages": ["en", "ru"],
-            "layouts": {
-                "main": {
-                    "label": "Main",
-                    "sections": {
-                        "left_menu_column": {"name": "Menu column"}
-                    }
-                }
-            },
             "allowedModules": [
                 "StaticText"
             ]

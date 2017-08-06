@@ -1,0 +1,9 @@
+query {
+  site {
+    id
+    domains
+    allowedModules
+    supportedLanguages
+    layouts
+  }
+}

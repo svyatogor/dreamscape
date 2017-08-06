@@ -18,6 +18,7 @@ import {graphql} from 'react-apollo'
 import {push} from 'react-router-redux'
 import addBlock from '../graphql/addBlock.gql'
 import removeBlock from '../graphql/removeBlock.gql'
+import site from '../graphql/site.gql'
 
 let SelectableList = makeSelectable(List)
 
@@ -98,7 +99,7 @@ class PageMenu extends React.Component {
             <ListItem
               key={ref}
               leftIcon={<i className="mdi mdi-view-dashboard" style={{fontSize: 24, top: 4, color: '#757575'}}/>}
-              primaryText={modules[_type].name}
+              primaryText={_type}
               value={ref}
               onTouchTap={() => {
                 this.context.router.history.push(`/site/page/${pageId}/block/${ref}`)
@@ -122,15 +123,16 @@ class PageMenu extends React.Component {
   }
 }
 
-const mapStateToProps = ({site}, ownProps) => {
+const mapStateToProps = ({app}, {data: {site}, page}) => {
   return {
-    locale: site.locale,
-    layout: site.layouts[ownProps.page.layout],
-    modules: site.modules,
+    locale: app.locale,
+    layout: get(site.layouts, page.layout),
+    modules: site.allowedModules,
   }
 }
 
 const enhance = compose(
+  graphql(site),
   graphql(addBlock, {
     name: 'addBlock',
     options: {

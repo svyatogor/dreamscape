@@ -4,10 +4,12 @@ import {FloatingActionButton, Paper} from 'material-ui'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
+import {graphql} from 'react-apollo'
 import SiteTree from './site_tree'
 import common from '../common.scss'
 import SiteEditorWelcome from './site_editor_welcome'
 import PageEditor from './page_editor'
+import siteQuery from '../graphql/site.gql'
 
 class SiteEditor extends React.Component {
   render() {
@@ -44,4 +46,4 @@ class SiteEditor extends React.Component {
   }
 }
 
-export default connect()(SiteEditor)
+export default graphql(siteQuery)(connect()(SiteEditor))

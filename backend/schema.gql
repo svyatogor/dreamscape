@@ -30,6 +30,14 @@ type Page {
   sections: JSON
 }
 
+type Site {
+  id: ID!
+  domains: [String!]
+  allowedModules: [String!]!
+  supportedLanguages: [String!]!
+  layouts: JSON
+}
+
 input PageInput {
   id: ID
   slug: String
@@ -55,6 +63,7 @@ type Query {
   pages: [Page]
   page(id: ID!): Page
   staticText(id: ID!): StaticText
+  site: Site
 }
 
 type Mutation {

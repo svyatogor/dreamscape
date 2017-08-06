@@ -13,6 +13,7 @@ import {omit, isEmpty, map, get, reject} from 'lodash'
 import {graphql, gql} from 'react-apollo'
 import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
+import siteQuery from '../graphql/site.gql'
 import {t} from '../common/utils'
 import common from '../common.scss'
 
@@ -35,10 +36,10 @@ class PageEditorGeneral extends React.Component {
   }
 
   render() {
-    if (this.props.data.loading) {
+    if (this.props.data.loading || this.props.siteData.lodash) {
       return null
     }
-    const {error, handleSubmit, pristine, submitting, layouts, locale, data: {pages}} = this.props
+    const {error, handleSubmit, pristine, submitting, locale, data: {pages}, siteData: {site: {layouts}}} = this.props
     const validParents = reject(pages, parent => parent.id === get(this.props.page, 'id'))
     return (
       <form onSubmit={handleSubmit((data) => this.onSubmit(data))}>
@@ -61,7 +62,7 @@ class PageEditorGeneral extends React.Component {
           className={common.formControl}
           fullWidth
         >
-          {map(layouts, ({label}, key) => <MenuItem value={key} primaryText={label} key={key} />)}
+          {map(layouts, ({name}, key) => <MenuItem value={key} primaryText={name} key={key} />)}
         </Field>
         <Field
           name="parent"
@@ -106,6 +107,7 @@ const listAllPages = gql`
 `
 
 const enhance = compose(
+  graphql(siteQuery, {name: 'siteData'}),
   graphql(listAllPages),
   graphql(upsertPage, {
     options: {
