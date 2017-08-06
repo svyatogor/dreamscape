@@ -5,25 +5,26 @@ import {Page} from '../models'
 
 export default class {
   @query
-  static pages() {
-    return Page.find().populate('parent')
+  static pages({site}) {
+    return Page.where({site: site.id}).populate('parent')
   }
 
   @query
-  static page(context, {id}) {
-    return Page.findById(id).populate('parent')
+  static page({site}, {id}) {
+    return Page.findOne({_id: id, site: site.id}).populate('parent')
   }
 
   @mutation
-  static async upsertPage(context, {page, locale = 'en'}) {
+  static async upsertPage({site}, {page, locale = 'en'}) {
     let _page
     const i18nfields = ['title', 'linkText']
     if (page.id) {
-      _page = await Page.findById(page.id).populate('parent')
-      _page.set(omit(page, i18nfields))
+      _page = await Page.findOne({_id: page.id, site: site.id}).populate('parent')
+      _page.set(omit(page, [...i18nfields, 'site']))
     } else {
       locale = 'en'
       _page = new Page(omit(page, i18nfields))
+      _page.site = site.id
     }
 
     i18nfields.filter(f => has(page, f)).forEach(field => {

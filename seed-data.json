@@ -4,8 +4,7 @@
         "demo": {
             "key": "demo",
             "domains": [
-                "site.dreamscape.space",
-                "site.dreamscape.tech"
+                "dreamscape-demo.dev"
             ],
             "supportedLanguages": ["en", "ru"],
             "layouts": {

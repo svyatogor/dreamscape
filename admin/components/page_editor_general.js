@@ -13,7 +13,7 @@ import {omit, isEmpty, map, get, reject} from 'lodash'
 import {graphql, gql} from 'react-apollo'
 import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
-import {t} from '../utils'
+import {t} from '../common/utils'
 import common from '../common.scss'
 
 const required = value => isEmpty(value) && 'Cannot be blank'

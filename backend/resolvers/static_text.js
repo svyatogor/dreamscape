@@ -1,5 +1,3 @@
-import mongoose from 'mongoose'
-import {findIndex, find} from 'lodash'
 import {query, mutation} from './utils'
 import {StaticText} from '../models'
 

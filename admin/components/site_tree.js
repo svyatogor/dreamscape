@@ -8,7 +8,7 @@ import {get} from 'lodash'
 import cx from 'classnames'
 import {compose} from 'recompose'
 import {graphql} from 'react-apollo'
-import {t} from '../utils'
+import {t} from '../common/utils'
 import pages from '../graphql/pages.gql'
 import 'react-ui-tree/dist/react-ui-tree.css'
 

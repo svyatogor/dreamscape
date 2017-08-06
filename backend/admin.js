@@ -9,6 +9,7 @@ import {get, last, map} from 'lodash'
 import cors from 'cors'
 import {readFileSync} from 'fs'
 import resolvers from './resolvers'
+import {Site} from './models'
 
 const admin = express.Router()
 
@@ -18,16 +19,25 @@ const typeDefs = readFileSync('./backend/schema.gql').toString()
 const schema = makeExecutableSchema({typeDefs, resolvers})
 addResolveFunctionsToSchema(schema, {});
 
-admin.use((req, res, next) => {
-  if (req.hostname !== 'demo.dreamscape.tech') {
+admin.use(async (req, res, next) => {
+  const regex = new RegExp(`(.*).${process.env.BACKEND_DOMAIN}`, 'i')
+  if (!regex.test(req.hostname)) {
     next('router')
   } else {
-    next()
+    const match = req.hostname.match(regex)
+    const site = await Site.findOne({key: match[1].toLowerCase()})
+    if (site) {
+      req.site = site
+      next()
+    } else {
+      next('router')
+    }
   }
 })
 
-admin.use('/graphql', bodyParser.json(), graphqlExpress({
+admin.use('/graphql', bodyParser.json(), graphqlExpress(req => ({
   schema,
+  rootValue: req,
   formatError: error => {
     let originalErrors = get(error, 'originalError.errors')
     let errors = {}
@@ -41,7 +51,7 @@ admin.use('/graphql', bodyParser.json(), graphqlExpress({
       errors,
     }
   },
-}))
+})))
 
 admin.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}))
 
