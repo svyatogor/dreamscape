@@ -1,6 +1,6 @@
 import express from 'express'
 import {Site, Page} from './models'
-import {reduce, get, last, isEmpty, filter} from 'lodash'
+import {reduce, get, last, isEmpty, filter, forEach} from 'lodash'
 import {renderPage} from './renderers'
 const frontend = express.Router()
 
@@ -18,8 +18,33 @@ frontend.use(async (req, res, next) => {
 
 frontend.use('/data', express.static(__dirname + '/../data'))
 
-frontend.use(async (req, res, next) => {
-  const path = req.path.split('/')
+frontend.get('/*', (req, res, next) => {
+  renderRequest(req.path, {req, res, next})
+})
+
+forEach(require('./middlewares'), middleware => frontend.use(middleware))
+
+frontend.use((req, res) => {
+  res.sendStatus(404)
+})
+
+export function renderRequest(requestPath, {req, res, next}, context = {}) {
+  context = {
+    ...context,
+    site: req.site.toObject(),
+  }
+  resolvePath(requestPath, req).then(page => {
+    renderPage({req, res}, page, context)
+      .then(() => res.end())
+      .catch(() => res.sendStatus(500))
+  }).catch(e => {
+    console.log(e)
+    res.sendStatus(500)
+  })
+}
+
+async function resolvePath(path, req) {
+  path = path.split('/')
   path.shift()
   if (req.site.supportedLanguages.includes(path[0])) {
     req.locale = path[0]
@@ -44,20 +69,12 @@ frontend.use(async (req, res, next) => {
     return [...sum, page]
   }, [])
   if (pages.some(p => !p)) {
-    next()
-    return
+    return Promise.reject()
   }
-  const page = {
+  return {
     ...last(pages).toObject(),
-    path,
+    path: `/${path}`,
   }
-  renderPage({req, res, page, site: req.site.toObject()})
-    .then(() => res.end())
-    .catch(() => res.sendStatus(500))
-})
-
-frontend.use((req, res) => {
-  res.sendStatus(404)
-})
+}
 
 export default frontend

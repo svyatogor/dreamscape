@@ -1,4 +1,4 @@
-import {renderSection} from '../../renderers'
+import {underscore} from 'inflection'
 
 export class section {
   constructor(renderContext) {
@@ -18,6 +18,20 @@ export class section {
   }
 
   run(context, sectionName, body, callback) {
-    renderSection(sectionName, context.ctx).then((data) => callback(null, data)).catch(err => callback(err))
+    section.render(sectionName, context.ctx)
+      .then((data) => callback(null, data))
+      .catch(err => callback(err))
+  }
+
+
+  static render(sectionName, context) {
+    const {page} = context
+    if (!page.sections[sectionName]) {
+      return Promise.resolve()
+    }
+
+    return Promise.all(page.sections[sectionName].map(block =>
+      require('./index')[underscore(block._type)].render(block, context)
+    )).then(results => results.join(''))
   }
 }

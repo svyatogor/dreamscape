@@ -1,13 +1,14 @@
 import nunjucks from 'nunjucks'
 import {get, zipObject, map} from 'lodash'
 import langs from 'langs'
-import {underscore} from 'inflection'
 import * as tags from './tags'
 
-const renderPage = ({req, res, page, site}) => {
+const renderPage = ({req, res}, page, context) => {
   page.title = get(page.title, req.locale, page.title.en)
+  const {site} = context
   try {
-    const context = {
+    context = {
+      ...context,
       site: {
         ...site,
         assetsRoot: `${process.env.ASSETS_DOMAIN}/data/${site.key}/layouts`,
@@ -42,15 +43,4 @@ const renderPage = ({req, res, page, site}) => {
   }
 }
 
-const renderSection = (sectionName, context) => {
-  const {page} = context
-  if (!page.sections[sectionName]) {
-    return Promise.resolve()
-  }
-
-  return Promise.all(page.sections[sectionName].map(block =>
-    require(`./${underscore(block._type)}`).default(block, context)
-  )).then(results => results.join(''))
-}
-
-export {renderPage, renderSection}
+export {renderPage}
