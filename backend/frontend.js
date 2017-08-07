@@ -39,7 +39,7 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
       .catch(() => res.sendStatus(500))
   }).catch(e => {
     console.log(e)
-    res.sendStatus(500)
+    res.sendStatus(404)
   })
 }
 

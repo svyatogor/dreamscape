@@ -58,7 +58,7 @@ admin.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}))
 admin.get('/sign-s3', async (req, res) => {
   const s3 = new aws.S3({region: 'eu-west-1'})
   const ext = last(req.query.name.split('.'))
-  const fileName = 'demo' + '/' + shortid.generate() + '.' + ext
+  const fileName = `${req.site.key}/images/${shortid.generate()}.${ext}`
   const fileType = req.query.type
   const s3Params = {
     Bucket: process.env.S3_BUCKET,

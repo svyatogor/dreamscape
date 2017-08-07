@@ -83,6 +83,7 @@
     "redux-form-material-ui": "^4.2.0",
     "redux-persist": "^4.8.3",
     "redux-thunk": "^2.2.0",
+    "s3": "^4.4.0",
     "sass-loader": "^6.0.6",
     "shortid": "^2.2.8",
     "style-loader": "0.18.2",
