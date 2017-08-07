@@ -17,6 +17,7 @@ import Header from './components/header'
 import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
+import SnippetsEditor from './components/snippets_editor'
 
 if (!process.env.REACT_APP_BACKEND) {
   process.env.REACT_APP_BACKEND = ''
@@ -62,6 +63,9 @@ class App extends Component {
               <NavLink to="/site">
                 <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-sitemap" /></div>}>Site</MenuItem>
               </NavLink>
+              <NavLink to="/snippets">
+                <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-code-braces" /></div>}>Snippets</MenuItem>
+              </NavLink>
               <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">view_list</i></div>}>Catalog</MenuItem>
               <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">photo_library</i></div>}>Assets</MenuItem>
               <Divider />
@@ -72,6 +76,7 @@ class App extends Component {
             <section className={styles.appBody}>
               <Route exact path="/" component={Welcome} />
               <Route path="/site" component={SiteEditor} />
+              <Route path="/snippets" component={SnippetsEditor} />
             </section>
             <Notification />
           </div>

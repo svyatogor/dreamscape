@@ -32,16 +32,20 @@ class SiteClass {
       if (layoutsJson) {
         return JSON.parse(layoutsJson)
       } else {
-        const layoutNames = fs.readdirSync(`./data/${this.key}/layouts`).filter(name => name.indexOf('.') !== 0)
-        const layoutValues = layoutNames.map(layout => {
-          return {
-            name: humanize(layout.replace('-', '_')),
-            sections: this.layoutSections(layout)
-          }
-        })
-        const layouts = zipObject(layoutNames, layoutValues)
-        redis.setAsync(key, JSON.stringify(layouts))
-        return layouts
+        try {
+          const layoutNames = fs.readdirSync(`./data/${this.key}/layouts`).filter(name => name.indexOf('.') !== 0)
+          const layoutValues = layoutNames.map(layout => {
+            return {
+              name: humanize(layout.replace('-', '_')),
+              sections: this.layoutSections(layout)
+            }
+          })
+          const layouts = zipObject(layoutNames, layoutValues)
+          redis.setAsync(key, JSON.stringify(layouts))
+          return layouts
+        } catch(e) {
+          return {}
+        }
       }
     })
   }

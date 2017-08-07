@@ -8,6 +8,7 @@ import bodyParser from 'body-parser'
 import {get, last, map} from 'lodash'
 import cors from 'cors'
 import {readFileSync} from 'fs'
+import basicAuth from 'express-basic-auth'
 import resolvers from './resolvers'
 import {Site} from './models'
 
@@ -92,7 +93,9 @@ admin.get('/images', async (req, res) => {
 admin.use(express.static(path.resolve(__dirname, '../build-admin')))
 
 // Always return the main index.html, so react-router render the route in the client
-admin.get('*', (req, res) => {
+admin.get('*', basicAuth({
+    users: { 'admin': process.env.ADMIN_PASSWORD }
+}), (req, res) => {
   res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
 })
 

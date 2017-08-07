@@ -20,7 +20,10 @@ const pageSchema = new Schema({
 
 const staticTextSchema = new Schema({
   content: Object,
-  images: [String]
+  images: [String],
+  site: {type: Schema.Types.ObjectId, ref: 'Site'},
+  key: String,
+  global: {type: Boolean, default: false}
 })
 
 export {

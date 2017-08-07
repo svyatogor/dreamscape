@@ -10,13 +10,17 @@ type StaticText implements Block {
   ref: ID
   _type: String!
   content: JSON
+  key: String
+  global: Boolean
 }
 
 
 input StaticTextInput {
-  id: ID!
+  id: ID
   content: String!
   locale: String!
+  key: String
+  global: Boolean
 }
 
 type Page {
@@ -64,6 +68,7 @@ type Query {
   page(id: ID!): Page
   staticText(id: ID!): StaticText
   site: Site
+  snippets: [StaticText]
 }
 
 type Mutation {

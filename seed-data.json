@@ -1,33 +1,15 @@
 {
     "sites": {
         "_model": "Site",
-        "demo": {
-            "key": "demo",
+        "medinstitute": {
+            "key": "medinstitute",
             "domains": [
-                "dreamscape-demo.dev"
+                "medinstitute.dreamscape.space"
             ],
-            "supportedLanguages": ["en", "ru"],
+            "supportedLanguages": ["en", "ru", "el", "tr"],
             "allowedModules": [
                 "StaticText"
             ]
-        }
-    },
-    "staticTexts": {
-        "_model": "StaticText",
-        "t1": {
-            "content": {
-                "en": "A few words about the company."
-            }
-        },
-        "t2": {
-            "content": {
-                "en": "Second text block"
-            }
-        },
-        "t3": {
-            "content": {
-                "en": "Side text block"
-            }
         }
     },
     "pages": {
@@ -38,31 +20,8 @@
                 "en": "Home"
             },
             "published": true,
-            "site": "->sites.demo",
-            "layout": "main"
-        },
-        "about": {
-            "slug": "about",
-            "title": {
-                "en": "About",
-                "ru": "О нас"
-            },
-            "published": true,
-            "parent": "->pages.home",
-            "site": "->sites.demo",
-            "layout": "main",
-            "sections": {
-                "left_menu_column": [
-                    {
-                        "_type": "StaticText",
-                        "ref": "->staticTexts.t1"
-                    },
-                    {
-                        "_type": "StaticText",
-                        "ref": "->staticTexts.t2"
-                    }
-                ]
-            }
+            "site": "->sites.medinstitute",
+            "layout": "medinstitute"
         }
     }
 }

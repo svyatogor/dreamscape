@@ -62,4 +62,11 @@ class Redactor extends React.Component {
   }
 }
 
-export default graphql(attachImage)(Redactor)
+const ConnectedRedactor = graphql(attachImage)(Redactor)
+
+const RedactorField = (props) => {
+    const {input: {value, onChange}} = props
+    return <ConnectedRedactor value={value} onChange={(v) => onChange(v)} />
+}
+
+export {ConnectedRedactor as default, RedactorField}

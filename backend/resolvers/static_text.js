@@ -3,14 +3,26 @@ import {StaticText} from '../models'
 
 export default class {
   @query
-  static async staticText(context, {id}) {
-    return await StaticText.findById(id)
+  static async staticText({site}, {id}) {
+    return await StaticText.findOne({_id: id, site: site.id})
+  }
+
+  @query
+  static async snippets({site}) {
+    return await StaticText.find({site: site.id, global: true})
   }
 
   @mutation
-  static async saveStaticText(context, {input: {id, content, locale}}) {
-    const text = await StaticText.findById(id)
-    text.set(`content.${locale}`, content)
+  static async saveStaticText({site}, {input: {id, content, locale, ...props}}) {
+    let text
+    if (id) {
+      text = await StaticText.findOne({_id: id, site: site.id})
+      text.set(`content.${locale}`, content)
+      text.set({...props, site: site.id})
+    } else {
+      text = new StaticText({...props, site: site.id})
+      text.set(`content.${locale}`, content)
+    }
     await text.save()
     return text
   }
