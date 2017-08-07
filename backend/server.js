@@ -31,6 +31,7 @@ const syncS3 = () => {
 				}
 			})
 			downloader.on('error', err => {
+				// TODO: Report error
 				console.error(`Error syncing layout for ${site.key}`, err)
 			})
 			downloader.on('end', () => {
@@ -45,6 +46,7 @@ export default () => {
 	app.use('/', frontend)
 	app.get('/', (req, res) => {
 		res.send('w00t?')
+		res.status(404)
 		res.end()
 	})
 
