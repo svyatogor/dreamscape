@@ -72,3 +72,7 @@ footer.copyright {
 form {
   max-width: 300px;
 }
+
+.redactor-modal-box {
+  z-index: 2000;
+}
