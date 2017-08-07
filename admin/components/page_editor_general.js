@@ -84,10 +84,9 @@ class PageEditorGeneral extends React.Component {
   }
 }
 
-const mapStateToProps = ({site, app}, {page}) => {
+const mapStateToProps = ({app}, {page}) => {
   return {
     locale: app.locale,
-    layouts: site.layouts,
     initialValues: {
       ...page,
       parent: get(page.parent, 'id'),

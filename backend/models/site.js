@@ -30,7 +30,6 @@ class SiteClass {
     const key = `site::${this._id}::layouts`
     return redis.getAsync(key).then((layoutsJson) => {
       if (layoutsJson) {
-        console.log('cache hit');
         return JSON.parse(layoutsJson)
       } else {
         const layoutNames = fs.readdirSync(`./data/${this.key}/layouts`).filter(name => name.indexOf('.') !== 0)
@@ -52,13 +51,13 @@ class SiteClass {
       this.env = nunjucks.configure(`./data/${this.key}`)
       this.env.addExtension('section', new _section())
     }
-    const context = {sections: []}
     try {
+      const context = {sections: []}
       this.env.render(`layouts/${layout}/index.html`, context)
+      return zipObject(context.sections, context.sections.map(s => ({name: humanize(s)})))
     } catch(_) {
-      // pass
+      return {}
     }
-    return zipObject(context.sections, context.sections.map(s => ({name: humanize(s)})))
   }
 }
 

@@ -13,9 +13,11 @@ import {
   IconButton,
   makeSelectable,
 } from 'material-ui'
-import {map, get, find} from 'lodash'
+import {map, get} from 'lodash'
+import {humanize, underscore} from 'inflection'
 import {graphql} from 'react-apollo'
 import {push} from 'react-router-redux'
+import * as modules from './modules'
 import addBlock from '../graphql/addBlock.gql'
 import removeBlock from '../graphql/removeBlock.gql'
 import site from '../graphql/site.gql'
@@ -80,7 +82,7 @@ class PageMenu extends React.Component {
       right: 5,
       top: 10,
     }
-    const {modules, page: {sections, id: pageId}} = this.props
+    const {page: {sections, id: pageId}} = this.props
     const blocks = get(sections, section, [])
     return (
       <div key={section}>
@@ -91,7 +93,7 @@ class PageMenu extends React.Component {
               iconButtonElement={<IconButton><i className="material-icons">add</i></IconButton>}
               style={{float: 'right'}}
             >
-              {map(modules, ({name}, type) => <MenuItem primaryText={name} key={type} onTouchTap={() => this.addBlock(section, type)} />)}
+              {map(modules, (_, type) => <MenuItem primaryText={humanize(underscore(type))} key={type} onTouchTap={() => this.addBlock(section, type)} />)}
             </IconMenu>
           </Subheader>
 
@@ -126,8 +128,7 @@ class PageMenu extends React.Component {
 const mapStateToProps = ({app}, {data: {site}, page}) => {
   return {
     locale: app.locale,
-    layout: get(site.layouts, page.layout),
-    modules: site.allowedModules,
+    layout: get(site, ['layouts', page.layout]),
   }
 }
 
