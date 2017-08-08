@@ -50,6 +50,8 @@ export default () => {
 		res.end()
 	})
 
-	syncS3()
+	if (process.env.NODE_ENV === 'production') {
+		syncS3()
+	}
 	app.listen(process.env.PORT || process.env.BACKEND_PORT)
 }

@@ -89,14 +89,11 @@ admin.get('/images', async (req, res) => {
   })))
 })
 
-// Serve static assets
-admin.use(express.static(path.resolve(__dirname, '../build-admin')))
-
-// Always return the main index.html, so react-router render the route in the client
-admin.get('*', basicAuth({
-    users: { 'admin': process.env.ADMIN_PASSWORD }
-}), (req, res) => {
-  res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
-})
+if (process.env.NODE_ENV === 'production') {
+  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
+  admin.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
+  })
+}
 
 export default admin

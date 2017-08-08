@@ -97,9 +97,10 @@
     "whatwg-fetch": "2.0.3"
   },
   "scripts": {
-    "admin": "node scripts/admin.js",
-    "start": "node scripts/backend.js",
-    "backend": "babel-watch scripts/backend.js",
+    "start": "node scripts/server.js",
+    "dev:webpack": "node scripts/webpack.js",
+    "dev:server": "babel-watch scripts/server.js",
+    "dev": "npm-run-all --parallel dev:*",
     "seed": "babel-node scripts/seed.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
@@ -165,6 +166,7 @@
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-plugin-transform-decorators": "^6.24.1",
-    "babel-watch": "^2.0.7"
+    "babel-watch": "^2.0.7",
+    "npm-run-all": "^4.0.2"
   }
 }
