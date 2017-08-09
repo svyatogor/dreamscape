@@ -26,6 +26,7 @@ const admin = express.Router()
 admin.use(cors({origin: 'http://medinstitute.dreamscape.dev:4000', credentials: true}))
 
 const findOrCreateFromProfile = (profile, done) => {
+  console.log(profile)
   User.findOne({email: profile.email}).then(user => {
     const opts = {
       name: profile.displayName,
