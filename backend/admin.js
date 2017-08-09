@@ -103,6 +103,14 @@ passport.authenticate('google', { scope:
     'https://www.googleapis.com/auth/plus.profile.emails.read' ], session: false }
 ))
 
+
+if (process.env.NODE_ENV === 'production') {
+  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
+  admin.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
+  })
+}
+
 admin.use(jwtExpress({
   secret: process.env.JWT_SECRET,
   credentialsRequired: false,
@@ -178,12 +186,5 @@ admin.get('/images', async (req, res) => {
     id: url,
   })))
 })
-
-if (process.env.NODE_ENV === 'production') {
-  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
-  admin.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
-  })
-}
 
 export default admin
