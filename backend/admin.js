@@ -23,7 +23,7 @@ admin.use(cors({origin: 'http://medinstitute.dreamscape.dev:4000', credentials: 
 passport.use(new GoogleStrategy({
     clientID:     process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://admin.dreamscape.dev:3000/auth/google/callback",
+    callbackURL: `http://${process.env.BACKEND_DOMAIN}/auth/google/callback",
     passReqToCallback: true
   },
   (request, accessToken, refreshToken, profile, done) => {
