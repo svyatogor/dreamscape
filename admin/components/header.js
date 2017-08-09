@@ -22,10 +22,10 @@ const Title = ({title}) =>
   </div>
 
 const Header = ({session, logout, onMenu, locale, setLocale, data: {site}}) => {
-  let avatar
+  let avatar = null
   if (session.avatar) {
     avatar = <span><Avatar src={session.avatar}  style={{position: 'relative', top: -8, right: 8, cursor: 'pointer'}} /></span>
-  } else {
+  } else if (session.name) {
     avatar = (<span><Avatar style={{position: 'relative', top: -8, right: 8, cursor: 'pointer'}}>
       {session.name.slice(0,1).toUpperCase()}
     </Avatar></span>)
