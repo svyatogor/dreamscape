@@ -179,7 +179,11 @@ admin.use('/graphql', auth, bodyParser.json(), graphqlExpress(req => ({
 })))
 
 admin.use('/logout', auth, (req, res) => {
-  res.clearCookie('authtoken')
+  res.clearCookie('authtoken', {
+    domain: `.${process.env.BACKEND_DOMAIN}`,
+    httpOnly: true,
+    path: '/',
+  })
   res.sendStatus(200)
 })
 
