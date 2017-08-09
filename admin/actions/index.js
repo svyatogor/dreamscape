@@ -16,7 +16,7 @@ export function getSession() {
       const payload = await res.json()
       dispatch({type: 'SET_SESSION', payload})
     }).catch(e => {
-      dispatch({type: 'SET_SESSION', payload: {authenticated: false}})
+      dispatch({type: 'LOGOUT'})
     })
 }
 
