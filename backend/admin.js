@@ -122,7 +122,7 @@ admin.get('/auth/windowslive',
     res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.BACKEND_DOMAIN}`})
     next()
   },
-  passport.authenticate('windowslive', { scope: ['wl.signin', 'wl.basic'], session: false})
+  passport.authenticate('windowslive', { scope: ['wl.signin', 'wl.basic', 'wl.contacts_emails'], session: false})
 )
 
 admin.use(async (req, res, next) => {
