@@ -26,7 +26,7 @@ export class section {
 
   static render(sectionName, context) {
     const {page} = context
-    if (!page.sections[sectionName]) {
+    if (!page.sections || !page.sections[sectionName]) {
       return Promise.resolve()
     }
 
