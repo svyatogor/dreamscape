@@ -2,7 +2,7 @@ import React from 'react'
 import {connect} from 'react-redux'
 import {logout, setLocale} from '../actions'
 import Logo from '../assets/logo_white_2x.png'
-import {AppBar, IconButton, SelectField, MenuItem} from 'material-ui'
+import {AppBar, IconMenu, SelectField, MenuItem, Avatar as MaterialAvatar} from 'material-ui'
 import styles from './header.scss'
 import {map} from 'lodash'
 
@@ -19,6 +19,16 @@ const Title = ({title}) =>
     </div>
   </div>
 
+const Avatar = ({session}) => {
+  if (session.avatar) {
+    return <MaterialAvatar src={session.avatar} style={{position: 'relative', top: 5, cursor: 'pointer'}} />
+  } else {
+    return (<MaterialAvatar style={{position: 'relative', top: 5, cursor: 'pointer'}}>
+      {session.name.slice(0,1).toUpperCase()}
+    </MaterialAvatar>)
+  }
+}
+
 const Header = ({session, logout, onMenu, locale, setLocale}) =>
   (<AppBar
     title={<Title title="" />}
@@ -28,7 +38,13 @@ const Header = ({session, logout, onMenu, locale, setLocale}) =>
         <SelectField value={locale} className={styles.languagePicker} onChange={(e, key, value) => setLocale(value)}>
           {map(['en', 'ru'], l => <MenuItem value={l} key={l} primaryText={l} />)}
         </SelectField>
-        <IconButton style={{color: 'white'}}><i className="material-icons">exit_to_app</i></IconButton>
+        <IconMenu
+          iconButtonElement={<Avatar session={session} />}
+          anchorOrigin={{horizontal: 'right', vertical: 'top'}}
+          targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
+        >
+          <MenuItem primaryText="Sign out" onTouchTap={() => logout()} />
+        </IconMenu>
       </div>
     )}
   />)

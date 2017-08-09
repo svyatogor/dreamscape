@@ -1,10 +1,17 @@
 import {Schema} from 'mongoose'
 
+const userSchema = new Schema({
+  email: {type: String, required: true, lowercase: true, trim: true, index: true, unique: true},
+  name: {type: String},
+  avatar: {type: String},
+})
+
 const siteSchema = new Schema({
   key: {type: String, required: true},
   domains: [String],
   allowedModules: [String],
   supportedLanguages: [String],
+  users: [String]
 })
 
 const pageSchema = new Schema({
@@ -27,6 +34,7 @@ const staticTextSchema = new Schema({
 })
 
 export {
+  userSchema,
   pageSchema,
   siteSchema,
   staticTextSchema,

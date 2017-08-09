@@ -10,7 +10,7 @@ mongoose.Promise = require('bluebird')
 mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true})
 
 const app = express()
-
+app.use(require('cookie-parser')())
 const syncS3 = () => {
 	const client = s3.createClient({
 		s3Options: {

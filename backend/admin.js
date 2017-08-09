@@ -8,13 +8,69 @@ import bodyParser from 'body-parser'
 import {get, last, map} from 'lodash'
 import cors from 'cors'
 import {readFileSync} from 'fs'
-import basicAuth from 'express-basic-auth'
+import jwtExpress from 'express-jwt'
+import jwt from 'jsonwebtoken'
+import {Strategy as GoogleStrategy} from 'passport-google-oauth2'
+import passport from 'passport'
+import {User} from './models'
 import resolvers from './resolvers'
 import {Site} from './models'
 
 const admin = express.Router()
 
-admin.use(cors())
+admin.use(cors({origin: 'http://medinstitute.dreamscape.dev:4000', credentials: true}))
+
+passport.use(new GoogleStrategy({
+    clientID:     process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: "http://admin.dreamscape.dev:3000/auth/google/callback",
+    passReqToCallback: true
+  },
+  (request, accessToken, refreshToken, profile, done) => {
+    User.findOne({email: profile.email}).then(user => {
+      const opts = {
+        name: profile.displayName,
+        email: profile.email,
+        avatar: profile.photos ? profile.photos[0].value : null
+      }
+      if (user) {
+        user.set(opts)
+      } else {
+        user = new User(opts)
+      }
+      user.save().then((_user) => {
+        done(null, _user.toObject())
+      }).catch((err) => done(err, null))
+    }).catch((err) => done(err, null))
+  }
+))
+
+admin.get('/auth/google/callback',
+	passport.authenticate( 'google', {session: false}), (req, res) => {
+  res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
+    domain: `.${process.env.BACKEND_DOMAIN}`,
+    httpOnly: true,
+    path: '/',
+    expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
+  })
+  res.redirect(req.cookies.redirect)
+})
+
+if (process.env.NODE_ENV === 'development') {
+  admin.get('/auth/as/:email', (req, res) => {
+    const user = {
+      email: req.params.email,
+      name: req.params.email
+    }
+    res.cookie('authtoken', jwt.sign(user, process.env.JWT_SECRET), {
+      domain: `.${process.env.BACKEND_DOMAIN}`,
+      httpOnly: true,
+      path: '/',
+      expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
+    })
+    res.send(`Ok, you are now ${user.email}`)
+  })
+}
 
 const typeDefs = readFileSync('./backend/schema.gql').toString()
 const schema = makeExecutableSchema({typeDefs, resolvers})
@@ -36,6 +92,35 @@ admin.use(async (req, res, next) => {
   }
 })
 
+admin.use(passport.initialize())
+
+admin.get('/auth/google', (req, res, next) => {
+  res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.BACKEND_DOMAIN}`})
+  next()
+},
+passport.authenticate('google', { scope:
+  [ 'https://www.googleapis.com/auth/plus.login',
+    'https://www.googleapis.com/auth/plus.profile.emails.read' ], session: false }
+))
+
+admin.use(jwtExpress({
+  secret: process.env.JWT_SECRET,
+  credentialsRequired: false,
+  getToken: req => req.cookies.authtoken,
+}).unless({path: [
+  '/auth/google'
+]}), (req, res, next) => {
+  if (!req.user) {
+    res.sendStatus(401)
+  } else {
+    next()
+  }
+})
+
+admin.get('/session', (req, res) => {
+  res.json(req.user)
+})
+
 admin.use('/graphql', bodyParser.json(), graphqlExpress(req => ({
   schema,
   rootValue: req,
@@ -53,6 +138,11 @@ admin.use('/graphql', bodyParser.json(), graphqlExpress(req => ({
     }
   },
 })))
+
+admin.use('/logout', (req, res) => {
+  res.clearCookie('authtoken')
+  res.sendStatus(200)
+})
 
 admin.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}))
 
