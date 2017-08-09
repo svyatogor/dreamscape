@@ -68,7 +68,7 @@ class PageMenu extends React.Component {
             }}
           />
         </SelectableList>
-        {map(layout.sections, this.renderSection.bind(this))}
+        {map(get(layout, 'sections'), this.renderSection.bind(this))}
       </Paper>
     )
   }

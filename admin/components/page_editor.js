@@ -28,7 +28,7 @@ const withMenu = (Module) => {
       }
       content = <Module page={page} id={block} />
       return (
-        <div>
+        <div style={{flex: 1}}>
           <div className="row">
             <div className="col-md-12">
               <h1 style={{paddingLeft: 70, marginBottom: 20}}>{t(page.title, this.props.locale)}</h1>

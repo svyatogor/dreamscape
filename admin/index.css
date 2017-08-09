@@ -73,6 +73,22 @@ form {
   max-width: 300px;
 }
 
-#redactor-modal-box {
+#redactor-modal-box, .redactor-dropdown {
   z-index: 2000;
+}
+
+.flexContainer {
+  display: flex;
+}
+
+.flexContainer > .row {
+  flex: 1;
+}
+
+.emptyBlock {
+  align-self: center;
+  text-align: center;
+  flex: 1;
+  color: #aaa;
+  font-size: 32px;
 }

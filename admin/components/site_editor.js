@@ -28,7 +28,7 @@ class SiteEditor extends React.Component {
             <SiteTree activePage={match.params.pageId} />
           </div>
           <div style={{flex: 15}}>
-            <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}}>
+            <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
               <Component match={match} />
             </Paper>
           </div>

@@ -2,7 +2,7 @@ import React from 'react'
 import {createStore, applyMiddleware, compose} from 'redux'
 import thunk from 'redux-thunk'
 import createHistory from 'history/createBrowserHistory'
-import {ConnectedRouter, routerMiddleware} from 'react-router-redux'
+import {routerMiddleware} from 'react-router-redux'
 import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo'
 import {persistStore, autoRehydrate} from 'redux-persist'
 import reducers from './reducers'
@@ -32,7 +32,5 @@ persistStore(store, {whitelist: ['app',]})
 
 export default () =>
   <ApolloProvider client={client} store={store}>
-    <ConnectedRouter history={history}>
-      <AppContainer />
-    </ConnectedRouter>
+    <AppContainer history={history} />
   </ApolloProvider>

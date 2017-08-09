@@ -15,6 +15,7 @@ import {showNotification} from '../actions'
 
 class SnippetForm extends React.Component {
   render() {
+    const {snippet} = this.props
     const dialogActions = [
       <FlatButton
         label="Save"
@@ -26,16 +27,17 @@ class SnippetForm extends React.Component {
 
     return (
       <Dialog
-        title="New snippet"
+        title={snippet.id ? snippet.key : 'New snippet'}
         actions={dialogActions}
         modal={false}
         open={this.props.visible}
         onRequestClose={this.props.onClose}
+        autoDetectWindowHeight
       >
       <form style={{maxWidth: '100%'}}>
         <Field name="key" component={TextField} hintText="Snippet name" floatingLabelText="Name" floatingLabelFixed
           fullWidth />
-        <Field name="content" component={Redactor} />
+        <Field name="content" component={Redactor} minHeight={0} maxHeight={200} />
       </form>
     </Dialog>)
   }

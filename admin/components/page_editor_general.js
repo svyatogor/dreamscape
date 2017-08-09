@@ -39,7 +39,8 @@ class PageEditorGeneral extends React.Component {
     if (this.props.data.loading || this.props.siteData.lodash) {
       return null
     }
-    const {error, handleSubmit, pristine, submitting, locale, data: {pages}, siteData: {site: {layouts}}} = this.props
+    const {error, handleSubmit, pristine, submitting, locale, data: {pages}, siteData: {site}} = this.props
+    const layouts = site.layouts
     const validParents = reject(pages, parent => parent.id === get(this.props.page, 'id'))
     return (
       <form onSubmit={handleSubmit((data) => this.onSubmit(data))}>

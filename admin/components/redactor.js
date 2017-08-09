@@ -37,7 +37,8 @@ class Redactor extends React.Component {
     const self = this
     const {parent} = this.props
     global.$('#redactor').redactor({
-      minHeight: 300,
+      minHeight: this.props.minHeight || 300,
+      maxHeight: this.props.maxHeight || 999999,
       plugins: ['source', 'table', 'fullscreen', 'fontsize', 'fontcolor', 'fontfamily', 'imagemanager'],
       codemirror: {
           lineNumbers: true,
@@ -65,8 +66,8 @@ class Redactor extends React.Component {
 const ConnectedRedactor = graphql(attachImage)(Redactor)
 
 const RedactorField = (props) => {
-    const {input: {value, onChange}} = props
-    return <ConnectedRedactor value={value} onChange={(v) => onChange(v)} />
+    const {input: {value, onChange}, meta, ...otherProps} = props
+    return <ConnectedRedactor value={value} onChange={(v) => onChange(v)} {...otherProps} />
 }
 
 export {ConnectedRedactor as default, RedactorField}

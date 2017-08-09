@@ -1,10 +1,12 @@
 import React from 'react'
 import {connect} from 'react-redux'
+import {graphql} from 'react-apollo'
+import siteQuery from '../graphql/site.gql'
 import {logout, setLocale} from '../actions'
 import Logo from '../assets/logo_white_2x.png'
-import {AppBar, IconMenu, SelectField, MenuItem, Avatar as MaterialAvatar} from 'material-ui'
+import {AppBar, IconMenu, SelectField, MenuItem, Avatar, IconButton} from 'material-ui'
 import styles from './header.scss'
-import {map} from 'lodash'
+import {map, get} from 'lodash'
 
 const Title = ({title}) =>
   <div style={{display: 'flex', width: '100%'}}>
@@ -19,27 +21,25 @@ const Title = ({title}) =>
     </div>
   </div>
 
-const Avatar = ({session}) => {
+const Header = ({session, logout, onMenu, locale, setLocale, data: {site}}) => {
+  let avatar
   if (session.avatar) {
-    return <MaterialAvatar src={session.avatar} style={{position: 'relative', top: 5, cursor: 'pointer'}} />
+    avatar = <span><Avatar src={session.avatar}  style={{position: 'relative', top: -8, right: 8, cursor: 'pointer'}} /></span>
   } else {
-    return (<MaterialAvatar style={{position: 'relative', top: 5, cursor: 'pointer'}}>
+    avatar = (<span><Avatar style={{position: 'relative', top: -8, right: 8, cursor: 'pointer'}}>
       {session.name.slice(0,1).toUpperCase()}
-    </MaterialAvatar>)
+    </Avatar></span>)
   }
-}
-
-const Header = ({session, logout, onMenu, locale, setLocale}) =>
-  (<AppBar
+  return (<AppBar
     title={<Title title="" />}
     onLeftIconButtonTouchTap={onMenu}
     iconElementRight={(
       <div className={styles.whoami}>
         <SelectField value={locale} className={styles.languagePicker} onChange={(e, key, value) => setLocale(value)}>
-          {map(['en', 'ru'], l => <MenuItem value={l} key={l} primaryText={l} />)}
+          {map(get(site, 'supportedLanguages'), l => <MenuItem value={l} key={l} primaryText={l} />)}
         </SelectField>
         <IconMenu
-          iconButtonElement={<Avatar session={session} />}
+          iconButtonElement={<IconButton>{avatar}</IconButton>}
           anchorOrigin={{horizontal: 'right', vertical: 'top'}}
           targetOrigin={{horizontal: 'right', vertical: 'bottom'}}
         >
@@ -48,8 +48,9 @@ const Header = ({session, logout, onMenu, locale, setLocale}) =>
       </div>
     )}
   />)
+}
 
 const mapStateToProps = ({session, app: {locale}}, ownProps) => {
   return {session, locale}
 }
-export default connect(mapStateToProps, {logout, setLocale})(Header)
+export default graphql(siteQuery)(connect(mapStateToProps, {logout, setLocale})(Header))
