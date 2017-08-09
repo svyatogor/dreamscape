@@ -30,7 +30,7 @@ const findOrCreateFromProfile = (profile, done) => {
   User.findOne({email: profile.email}).then(user => {
     const opts = {
       name: profile.displayName,
-      email: profile.email,
+      email: profile.email || get(profile, 'emails.preferred'),
       avatar: profile.photos ? profile.photos[0].value : null
     }
     if (user) {

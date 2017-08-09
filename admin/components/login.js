@@ -16,6 +16,11 @@ const Login = (props) =>
         }}>
           <FontAwesome name='google' /> Sign in with google
         </div>
+        <div className={cx([styles.button, styles.windows])} onClick={() => {
+          window.location = `${process.env.REACT_APP_BACKEND}/auth/windows`
+        }}>
+          <FontAwesome name='windows' /> Sign in with windows
+        </div>
       </Paper>
     </div>
   </div>
