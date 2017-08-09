@@ -53,6 +53,10 @@ async function resolvePath(path, req) {
     req.locale = 'en'
   }
 
+  if (path.length === 0 || path[0] === '') {
+    path = ['index']
+  }
+
   const allPages = await Page.find({slug: {$in: path}}).populate('parent')
 
   const pages = reduce(path, (sum, slug, i) => {
