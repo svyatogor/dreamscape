@@ -103,33 +103,26 @@ passport.authenticate('google', { scope:
     'https://www.googleapis.com/auth/plus.profile.emails.read' ], session: false }
 ))
 
-
-if (process.env.NODE_ENV === 'production') {
-  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
-  admin.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
-  })
-}
-
-admin.use(jwtExpress({
-  secret: process.env.JWT_SECRET,
-  credentialsRequired: false,
-  getToken: req => req.cookies.authtoken,
-}).unless({path: [
-  '/auth/google'
-]}), (req, res, next) => {
-  if (!req.user) {
-    res.sendStatus(401)
-  } else {
-    next()
+const auth = [
+  jwtExpress({
+    secret: process.env.JWT_SECRET,
+    credentialsRequired: false,
+    getToken: req => req.cookies.authtoken,
+  }).unless({path: ['/auth/google']}),
+  (req, res, next) => {
+    if (!req.user) {
+      res.sendStatus(401)
+    } else {
+      next()
+    }
   }
-})
+]
 
-admin.get('/session', (req, res) => {
+admin.get('/session', auth, (req, res) => {
   res.json(req.user)
 })
 
-admin.use('/graphql', bodyParser.json(), graphqlExpress(req => ({
+admin.use('/graphql', auth, bodyParser.json(), graphqlExpress(req => ({
   schema,
   rootValue: req,
   formatError: error => {
@@ -147,14 +140,14 @@ admin.use('/graphql', bodyParser.json(), graphqlExpress(req => ({
   },
 })))
 
-admin.use('/logout', (req, res) => {
+admin.use('/logout', auth, (req, res) => {
   res.clearCookie('authtoken')
   res.sendStatus(200)
 })
 
 admin.use('/graphiql', graphiqlExpress({endpointURL: '/graphql'}))
 
-admin.get('/sign-s3', async (req, res) => {
+admin.get('/sign-s3', auth, async (req, res) => {
   const s3 = new aws.S3({region: 'eu-west-1'})
   const ext = last(req.query.name.split('.'))
   const fileName = `${req.site.key}/images/${shortid.generate()}.${ext}`
@@ -176,7 +169,7 @@ admin.get('/sign-s3', async (req, res) => {
   });
 })
 
-admin.get('/images', async (req, res) => {
+admin.get('/images', auth, async (req, res) => {
   const {type, id} = req.query
   const klass = require('./models')[type]
   const object = await klass.findById(id)
@@ -186,5 +179,12 @@ admin.get('/images', async (req, res) => {
     id: url,
   })))
 })
+
+if (process.env.NODE_ENV === 'production') {
+  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
+  admin.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
+  })
+}
 
 export default admin
