@@ -5,7 +5,7 @@ import path from 'path'
 import aws from 'aws-sdk'
 import shortid from 'shortid'
 import bodyParser from 'body-parser'
-import {get, last, map} from 'lodash'
+import {get, last, map, find} from 'lodash'
 import cors from 'cors'
 import {readFileSync} from 'fs'
 import jwtExpress from 'express-jwt'
@@ -26,7 +26,6 @@ const admin = express.Router()
 admin.use(cors({origin: 'http://medinstitute.dreamscape.dev:4000', credentials: true}))
 
 const findOrCreateFromProfile = (profile, done) => {
-  console.log(profile)
   User.findOne({email: profile.email}).then(user => {
     const opts = {
       name: profile.displayName,
@@ -61,7 +60,13 @@ passport.use(new WindowsLiveStrategy({
     callbackURL: `https://${process.env.OAUTH_DOMAIN}/auth/windowslive/callback`,
     passReqToCallback: true
   },
-  (request, accessToken, refreshToken, profile, done) => {
+  (request, accessToken, refreshToken, data, done) => {
+    const email = find(data.emails, {primary: true}) || data.emails[0]
+    const profile = {
+      displayName: data.displayName,
+      email: email.value,
+      photos: email.photos,
+    }
     findOrCreateFromProfile(profile, done)
   }
 ))
