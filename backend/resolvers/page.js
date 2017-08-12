@@ -35,13 +35,13 @@ export default class {
   }
 
   @mutation
-  static async addBlock(context, {block}) {
+  static async addBlock({site}, {block}) {
     const {page: id, section, _type} = block
     let page = await Page.findById(id)
     page.sections = page.sections || {}
     page.sections[section] = page.sections[section] || []
     const klass = require('../models')[_type]
-    const blockObj = new klass()
+    const blockObj = new klass({site})
     await blockObj.save()
     page.sections[section].push({ref: mongoose.Types.ObjectId(blockObj.id), _type})
     page.markModified('sections')

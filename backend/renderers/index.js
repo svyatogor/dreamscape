@@ -25,7 +25,7 @@ const renderPage = ({req, res}, page, context) => {
         localeName: langs.where('1', req.locale).local,
       }
     }
-    const env = nunjucks.configure(`./data/${site.key}/layouts`)
+    const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     env.addExtension('section', new tags.section())
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, context, (err, result) => {
