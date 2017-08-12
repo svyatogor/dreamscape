@@ -1,20 +1,8 @@
 import express from 'express'
-import {Site, Page} from './models'
+import {Page} from './models'
 import {reduce, get, last, isEmpty, filter, forEach} from 'lodash'
 import {renderPage} from './renderers'
 const frontend = express.Router()
-
-frontend.use(async (req, res, next) => {
-  const site = await Site.findOne({
-    domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
-  })
-  if (!site) {
-    next('router')
-  } else {
-    req.site = site
-    next()
-  }
-})
 
 frontend.use('/data', express.static(__dirname + '/../data'))
 

@@ -77,7 +77,13 @@ module.exports = function(proxy, allowedHost) {
       disableDotRule: true,
     },
     public: allowedHost,
-    proxy,
+    proxy: [
+      {
+        context: '/admin/api/**',
+        target: process.env.DEV_BACKEND,
+        secure: false
+      }
+    ],
     setup(app) {
       // This lets us open files from the runtime error overlay.
       app.use(errorOverlayMiddleware());

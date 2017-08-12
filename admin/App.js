@@ -17,7 +17,7 @@ const networkInterface = createNetworkInterface({
 const client = new ApolloClient({
   networkInterface: networkInterface
 })
-const history = createHistory()
+const history = createHistory({basename: '/admin/'})
 const middleware = routerMiddleware(history)
 const store = createStore(
   reducers(client),

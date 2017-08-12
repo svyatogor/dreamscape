@@ -1,7 +1,9 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import s3 from 's3'
+import cors from 'cors'
 import {Site} from './models'
+import auth from './auth'
 import admin from './admin'
 import frontend from './frontend'
 
@@ -42,7 +44,26 @@ const syncS3 = () => {
 }
 
 export default () => {
-	app.use('/', admin)
+	app.use(auth)
+	app.use(async (req, res, next) => {
+		const regex = new RegExp(`(.*).${process.env.BACKEND_DOMAIN}`, 'i')
+		const match = req.hostname.match(regex)
+		if (match) {
+			req.site = await Site.findOne({key: match[1].toLowerCase()})
+		} else {
+			req.site = await Site.findOne({
+    		domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
+  		})
+		}
+
+		if (req.site) {
+			next()
+		} else {
+			res.sendStatus(404)
+		}
+	})
+
+	app.use('/admin', admin)
 	app.use('/', frontend)
 	app.get('/', (req, res) => {
 		res.send('w00t?')
