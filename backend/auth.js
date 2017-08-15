@@ -58,7 +58,7 @@ passport.use(new WindowsLiveStrategy({
 
 auth.use(passport.initialize())
 
-auth.get('/admin/auth/google/callback',
+auth.get('/admin/api/auth/google/callback',
 	passport.authenticate( 'google', {session: false}), (req, res) => {
   res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
     domain: `.${process.env.ROOT_DOMAIN}`,
@@ -69,7 +69,7 @@ auth.get('/admin/auth/google/callback',
   res.redirect(req.cookies.redirect)
 })
 
-auth.get('/admin/auth/windowslive/callback',
+auth.get('/admin/api/auth/windowslive/callback',
 	passport.authenticate( 'windowslive', {session: false}), (req, res) => {
   res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
     domain: `.${process.env.ROOT_DOMAIN}`,
