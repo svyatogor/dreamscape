@@ -6,7 +6,7 @@ import * as tags from './tags'
 const renderPage = ({req, res}, page, context) => {
   const {site} = context
   const locale = req.locale
-  const breadcrumbs = map(page.parents, (p) => page.toContext({locale, site}))
+  const breadcrumbs = map(page.parents, (p) => p.toContext({locale, site}))
   reduce(
     breadcrumbs,
     (path, page) => {
