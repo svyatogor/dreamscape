@@ -19,7 +19,7 @@ const renderPage = ({req, res}, page, context) => {
       ...context,
       site: {
         ...site,
-        assetsRoot: `${process.env.ASSETS_DOMAIN}/data/${site.key}/layouts`,
+        assetsRoot: `${process.env.ASSETS_DOMAIN}/${site.key}/layouts`,
         localeName: langs.where('1', locale).name,
         supportedLanguages: zipObject(site.supportedLanguages,
           map(site.supportedLanguages, l => ({
