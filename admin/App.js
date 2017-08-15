@@ -9,7 +9,7 @@ import reducers from './reducers'
 import AppContainer from './AppContainer'
 
 const networkInterface = createNetworkInterface({
-  uri: `${process.env.REACT_APP_BACKEND}/graphql`,
+  uri: `/admin/api/graphql`,
   opts: {
     credentials: 'include',
   },

@@ -32,6 +32,7 @@ type Page {
   title: JSON
   linkText: JSON
   sections: JSON
+  properties: JSON
 }
 
 type Site {
@@ -50,6 +51,7 @@ input PageInput {
   parent: ID
   title: String
   linkText: String
+  properties: JSON
 }
 
 input BlockInput {

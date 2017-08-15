@@ -8,5 +8,6 @@ mutation upsertPage($page: PageInput!, $locale: String) {
       layout
       published
       sections
+      properties
     }
   }

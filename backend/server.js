@@ -46,7 +46,7 @@ const syncS3 = () => {
 export default () => {
 	app.use(auth)
 	app.use(async (req, res, next) => {
-		const regex = new RegExp(`(.*).${process.env.BACKEND_DOMAIN}`, 'i')
+		const regex = new RegExp(`(.*).${process.env.ROOT_DOMAIN}`, 'i')
 		const match = req.hostname.match(regex)
 		if (match) {
 			req.site = await Site.findOne({key: match[1].toLowerCase()})

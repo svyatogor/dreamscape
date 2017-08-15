@@ -31,7 +31,7 @@ const findOrCreateFromProfile = (profile, done) => {
 passport.use(new GoogleStrategy({
     clientID:     process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: `https://api.${process.env.BACKEND_DOMAIN}/auth/google/callback`,
+    callbackURL: `https://api.${process.env.ROOT_DOMAIN}/auth/google/callback`,
     passReqToCallback: true
   },
   (request, accessToken, refreshToken, profile, done) => {
@@ -42,7 +42,7 @@ passport.use(new GoogleStrategy({
 passport.use(new WindowsLiveStrategy({
     clientID:     process.env.WINDOWS_CLIENT_ID,
     clientSecret: process.env.WINDOWS_CLIENT_SECRET,
-    callbackURL: `https://api.${process.env.BACKEND_DOMAIN}/auth/windowslive/callback`,
+    callbackURL: `https://api.${process.env.ROOT_DOMAIN}/auth/windowslive/callback`,
     passReqToCallback: true
   },
   (request, accessToken, refreshToken, data, done) => {
@@ -61,7 +61,7 @@ auth.use(passport.initialize())
 auth.get('/auth/google/callback',
 	passport.authenticate( 'google', {session: false}), (req, res) => {
   res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
-    domain: `.${process.env.BACKEND_DOMAIN}`,
+    domain: `.${process.env.ROOT_DOMAIN}`,
     httpOnly: true,
     path: '/',
     expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
@@ -72,7 +72,7 @@ auth.get('/auth/google/callback',
 auth.get('/auth/windowslive/callback',
 	passport.authenticate( 'windowslive', {session: false}), (req, res) => {
   res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
-    domain: `.${process.env.BACKEND_DOMAIN}`,
+    domain: `.${process.env.ROOT_DOMAIN}`,
     httpOnly: true,
     path: '/',
     expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
@@ -87,7 +87,7 @@ if (process.env.NODE_ENV === 'development') {
       name: req.params.email
     }
     res.cookie('authtoken', jwt.sign(user, process.env.JWT_SECRET), {
-      domain: `.${process.env.BACKEND_DOMAIN}`,
+      domain: `.${process.env.ROOT_DOMAIN}`,
       httpOnly: true,
       path: '/',
       expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
@@ -98,7 +98,7 @@ if (process.env.NODE_ENV === 'development') {
 
 auth.get('/auth/google',
   (req, res, next) => {
-    res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.BACKEND_DOMAIN}`})
+    res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.ROOT_DOMAIN}`})
     next()
   },
   passport.authenticate('google', {scope:
@@ -109,7 +109,7 @@ auth.get('/auth/google',
 
 auth.get('/auth/windowslive',
   (req, res, next) => {
-    res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.BACKEND_DOMAIN}`})
+    res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.ROOT_DOMAIN}`})
     next()
   },
   passport.authenticate('windowslive', { scope: ['wl.signin', 'wl.basic', 'wl.contacts_emails'], session: false})
@@ -136,7 +136,7 @@ auth.get('/admin/api/session', requireUser, (req, res) => {
 
 auth.use('/admin/api/logout', requireUser, (req, res) => {
   res.clearCookie('authtoken', {
-    domain: `.${process.env.BACKEND_DOMAIN}`,
+    domain: `.${process.env.ROOT_DOMAIN}`,
     httpOnly: true,
     path: '/',
   })

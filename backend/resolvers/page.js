@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {omit, isNil, forEach, mapKeys, mapValues, has, findIndex, find, last, map, reject, get} from 'lodash'
+import {omit, isNil, forEach, has, map, reject, get, pickBy} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
 
@@ -17,18 +17,43 @@ export default class {
   @mutation
   static async upsertPage({site}, {page, locale = 'en'}) {
     let _page
-    const i18nfields = ['title', 'linkText']
+    const i18nfields = (layout) => {
+      const properties = site.layouts[layout].properties
+      return [
+       'title',
+        ...map(pickBy(properties, 'localized'), p => `properties.${p.key}`)
+      ]
+    }
+
+    const clean = (page, layout) => {
+      const properties = site.layouts[layout].properties
+      const localizedProperties = Object.keys(pickBy(properties, 'localized'))
+      return {
+        ...omit(page, ['title', 'site']),
+        properties: omit(get(page, 'properties'), localizedProperties)
+      }
+    }
+
     if (page.id) {
       _page = await Page.findOne({_id: page.id, site: site.id}).populate('parent')
-      _page.set(omit(page, [...i18nfields, 'site']))
+      console.log(clean(page, _page.layout));
+      const {properties = {}, ...pageProperties} = clean(page, _page.layout)
+      _page.set(pageProperties)
+      forEach(properties, (value, key) => {
+        _page.set(`properties.${key}`, value)
+      })
+      console.log(_page);
     } else {
       locale = 'en'
-      _page = new Page(omit(page, i18nfields))
+      _page = new Page(clean(page, page.layout))
       _page.site = site.id
     }
 
-    i18nfields.filter(f => has(page, f)).forEach(field => {
-      _page.set(`${field}.${locale}`, page[field])
+    i18nfields(_page.layout).filter(f => has(page, f) && !isNil(get(page, f))).forEach(field => {
+      _page.set(field, {
+        ...get(_page, field, {}),
+        [locale]: get(page, field)
+      })
     })
     await _page.save()
     return _page

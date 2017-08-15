@@ -43,18 +43,18 @@ class SnippetForm extends React.Component {
   }
 }
 
-const ReduxSnippetForm = connect((_, {snippet}) => {
+const ReduxSnippetForm = connect(({app: {locale}}, {snippet}) => {
   return {initialValues: {
     id: snippet.id,
     key: snippet.key,
-    content: t(snippet.content)
+    content: t(snippet.content, locale)
   }}
 })(reduxForm({form: 'newSnippetForm', enableReinitialize: true})(SnippetForm))
 
-const Snippet = ({snippet, onTouchTap}) =>
+const Snippet = ({snippet, locale, onTouchTap}) =>
   <Paper style={{padding: 10, marginTop: 20}} onTouchTap={() => onTouchTap()}>
     <h2>{snippet.key}</h2>
-    <div dangerouslySetInnerHTML={{__html: t(snippet.content)}}></div>
+    <div dangerouslySetInnerHTML={{__html: t(snippet.content, locale)}}></div>
   </Paper>
 
 class SnippetsEditor extends React.Component {
@@ -70,7 +70,12 @@ class SnippetsEditor extends React.Component {
     return (<div style={{display: 'flex', width: '100%', justifyContent: 'center'}}>
       <div style={{width: '60%'}}>
         {map(snippets, snippet =>
-            <Snippet key={snippet.id} snippet={snippet} onTouchTap={() => this.setState({showNewSnippetDialog: true, snippet})} />)}
+            <Snippet
+              key={snippet.id}
+              snippet={snippet}
+              locale={this.props.locale}
+              onTouchTap={() => this.setState({showNewSnippetDialog: true, snippet})}
+            />)}
       </div>
 
       <div style={{position: 'fixed', bottom: 20, right: 20}}>

@@ -23,6 +23,7 @@ const pageSchema = new Schema({
   title: Object,
   linkText: Object,
   sections: Object,
+  properties: Object,
 })
 
 const staticTextSchema = new Schema({

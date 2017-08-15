@@ -19,14 +19,14 @@ frontend.use((req, res) => {
 export function renderRequest(requestPath, {req, res, next}, context = {}) {
   context = {
     ...context,
-    site: req.site.toObject(),
+    site: req.site.toObject({virtuals: true}),
   }
   resolvePath(requestPath, req).then(page => {
-    renderPage({req, res}, page, context)
+    return renderPage({req, res}, page, context)
       .then(() => res.end())
       .catch(() => res.sendStatus(500))
   }).catch(e => {
-    console.log(e)
+    console.log(e);
     res.sendStatus(404)
   })
 }
@@ -63,10 +63,10 @@ async function resolvePath(path, req) {
   if (pages.some(p => !p)) {
     return Promise.reject()
   }
-  return {
-    ...last(pages).toObject(),
-    path: `/${path}`,
-  }
+  const page = pages[pages.length-1]
+  page.path = path.join('/')
+  page.parents = pages
+  return page
 }
 
 export default frontend

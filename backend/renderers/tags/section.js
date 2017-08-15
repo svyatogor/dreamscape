@@ -17,8 +17,12 @@ export class section {
     return new nodes.CallExtensionAsync(this, 'run', args, [body]);
   }
 
-  run(context, sectionName, body, callback) {
-    section.render(sectionName, context.ctx)
+  run({ctx}, sectionName, body, callback) {
+    if (ctx.inspect) {
+      ctx.sections.push(sectionName)
+      return callback(null, null)
+    }
+    section.render(sectionName, ctx)
       .then((data) => callback(null, data))
       .catch(err => callback(err))
   }

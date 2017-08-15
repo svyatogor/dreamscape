@@ -1,32 +1,43 @@
 import nunjucks from 'nunjucks'
-import {get, zipObject, map} from 'lodash'
+import {zipObject, map, reduce, forEach} from 'lodash'
 import langs from 'langs'
 import * as tags from './tags'
 
 const renderPage = ({req, res}, page, context) => {
-  page.title = get(page.title, req.locale, page.title.en)
   const {site} = context
+  const locale = req.locale
+  const breadcrumbs = map(page.parents, (p) => page.toContext({locale, site}))
+  reduce(
+    breadcrumbs,
+    (path, page) => {
+      page.path = `${path}/${page.slug}`
+      return page.path
+    }, "")
+  breadcrumbs[breadcrumbs.length-1].active = true
   try {
     context = {
       ...context,
       site: {
         ...site,
         assetsRoot: `${process.env.ASSETS_DOMAIN}/data/${site.key}/layouts`,
-        localeName: langs.where('1', req.locale).name,
+        localeName: langs.where('1', locale).name,
         supportedLanguages: zipObject(site.supportedLanguages,
           map(site.supportedLanguages, l => ({
             name: langs.where('1', l).local,
             locale: l,
           })))
       },
-      page,
+      page: page.toContext({locale, site}),
+      breadcrumbs,
       req: {
         ...req,
         localeName: langs.where('1', req.locale).local,
       }
     }
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
-    env.addExtension('section', new tags.section())
+    forEach(tags, (tag, name) => {
+      env.addExtension(name, new tag())
+    })
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, context, (err, result) => {
         if (err) {

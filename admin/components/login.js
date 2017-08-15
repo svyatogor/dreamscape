@@ -12,12 +12,12 @@ const Login = (props) =>
       <Paper style={{padding: '30px 40px', textAlign: 'center'}}>
         <img src={Logo} alt="" width="50%" style={{marginBottom: 30}} />
         <div className={cx([styles.button, styles.google])} onClick={() => {
-          window.location = `${process.env.REACT_APP_BACKEND}/auth/google`
+          window.location = `/admin/api/auth/google`
         }}>
           <FontAwesome name='google' /> Sign in with google
         </div>
         <div className={cx([styles.button, styles.windows])} onClick={() => {
-          window.location = `${process.env.REACT_APP_BACKEND}/auth/windowslive`
+          window.location = `/admin/api/auth/windowslive`
         }}>
           <FontAwesome name='windows' /> Sign in with windows
         </div>

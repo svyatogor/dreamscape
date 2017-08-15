@@ -45,9 +45,9 @@ class Redactor extends React.Component {
           mode: 'htmlmixed',
           indentUnit: 4
       },
-      s3: `${process.env.REACT_APP_BACKEND}/sign-s3`,
+      s3: `/admin/api/sign-s3`,
       imageUpload: true,
-      imageManagerJson: `${process.env.REACT_APP_BACKEND}/images?${querystring.stringify(parent)}`,
+      imageManagerJson: `/admin/api/images?${querystring.stringify(parent)}`,
       imageResizable: true,
       imagePosition: true,
       callbacks: {

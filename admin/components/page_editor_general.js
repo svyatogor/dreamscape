@@ -9,8 +9,9 @@ import {
   Toggle,
   SelectField,
 } from 'redux-form-material-ui'
-import {omit, isEmpty, map, get, reject} from 'lodash'
+import {omit, isEmpty, map, get, reject, pickBy, forEach} from 'lodash'
 import {graphql, gql} from 'react-apollo'
+import {humanize} from 'inflection'
 import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
 import siteQuery from '../graphql/site.gql'
@@ -35,11 +36,15 @@ class PageEditorGeneral extends React.Component {
       })
   }
 
+  get properties() {
+    return get(this.props.siteData, ['site', 'layouts', this.props.page.layout, 'properties'], [])
+  }
+
   render() {
-    if (this.props.data.loading || this.props.siteData.lodash) {
+    if (this.props.data.loading || this.props.siteData.loading) {
       return null
     }
-    const {error, handleSubmit, pristine, submitting, locale, data: {pages}, siteData: {site}} = this.props
+    const {handleSubmit, pristine, submitting, locale, data: {pages}, siteData: {site}} = this.props
     const layouts = site.layouts
     const validParents = reject(pages, parent => parent.id === get(this.props.page, 'id'))
     return (
@@ -77,23 +82,63 @@ class PageEditorGeneral extends React.Component {
           {map(validParents, ({title, id}) => <MenuItem value={id} primaryText={t(title, locale)} key={id} />)}
         </Field>
         <Field name="published" component={Toggle} label="Published" />
+        {map(this.properties, prop => this.renderPropetyField(prop))}
         <div className={common.formActions}>
           <RaisedButton label="Save" primary={true} disabled={pristine || submitting} type="submit" />
         </div>
-        {error}
       </form>)
+  }
+
+  renderPropetyField(prop) {
+    const {key} = prop
+    if (prop.type === 'text') {
+      return (
+        <Field
+          name={`properties.${key}`}
+          key={key}
+          component={TextField}
+          floatingLabelText={humanize(key)}
+          fullWidth floatingLabelFixed
+          multiLine
+          rows={2}
+          className={common.formControl}
+        />
+      )
+    } else {
+      return (
+        <Field
+          name={`properties.${key}`}
+          key={key}
+          component={TextField}
+          floatingLabelText={humanize(key)}
+          fullWidth floatingLabelFixed
+          className={common.formControl}
+        />
+      )
+    }
+
   }
 }
 
-const mapStateToProps = ({app}, {page}) => {
+const mapStateToProps = ({app}, {page, siteData}) => {
+  const initialValues = {
+    ...page,
+    parent: get(page.parent, 'id'),
+    title: t(page.title, app.locale),
+    linkText: t(page.linkText, app.locale),
+    properties: {...page.properties} || {},
+  }
+
+  if (page.layout) {
+    const localizedProperties = pickBy(siteData.site.layouts[page.layout].properties, 'localized')
+    forEach(localizedProperties, (prop, key) => {
+      initialValues.properties[key] = t(get(page.properties, key), app.locale)
+    })
+  }
+
   return {
     locale: app.locale,
-    initialValues: {
-      ...page,
-      parent: get(page.parent, 'id'),
-      title: t(page.title, app.locale),
-      linkText: t(page.linkText, app.locale)
-    }
+    initialValues
   }
 }
 

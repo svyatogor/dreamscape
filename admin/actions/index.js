@@ -12,7 +12,7 @@ export function showNotification(payload) {
 
 export function getSession() {
   return dispatch =>
-    fetch(`${process.env.REACT_APP_BACKEND}/session`, {credentials: 'include'}).then(async res => {
+    fetch(`/admin/api/session`, {credentials: 'include'}).then(async res => {
       const payload = await res.json()
       dispatch({type: 'SET_SESSION', payload})
     }).catch(e => {
@@ -22,7 +22,7 @@ export function getSession() {
 
 export function logout() {
   return dispatch =>
-    fetch(`${process.env.REACT_APP_BACKEND}/logout`, {credentials: 'include'}).then(async res => {
+    fetch(`/admin/api/logout`, {credentials: 'include'}).then(async res => {
       dispatch({type: 'LOGOUT'})
     })
 }
