@@ -96,7 +96,7 @@ if (process.env.NODE_ENV === 'development') {
   })
 }
 
-auth.get('/auth/google',
+auth.get('/admin/api/auth/google',
   (req, res, next) => {
     res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.ROOT_DOMAIN}`})
     next()
@@ -107,7 +107,7 @@ auth.get('/auth/google',
   )
   )
 
-auth.get('/auth/windowslive',
+auth.get('/admin/api/auth/windowslive',
   (req, res, next) => {
     res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.ROOT_DOMAIN}`})
     next()
