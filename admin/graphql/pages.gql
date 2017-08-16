@@ -3,6 +3,7 @@ query pages {
     id
     title
     published
+    position
     parent {
       id
     }

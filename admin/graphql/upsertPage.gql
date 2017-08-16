@@ -4,6 +4,7 @@ mutation upsertPage($page: PageInput!, $locale: String) {
       slug
       title
       linkText
+      position
       parent {id}
       layout
       published

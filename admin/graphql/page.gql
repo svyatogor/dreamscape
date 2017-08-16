@@ -9,5 +9,6 @@ query page($id: ID!) {
     published
     sections
     properties
+    position
   }
 }

@@ -1,42 +1,108 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import {isEmpty, isEqual, filter, map, find} from 'lodash'
-import {ListItem, List} from 'material-ui'
+import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex, isNumber, without} from 'lodash'
+import {List} from 'material-ui'
 import {push} from 'react-router-redux'
 import {get} from 'lodash'
-import cx from 'classnames'
 import {compose} from 'recompose'
-import {graphql} from 'react-apollo'
+import {graphql, gql} from 'react-apollo'
+import {DragDropContext} from 'react-dnd'
+import SiteTreeElement from './site_tree_element'
+import HTML5Backend from 'react-dnd-html5-backend'
+import {showNotification} from '../actions'
 import {t} from '../common/utils'
 import pages from '../graphql/pages.gql'
-import 'react-ui-tree/dist/react-ui-tree.css'
 
 const documentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575'}} />
 const inactiveDocumentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575', opacity: 0.7}} />
+
 class Tree extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
   }
 
+  move(id, after, d) {
+    const self = this.state.pages.find(page => page.id === id)
+    if (isNumber(after)) {
+      const otherPages = without(this.state.pages, self)
+      this.setState({pages: [...otherPages, {...self, position: after}]})
+      return
+    }
+    let otherPages = this.state.pages.filter(page => page.parent !== self.parent)
+    let pages = _(this.state.pages)
+      .filter({parent: self.parent})
+      .sortBy('position')
+      .map((page, i) => ({...page, position: i}))
+      .value()
+    const other = findIndex(pages, {id: after})
+    pages = pages.map(page => {
+      if (page.id === self.id) {
+        return {...page, position: other}
+      } else if (page.position === other) {
+        return {...page, position: page.position + (d < 0 ? 1 : -1)}
+      } else if (page.position > other) {
+        return {...page, position: page.position + 1}
+      } else {
+        return page
+      }
+    })
+    this.setState({pages: [...otherPages, ...pages]})
+  }
+
+  commitMove(parent) {
+    const pages = sortBy(filter(this.state.pages, {parent}), 'position')
+    const optimisticResponse = pages.map(page => ({
+      ...page,
+      parent: {
+        __typename: 'Page',
+        id: page.parent
+      }
+    }))
+    return this.props.saveOrder({
+      variables: {pages: map(pages, 'id')},
+      optimisticResponse: {
+        __typename: 'Mutation',
+        orderPages: optimisticResponse,
+      },
+    })
+      .then(({data}) => {
+        this.props.showNotification("Order saved")
+      })
+      .catch((error) => {
+        this.props.showNotification("Ooops, could not save new page order")
+      })
+  }
+
+  componentWillReceiveProps({pages}) {
+    if (pages) {
+      this.setState({pages})
+    }
+  }
+
   renderPage(page) {
     let props = {}
-    const subPages = filter(this.props.pages, ({parent}) => parent === page.id)
+    const subPages = filter(this.state.pages, ({parent}) => parent === page.id)
     if (!isEmpty(subPages)) {
       props = {
         // primaryTogglesNestedList: true,
         initiallyOpen: this.props.fullPath.includes(page.id),
-        nestedItems: map(subPages, this.renderPage.bind(this)),
+        nestedItems: map(sortBy(subPages, 'position'), this.renderPage.bind(this)),
       }
     }
     return (
-      <ListItem
+      <SiteTreeElement
         leftIcon={page.published ? documentIcon : inactiveDocumentIcon}
         primaryText={t(page.title, this.props.locale)}
         key={page.id}
-        {...props}
+        id={page.id}
+        position={page.position}
+        parent={page.parent}
+        move={this.move.bind(this)}
+        commitMove={this.commitMove.bind(this)}
         style={{color: page.published ?  '#000' : '#888'}}
         onTouchTap={() => this.props.push(`/site/page/${page.id}`)}
+        {...props}
       />
     )
   }
@@ -45,23 +111,11 @@ class Tree extends React.Component {
     if (this.props.data.loading) {
       return null
     }
-    const topPages = this.props.pages.filter(page => !page.parent)
+    const topPages = sortBy(this.props.pages.filter(page => !page.parent), 'position')
     return (
         <List>
           {topPages.map((page, id) => this.renderPage(page, id))}
         </List>
-    )
-  }
-
-  renderNode(node) {
-    return (
-      <span
-        className={cx('node', {
-          'is-active': node === this.state.active
-        })}
-      >
-        <ListItem primaryText={node.name} onTouchTap={() => this.setState({active: node})}  />
-      </span>
     )
   }
 
@@ -74,18 +128,6 @@ class Tree extends React.Component {
   shouldComponentUpdate(newProps, newState) {
     return !isEqual(this.props, newProps) || !isEqual(this.state, newState)
   }
-}
-
-const buildTree = (pages, parent) => {
-  return pages.filter(page => page.parent === parent).map(page => {
-    const children = buildTree(pages, page.id)
-    return {
-      ...page,
-      // leaf: isEmpty(children),
-      children,
-      collapsed: !isEmpty(children),
-    }
-  })
 }
 
 const buildFullPath = (pages, page, path = []) => {
@@ -110,8 +152,24 @@ const mapStateToProps = ({app: {locale}, routing}, {data, activePage}) => {
   }
 }
 
+const saveOrder = gql`
+  mutation orderPges($pages: [ID!]!) {
+    orderPages(pages: $pages) {
+      id
+      title
+      published
+      position
+      parent {
+        id
+      }
+    }
+  }
+`
+
 const enhance = compose(
   graphql(pages),
-  connect(mapStateToProps, {push}),
+  graphql(saveOrder, {name: 'saveOrder'}),
+  connect(mapStateToProps, {push, showNotification}),
+  DragDropContext(HTML5Backend)
 )
 export default enhance(Tree)

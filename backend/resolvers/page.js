@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {omit, isNil, forEach, has, map, reject, get, pickBy} from 'lodash'
+import {omit, isNil, forEach, has, map, reject, get, pickBy, reduce} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
 
@@ -36,17 +36,17 @@ export default class {
 
     if (page.id) {
       _page = await Page.findOne({_id: page.id, site: site.id}).populate('parent')
-      console.log(clean(page, _page.layout));
       const {properties = {}, ...pageProperties} = clean(page, _page.layout)
       _page.set(pageProperties)
       forEach(properties, (value, key) => {
         _page.set(`properties.${key}`, value)
       })
-      console.log(_page);
     } else {
       locale = 'en'
       _page = new Page(clean(page, page.layout))
+      const {position} = await Page.findOne({site: site._id}).sort('-position').select('position')
       _page.site = site.id
+      _page.position = position + 1
     }
 
     i18nfields(_page.layout).filter(f => has(page, f) && !isNil(get(page, f))).forEach(field => {
@@ -91,6 +91,13 @@ export default class {
     const klass = require('../models')[type]
     const object = await klass.findById(id)
     return object.attach(url)
+  }
+
+  @mutation
+  static async orderPages({site}, {pages}) {
+    return Promise.all(map(pages, (page, position) =>
+      Page.findOneAndUpdate({_id: page, site: site._id}, {$set: {position}}, {new: true}).populate('parent')
+    ))
   }
 
   static queries = {}

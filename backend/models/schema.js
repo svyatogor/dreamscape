@@ -24,6 +24,7 @@ const pageSchema = new Schema({
   linkText: Object,
   sections: Object,
   properties: Object,
+  position: {type: Number, default: 9999}
 })
 
 const staticTextSchema = new Schema({
