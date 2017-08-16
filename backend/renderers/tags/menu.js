@@ -39,7 +39,7 @@ export class menu {
       return
     }
 
-    pagesQuery.then(pages => {
+    pagesQuery.sort('position').then(pages => {
       const content = map(pages, page => {
         ctx[key] = page.toContext({site: ctx.site, locale: ctx.req.locale})
         return body()
