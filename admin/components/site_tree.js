@@ -111,7 +111,7 @@ class Tree extends React.Component {
     if (this.props.data.loading) {
       return null
     }
-    const topPages = sortBy(this.props.pages.filter(page => !page.parent), 'position')
+    const topPages = sortBy(this.state.pages.filter(page => !page.parent), 'position')
     return (
         <List>
           {topPages.map((page, id) => this.renderPage(page, id))}
