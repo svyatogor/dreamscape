@@ -54,10 +54,10 @@ class Tree extends React.Component {
     const pages = sortBy(filter(this.state.pages, {parent}), 'position')
     const optimisticResponse = pages.map(page => ({
       ...page,
-      parent: {
+      parent: page.parent ? {
         __typename: 'Page',
         id: page.parent
-      }
+      } : null
     }))
     return this.props.saveOrder({
       variables: {pages: map(pages, 'id')},

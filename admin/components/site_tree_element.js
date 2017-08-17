@@ -41,7 +41,7 @@ class SiteTreeElement extends React.Component {
     }
 
     if (isOver || isOverCurrent) {
-      props.initiallyOpen = true
+      props.nestedItems = []
       // style.borderBottom = '2px dashed #ccc'
     }
 
