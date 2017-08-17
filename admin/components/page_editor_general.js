@@ -104,6 +104,8 @@ class PageEditorGeneral extends React.Component {
           className={common.formControl}
         />
       )
+    } else if (prop.type === 'boolean') {
+      return <Field key={key} name={`properties.${key}`} component={Toggle} label={humanize(key)} />
     } else {
       return (
         <Field

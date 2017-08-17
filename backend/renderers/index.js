@@ -1,12 +1,14 @@
 import nunjucks from 'nunjucks'
 import {zipObject, map, reduce, forEach} from 'lodash'
 import langs from 'langs'
+import Promise from 'bluebird'
 import * as tags from './tags'
 
-const renderPage = ({req, res}, page, context) => {
+const renderPage = async ({req, res}, page, context) => {
   const {site} = context
   const locale = req.locale
-  const breadcrumbs = map(page.parents, (p) => p.toContext({locale, site}))
+  const breadcrumbs = await Promise.map(page.parents, p => p.toContext({locale, site}))
+
   reduce(
     breadcrumbs,
     (path, page) => {
@@ -27,7 +29,7 @@ const renderPage = ({req, res}, page, context) => {
             locale: l,
           })))
       },
-      page: page.toContext({locale, site}),
+      page: await page.toContext({locale, site}),
       breadcrumbs,
       req: {
         ...req,

@@ -23,6 +23,7 @@
     "body-parser": "^1.17.2",
     "bootstrap": "^3.3.7",
     "bootstrap-sass": "^3.3.7",
+    "cachegoose": "^3.0.2",
     "case-sensitive-paths-webpack-plugin": "2.1.1",
     "chalk": "1.1.3",
     "classnames": "^2.2.5",

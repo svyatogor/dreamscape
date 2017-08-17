@@ -1,7 +1,7 @@
 import express from 'express'
 import mongoose from 'mongoose'
+import cachegoose from 'cachegoose'
 import s3 from 's3'
-import cors from 'cors'
 import {Site} from './models'
 import auth from './auth'
 import admin from './admin'
@@ -10,6 +10,8 @@ import frontend from './frontend'
 import './models'
 mongoose.Promise = require('bluebird')
 mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true})
+mongoose.set('debug', true)
+cachegoose(mongoose)
 
 const app = express()
 app.use(require('cookie-parser')())
@@ -49,11 +51,11 @@ export default () => {
 		const regex = new RegExp(`(.*).${process.env.ROOT_DOMAIN}`, 'i')
 		const match = req.hostname.match(regex)
 		if (match) {
-			req.site = await Site.findOne({key: match[1].toLowerCase()})
+			req.site = await Site.findOne({key: match[1].toLowerCase()}).cache(1)
 		} else {
 			req.site = await Site.findOne({
     		domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
-  		})
+  		}).cache(1)
 		}
 
 		if (req.site) {

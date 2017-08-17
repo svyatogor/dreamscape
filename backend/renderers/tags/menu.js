@@ -1,4 +1,5 @@
-import {defaults, map} from 'lodash'
+import {defaults, map, isString} from 'lodash'
+import {resolvePath} from '../../frontend'
 import {Page} from '../../models'
 
 export class menu {
@@ -18,7 +19,7 @@ export class menu {
     return new nodes.CallExtensionAsync(this, 'run', root, [body]);
   }
 
-  run({ctx}, root, options, body, callback) {
+  async run({ctx}, root, options, body, callback) {
     if (ctx.inspect) {
       return callback(null, '')
     }
@@ -32,6 +33,11 @@ export class menu {
       pagesQuery = Page.find({site: ctx.site._id, parent: ctx.page._id})
     } else if (root === 'parent') {
       pagesQuery = Page.find({site: ctx.site._id, parent: ctx.page.parent})
+    } else if (root === 'root') {
+      pagesQuery = Page.find({site: ctx.site._id, parent: null})
+    } else if (isString(root)) {
+      const {id: parent} = await resolvePath(root)
+      pagesQuery = Page.find({site: ctx.site._id, parent})
     } else if (root._id) {
       pagesQuery = Page.find({site: ctx.site._id, parent: root._id})
     } else {
@@ -39,14 +45,18 @@ export class menu {
       return
     }
 
-    pagesQuery.sort('position').then(pages => {
-      const content = map(pages, page => {
-        ctx[key] = page.toContext({site: ctx.site, locale: ctx.req.locale})
+    return pagesQuery.sort('position').then(async pages => {
+      return Promise.all(map(pages, async page => {
+        const contextPage = await page.toContext({site: ctx.site, locale: ctx.req.locale})
+        ctx[key] = {
+          ...contextPage,
+          active: page._id === ctx.page._id
+        }
         return body()
-      }).join('')
-
-      ctx[key] = originalValue
-      callback(null, content)
+      })).then(data => {
+        ctx[key] = originalValue
+        callback(null, data.join(''))
+      })
     }).catch(err => callback(err))
   }
 }

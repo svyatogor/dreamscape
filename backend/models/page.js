@@ -1,15 +1,31 @@
-import {map, pickBy, mapValues, omit} from 'lodash'
+import {map, pickBy, mapValues, omit, find, has} from 'lodash'
 import mongoose from 'mongoose'
 import {t} from '../common/utils'
 import {pageSchema} from './schema'
 
+let Page
 class PageClass {
-  toContext({locale, site}) {
+  get path() {
+    return Page.find({site: this.site}).select(['_id', 'parent', 'slug']).cache(1).then(allPages => {
+      const fullPath = [this.slug]
+      let self = this
+      while(self.parent) {
+        const needle = self.parent._id || self.parent
+        const parent = find(allPages, {_id: needle})
+        fullPath.push(parent.slug)
+        self = parent
+      }
+      return fullPath.join('/')
+    })
+  }
+
+  async toContext({locale, site}) {
     const layout = site.layouts[this.layout]
     const localizedProperies = map(pickBy(layout.properties, 'localized'), 'key')
     return {
-      ...omit(this.toObject(), ['properties', 'title']),
+      ...omit(this.toObject({virtuals: true}), ['properties', 'title']),
       title: t(this.title, locale),
+      path: await this.path,
       ...mapValues(this.properties, (prop, key) => {
         if (localizedProperies.includes(key)) {
           return t(prop, locale)
@@ -20,6 +36,6 @@ class PageClass {
     }
   }
 }
-
 pageSchema.loadClass(PageClass)
-export default mongoose.model('Page', pageSchema)
+Page = mongoose.model('Page', pageSchema)
+export default Page
