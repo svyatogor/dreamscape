@@ -38,7 +38,7 @@ class Redactor extends React.Component {
     const {parent} = this.props
     global.$('#redactor').redactor({
       minHeight: this.props.minHeight || 300,
-      maxHeight: this.props.maxHeight || 999999,
+      maxHeight: this.props.maxHeight || 300,
       plugins: ['source', 'table', 'fullscreen', 'fontsize', 'fontcolor', 'fontfamily', 'imagemanager'],
       codemirror: {
           lineNumbers: true,

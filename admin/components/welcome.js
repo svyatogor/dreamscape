@@ -1,7 +1,13 @@
 import React from 'react'
-import common from '../common.scss'
+import {graphql} from 'react-apollo'
+import siteQuery from '../graphql/site.gql'
 
-const Welcome = props =>
-  <div className={common.section}>Test</div>
+const Welcome = props => {
+  if (props.data.site) {
+    return <div className="emptyBlock">Welcome to {props.data.site.key} admin.</div>
+  } else {
+    return null
+  }
+}
 
-export default Welcome
+export default graphql(siteQuery)(Welcome)

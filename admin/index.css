@@ -53,6 +53,10 @@ footer.copyright {
   border-radius: 2px;
 }
 
+.redactor-body-fullscreen .redactor-layer {
+  height: 100%;
+}
+
 .redactor-body-fullscreen #root:before {
   content: '';
   display: block;

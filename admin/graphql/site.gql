@@ -1,6 +1,7 @@
 query {
   site {
     id
+    key
     domains
     allowedModules
     supportedLanguages

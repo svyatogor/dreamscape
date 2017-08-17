@@ -38,6 +38,7 @@ type Page {
 
 type Site {
   id: ID!
+  key: String!
   domains: [String!]
   allowedModules: [String!]!
   supportedLanguages: [String!]!
