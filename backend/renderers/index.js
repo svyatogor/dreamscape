@@ -29,7 +29,10 @@ const renderPage = async ({req, res}, page, context) => {
             locale: l,
           })))
       },
-      page: await page.toContext({locale, site}),
+      page: {
+        ...(await page.toContext({locale, site})),
+        parents: page.parents,
+      },
       breadcrumbs,
       req: {
         ...req,
