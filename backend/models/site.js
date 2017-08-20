@@ -1,6 +1,7 @@
 import {siteSchema} from './schema'
 import mongoose from 'mongoose'
 import fs from 'fs'
+import s3 from 's3'
 import {humanize} from 'inflection'
 import {zipObject, forEach} from 'lodash'
 import nunjucks from 'nunjucks'
@@ -55,6 +56,31 @@ class SiteClass {
       console.log(e);
       return {}
     }
+  }
+
+  syncFile(file) {
+    if (file.indexOf('layouts') !== 0) {
+      return Promise.resolve()
+    }
+    const client = s3.createClient({s3Options: {region: 'eu-west-1'}})
+    return new Promise((resolve, reject) => {
+      const downloader = client.downloadFile({
+        localFile: `./data/${this.key}/${file}`,
+        s3Params: {
+          Bucket: process.env.S3_BUCKET,
+          Key: `${this.key}/${file}`
+        }
+      })
+      downloader.on('error', err => {
+        // TODO: Report error
+        console.error(`Error syncing ${this.key}/${file}`, err)
+        reject(err)
+      })
+      downloader.on('end', () => {
+        console.error(`Done syncing ${this.key}/${file}`)
+        resolve()
+      })
+    })
   }
 }
 
