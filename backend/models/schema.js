@@ -11,7 +11,44 @@ const siteSchema = new Schema({
   domains: [String],
   allowedModules: [String],
   supportedLanguages: [String],
-  users: [String]
+  users: [String],
+  features: [String],
+  documentTypes: JSON,
+})
+
+const memberSchema = new Schema({
+  email: String,
+  firstName: String,
+  lastName: String,
+  passwordHash: String,
+}, {strict: false, timestamps: true})
+
+const ordersSchema = new Schema({
+  member: {type: Schema.Types.ObjectId, ref: 'Member'},
+  items: [{
+    product: {type: Schema.Types.ObjectId, required: true},
+    quantity: {type: Number, default: 1},
+    price: Number,
+    discount: Number,
+    subtotal: Number,
+  }],
+  total: Number,
+  status: {type: String},
+}, {strict: false, timestamps: true})
+
+const itemSchema = new Schema({
+  catalog: String,
+  folder: {type: Schema.Types.ObjectId, ref: 'Folder'},
+  site: {type: Schema.Types.ObjectId, ref: 'Site'},
+}, {strict: false, timestamps: true})
+
+const folderSchema = new Schema({
+  name: Object,
+  slug: String,
+  position: {type: Number, default: 9999},
+  parent: {type: Schema.Types.ObjectId, ref: 'Folder'},
+  site: {type: Schema.Types.ObjectId, ref: 'Site'},
+  catalog: String,
 })
 
 const pageSchema = new Schema({
@@ -40,4 +77,8 @@ export {
   pageSchema,
   siteSchema,
   staticTextSchema,
+  itemSchema,
+  folderSchema,
+  memberSchema,
+  ordersSchema,
 }

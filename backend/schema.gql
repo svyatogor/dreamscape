@@ -14,7 +14,6 @@ type StaticText implements Block {
   global: Boolean
 }
 
-
 input StaticTextInput {
   id: ID
   content: String!
@@ -43,6 +42,16 @@ type Site {
   allowedModules: [String!]!
   supportedLanguages: [String!]!
   layouts: JSON
+  documentTypes: JSON
+  features: [String!]
+}
+
+type Folder {
+  id: ID!
+  slug: String
+  parent: ID
+  name: JSON
+  position: Int
 }
 
 input PageInput {
@@ -74,6 +83,7 @@ type Query {
   staticText(id: ID!): StaticText
   site: Site
   snippets: [StaticText]
+  folders(catalog: String!): [Folder!]
 }
 
 type Mutation {

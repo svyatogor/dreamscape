@@ -1,0 +1,8 @@
+query folders($catalog: String!) {
+  folders(catalog: $catalog) {
+    id
+    parent
+    position
+    name
+  }
+}
