@@ -28,9 +28,11 @@ admin.use('/api/graphql', requireUser, bodyParser.json(), graphqlExpress(req => 
         errors[field] = originalErrors[field].message
       })
     }
+    console.error(error)
     return {
       message: error.message,
       errors,
+      stack: error.stack,
     }
   },
 })))
