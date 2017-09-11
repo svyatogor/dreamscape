@@ -44,7 +44,11 @@ export default class {
     } else {
       locale = 'en'
       _page = new Page(clean(page, page.layout))
-      const {position} = await Page.findOne({site: site._id}).sort('-position').select('position')
+      let position = 0
+      const lastPage = await Page.findOne({site: site._id}).sort('-position').select('position')
+      if (lastPage) {
+        position = lastPage.position
+      }
       _page.site = site.id
       _page.position = position + 1
     }
