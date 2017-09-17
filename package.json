@@ -84,6 +84,7 @@
     "react-dnd-html5-backend": "^2.4.1",
     "react-dnd-scrollzone": "^4.0.0",
     "react-dom": "^15.6.1",
+    "react-dropzone-s3-uploader": "^1.1.0",
     "react-error-overlay": "^1.0.9",
     "react-fontawesome": "^1.6.1",
     "react-redux": "^5.0.5",

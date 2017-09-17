@@ -39,6 +39,7 @@ admin.use('/api/graphql', requireUser, bodyParser.json(), graphqlExpress(req => 
 
 admin.use('/graphiql', graphiqlExpress({endpointURL: '/admin/api/graphql'}))
 
+// Redact signed upload endpoint
 admin.get('/api/sign-s3', requireUser, async (req, res) => {
   const s3 = new aws.S3({region: 'eu-west-1'})
   const ext = last(req.query.name.split('.'))
@@ -60,6 +61,15 @@ admin.get('/api/sign-s3', requireUser, async (req, res) => {
     res.end()
   });
 })
+
+admin.use('/api/s3', require('react-dropzone-s3-uploader/s3router')({
+  bucket: process.env.S3_BUCKET,
+  // headers: {'Access-Control-Allow-Origin': '*'},  // optional
+  ACL: 'public-read',
+  getFileKeyDir: req => {
+    return `${req.site.key}`
+  }
+}));
 
 admin.get('/api/images', requireUser, async (req, res) => {
   const {type, id} = req.query

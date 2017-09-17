@@ -2,7 +2,7 @@ import React from 'react'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
-import {reduxForm, Field, SubmissionError} from 'redux-form'
+import {reduxForm, Field, SubmissionError, getFormValues} from 'redux-form'
 import {RaisedButton, MenuItem} from 'material-ui'
 import {
   TextField,
@@ -12,6 +12,7 @@ import {
 import {omit, isEmpty, map, get, reject, pickBy, forEach} from 'lodash'
 import {graphql, gql} from 'react-apollo'
 import {humanize} from 'inflection'
+import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
 import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
 import siteQuery from '../graphql/site.gql'
@@ -21,6 +22,11 @@ import common from '../common.scss'
 const required = value => isEmpty(value) && 'Cannot be blank'
 
 class PageEditorGeneral extends React.Component {
+  constructor(p) {
+    super(p)
+    this.state = {}
+  }
+
   onSubmit(data) {
     const page = omit(data, '__typename', 'sections')
     const newPage = !data.id
@@ -106,6 +112,35 @@ class PageEditorGeneral extends React.Component {
       )
     } else if (prop.type === 'boolean') {
       return <Field key={key} name={`properties.${key}`} component={Toggle} label={humanize(key)} />
+    } else if (prop.type === 'image') {
+      const val = get(this.props.formValues, ['properties', key])
+      return (<div key={key} style={{position: 'relative'}}>
+        <label htmlFor="">{humanize(key)}</label>
+        <DropzoneS3Uploader
+          onFinish={params => {
+            this.props.change(`properties.${key}`, `https://${process.env.REACT_APP_S3_BUCKET}.s3.amazonaws.com/${params.fileKey}`)
+          }}
+          s3Url={`https://${process.env.REACT_APP_S3_BUCKET}.s3.amazonaws.com`}
+          maxSize={1024 * 1024 * 5}
+          upload={{
+            signingUrl: '/admin/api/s3/sign',
+            signingUrlWithCredentials: true,
+          }}
+          passChildrenProps={false}
+        >
+          {!isEmpty(val) &&
+            <img style={{maxWidth: 200, maxHeight: 200}} src={val} alt="" />
+          }
+          {isEmpty(val) &&
+            <div className="emptyBlock" style={{fontSize: 18, lineHeight: '200px'}}>Drop an image here</div>
+          }
+        </DropzoneS3Uploader>
+        {!isEmpty(val) && <i
+          className="mdi mdi-close-circle"
+          style={{position: 'absolute', top: 0, right: 2, cursor: 'pointer'}}
+          onClick={() => this.props.change(`properties.${key}`, '')}
+        />}
+      </div>)
     } else {
       return (
         <Field
@@ -122,7 +157,7 @@ class PageEditorGeneral extends React.Component {
   }
 }
 
-const mapStateToProps = ({app}, {page, siteData}) => {
+const mapStateToProps = ({app, ...state}, {page, siteData}) => {
   const initialValues = {
     ...page,
     parent: get(page.parent, 'id'),
@@ -140,6 +175,7 @@ const mapStateToProps = ({app}, {page, siteData}) => {
 
   return {
     locale: app.locale,
+    formValues: {...initialValues, ...getFormValues('page')(state)},
     initialValues
   }
 }
