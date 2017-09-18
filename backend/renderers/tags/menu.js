@@ -1,4 +1,4 @@
-import {defaults, map, isString} from 'lodash'
+import {defaults, map, isString, includes} from 'lodash'
 import {resolvePath} from '../../frontend'
 import {Page} from '../../models'
 
@@ -47,10 +47,17 @@ export class menu {
 
     return pagesQuery.sort('position').then(async pages => {
       return Promise.all(map(pages, async page => {
-        const contextPage = await page.toContext({site: ctx.site, locale: ctx.req.locale})
+        console.log(
+
+          ctx.page.parents
+        )
+        const active = String(page._id) === String(ctx.page._id) ||
+          includes(map(ctx.page.parents, p => String(p._id)), String(page._id))
+        console.log(active);
+        const contextPage = await page.toContext(ctx)
         ctx[key] = {
           ...contextPage,
-          active: page._id === ctx.page._id
+          active,
         }
         return body()
       })).then(data => {

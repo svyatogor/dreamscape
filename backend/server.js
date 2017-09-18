@@ -2,6 +2,9 @@ import express from 'express'
 import mongoose from 'mongoose'
 import cachegoose from 'cachegoose'
 import s3 from 's3'
+import bodyParser from 'body-parser'
+import fetch from 'node-fetch'
+import Promise from 'bluebird'
 import {Site} from './models'
 import auth from './auth'
 import admin from './admin'
@@ -10,7 +13,7 @@ import frontend from './frontend'
 import './models'
 mongoose.Promise = require('bluebird')
 mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true})
-mongoose.set('debug', true)
+mongoose.set('debug', process.env.NODE_ENV === 'development')
 cachegoose(mongoose)
 
 const app = express()
@@ -45,8 +48,45 @@ const syncS3 = () => {
 	})
 }
 
+const setSnsBodyType = (req, res, next) => {
+	req.headers['content-type'] = 'application/json;charset=UTF-8';
+	next()
+}
+
 export default () => {
 	app.use(auth)
+	app.post('/sns/assets_modified',setSnsBodyType, bodyParser.json(), (req, res) => {
+		if (req.headers['x-amz-sns-message-type'] === 'SubscriptionConfirmation') {
+			fetch(req.body['SubscribeURL'])
+				.catch(e => console.log(e))
+				.then(r => {
+					res.sendStatus(200)
+				})
+		} else if (req.headers['x-amz-sns-message-type'] === 'Notification') {
+			try {
+				const message = JSON.parse(req.body.Message)
+				Promise.map(message.Records, record => {
+					const key = record.s3.object.key
+					const [siteKey, file] = /^([^/]+)\/(.*)$/.exec(key).slice(1)
+					console.log(key, siteKey, file);
+					return Site.findOne({key: siteKey}).then(site => {
+						if (site) {
+							return site.syncFile(file)
+						} else {
+							return Promise.resolve()
+						}
+					})
+				})
+					.catch(e => console.log(e))
+					.then(() => {
+						res.sendStatus(200)
+					})
+			} catch (e) {
+				console.log(e)
+				res.sendStatus(400)
+			}
+		}
+	})
 	app.use(async (req, res, next) => {
 		const regex = new RegExp(`(.*).${process.env.ROOT_DOMAIN}`, 'i')
 		const match = req.hostname.match(regex)
