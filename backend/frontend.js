@@ -37,13 +37,11 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
 async function resolvePath(path, req) {
   path = path.split('/')
   path.shift()
-  if (req) {
-    if (req.site.supportedLanguages.includes(path[0])) {
-      req.locale = path[0]
-      path.shift()
-    } else {
-      req.locale = 'en'
-    }
+  if (req.site.supportedLanguages.includes(path[0])) {
+    req.locale = path[0]
+    path.shift()
+  } else {
+    req.locale = 'en'
   }
 
   if (path.length === 0 || path[0] === '') {
@@ -67,7 +65,7 @@ async function resolvePath(path, req) {
   }, [])
 
   if (pages.some(p => !p)) {
-    return Promise.reject()
+    return Promise.reject(`Page not found: ${path}`)
   }
   const page = pages[pages.length-1]
   page.path = path.join('/')
