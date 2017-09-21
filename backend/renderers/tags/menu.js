@@ -47,14 +47,9 @@ export class menu {
 
     return pagesQuery.sort('position').then(async pages => {
       return Promise.all(map(pages, async page => {
-        console.log(
-
-          ctx.page.parents
-        )
         const active = String(page._id) === String(ctx.page._id) ||
           includes(map(ctx.page.parents, p => String(p._id)), String(page._id))
-        console.log(active);
-        const contextPage = await page.toContext(ctx)
+        const contextPage = await page.toContext({site: ctx.site, locale: ctx.req.locale})
         ctx[key] = {
           ...contextPage,
           active,
