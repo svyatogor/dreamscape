@@ -24,9 +24,12 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
   resolvePath(requestPath, req).then(page => {
     return renderPage({req, res}, page, context)
       .then(() => res.end())
-      .catch(() => res.sendStatus(500))
+      .catch((e) => {
+        console.log('Error', e);
+        res.sendStatus(500)
+      })
   }).catch(e => {
-    console.log(e);
+    console.log('Error', e);
     res.sendStatus(404)
   })
 }
@@ -47,7 +50,7 @@ async function resolvePath(path, req) {
     path = ['index']
   }
 
-  const allPages = await Page.find({slug: {$in: path}}).populate('parent')
+  const allPages = await Page.find({site: req.site.id, slug: {$in: path}}).populate('parent')
 
   const pages = reduce(path, (sum, slug, i) => {
     if (isEmpty(slug)) {
@@ -62,6 +65,7 @@ async function resolvePath(path, req) {
     }
     return [...sum, page]
   }, [])
+
   if (pages.some(p => !p)) {
     return Promise.reject()
   }
