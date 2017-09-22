@@ -5157,6 +5157,10 @@ node-status-codes@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/node-status-codes/-/node-status-codes-1.0.0.tgz#5ae5541d024645d32a58fcddc9ceecea7ae3ac2f"
 
+nodemailer@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/nodemailer/-/nodemailer-4.1.0.tgz#e3f76bcad7376bae44714552571f5b0674fe469f"
+
 "nopt@2 || 3":
   version "3.0.6"
   resolved "https://registry.yarnpkg.com/nopt/-/nopt-3.0.6.tgz#c6465dbf08abcd4db359317f79ac68a646b28ff9"

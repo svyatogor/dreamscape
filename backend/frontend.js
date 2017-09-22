@@ -19,7 +19,7 @@ frontend.use((req, res) => {
 export function renderRequest(requestPath, {req, res, next}, context = {}) {
   context = {
     ...context,
-    site: req.site.toObject({virtuals: true}),
+    site: req.site,
   }
   resolvePath(requestPath, req).then(page => {
     return renderPage({req, res}, page, context)
