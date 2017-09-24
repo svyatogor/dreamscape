@@ -22,6 +22,7 @@ const renderPage = async ({req, res}, page, context) => {
       site: {
         ...site,
         assetsRoot: `${process.env.ASSETS_DOMAIN}/${site.key}/layouts`,
+        uplaodRoot: process.env.ASSETS_DOMAIN,
         localeName: langs.where('1', locale).name,
         supportedLanguages: zipObject(site.supportedLanguages,
           map(site.supportedLanguages, l => ({

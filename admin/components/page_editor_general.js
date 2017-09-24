@@ -141,6 +141,42 @@ class PageEditorGeneral extends React.Component {
           onClick={() => this.props.change(`properties.${key}`, '')}
         />}
       </div>)
+    } else if (prop.type === 'file') {
+      const val = get(this.props.formValues, ['properties', key])
+      return (<div key={key} style={{position: 'relative'}}>
+        <label htmlFor="">{humanize(key)}</label>
+        <DropzoneS3Uploader
+          onFinish={params => {
+            this.props.change(`properties.${key}`, {
+              url: params.fileKey,
+              name: params.file.name,
+              type: params.file.type,
+              size: params.file.size,
+            })
+          }}
+          s3Url={`https://${process.env.REACT_APP_S3_BUCKET}.s3.amazonaws.com`}
+          maxSize={1024 * 1024 * 50}
+          upload={{
+            signingUrl: '/admin/api/s3/sign',
+            signingUrlWithCredentials: true,
+          }}
+          passChildrenProps={false}
+        >
+          {!isEmpty(val) &&
+            <a href={`https://${process.env.REACT_APP_S3_BUCKET}.s3.amazonaws.com/${val.url}`} style={{display: 'block', height: '100%', textAlign: 'center', lineHeight: '200px'}}>
+              <i style={{fontSize: 48}} className="mdi mdi-download" />
+            </a>
+          }
+          {isEmpty(val) &&
+            <div className="emptyBlock" style={{fontSize: 18, lineHeight: '200px'}}>Drop an file here</div>
+          }
+        </DropzoneS3Uploader>
+        {!isEmpty(val) && <i
+          className="mdi mdi-close-circle"
+          style={{position: 'absolute', top: 0, right: 2, cursor: 'pointer'}}
+          onClick={() => this.props.change(`properties.${key}`, null)}
+        />}
+      </div>)
     } else {
       return (
         <Field
