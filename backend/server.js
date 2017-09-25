@@ -97,6 +97,7 @@ export default () => {
     		domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
   		}).cache(1)
 		}
+		req.site = req.site.toObject({virtuals: true})
 
 		if (req.site) {
 			next()

@@ -19,14 +19,17 @@ frontend.use((req, res) => {
 export function renderRequest(requestPath, {req, res, next}, context = {}) {
   context = {
     ...context,
-    site: req.site.toObject({virtuals: true}),
+    site: req.site,
   }
   resolvePath(requestPath, req).then(page => {
     return renderPage({req, res}, page, context)
       .then(() => res.end())
-      .catch(() => res.sendStatus(500))
+      .catch((e) => {
+        console.log('Error', e);
+        res.sendStatus(500)
+      })
   }).catch(e => {
-    console.log(e);
+    console.log('Error', e);
     res.sendStatus(404)
   })
 }
@@ -34,20 +37,18 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
 async function resolvePath(path, req) {
   path = path.split('/')
   path.shift()
-  if (req) {
-    if (req.site.supportedLanguages.includes(path[0])) {
-      req.locale = path[0]
-      path.shift()
-    } else {
-      req.locale = 'en'
-    }
+  if (req.site.supportedLanguages.includes(path[0])) {
+    req.locale = path[0]
+    path.shift()
+  } else {
+    req.locale = 'en'
   }
 
   if (path.length === 0 || path[0] === '') {
     path = ['index']
   }
 
-  const allPages = await Page.find({slug: {$in: path}}).populate('parent')
+  const allPages = await Page.find({site: req.site.id, slug: {$in: path}}).populate('parent')
 
   const pages = reduce(path, (sum, slug, i) => {
     if (isEmpty(slug)) {
@@ -62,8 +63,9 @@ async function resolvePath(path, req) {
     }
     return [...sum, page]
   }, [])
+
   if (pages.some(p => !p)) {
-    return Promise.reject()
+    return Promise.reject(`Page not found: ${path}`)
   }
   const page = pages[pages.length-1]
   page.path = path.join('/')

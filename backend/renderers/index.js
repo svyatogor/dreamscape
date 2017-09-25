@@ -22,6 +22,7 @@ const renderPage = async ({req, res}, page, context) => {
       site: {
         ...site,
         assetsRoot: `${process.env.ASSETS_DOMAIN}/${site.key}/layouts`,
+        uplaodRoot: process.env.ASSETS_DOMAIN,
         localeName: langs.where('1', locale).name,
         supportedLanguages: zipObject(site.supportedLanguages,
           map(site.supportedLanguages, l => ({
@@ -59,4 +60,31 @@ const renderPage = async ({req, res}, page, context) => {
   }
 }
 
-export {renderPage}
+const renderEmail = async (req, template, context) => {
+  const {site} = req
+  try {
+    context = {
+      ...context,
+      site: {
+        ...site,
+        assetsRoot: `${process.env.ASSETS_DOMAIN}/${site.key}/layouts`,
+      },
+      req
+    }
+    const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
+    return new Promise((resolve, reject) => {
+      env.render(`${template}/index.html`, context, (err, result) => {
+        if (err) {
+          console.log(err)
+          return reject(err)
+        }
+        return resolve(result)
+      })
+    })
+  } catch(e) {
+    console.log(e)
+    return Promise.reject(e)
+  }
+}
+
+export {renderPage, renderEmail}

@@ -66,6 +66,7 @@
     "mongoose-seeder": "^1.2.1",
     "node-fetch": "^1.7.2",
     "node-sass": "^4.5.3",
+    "nodemailer": "^4.1.0",
     "nunjucks": "^3.0.1",
     "object-assign": "4.1.1",
     "passport": "^0.3.2",
