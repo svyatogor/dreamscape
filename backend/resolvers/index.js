@@ -10,6 +10,7 @@ const resolvers = {
   Mutation: {
     ...require('./page').default.mutations,
     ...require('./static_text').default.mutations,
+    ...require('./catalog').default.mutations,
   },
   JSON: GraphQLJSON
 }

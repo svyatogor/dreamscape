@@ -3,6 +3,7 @@ import Page from './page'
 import StaticText from './static_text'
 import Site from './site'
 import Folder from './folder'
+import Item from './Item'
 
 export {
   User,
@@ -10,4 +11,5 @@ export {
   StaticText,
   Site,
   Folder,
+  Item,
 }

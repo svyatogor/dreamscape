@@ -146,21 +146,21 @@ const enhance = compose(
 const ConnectedTree = enhance(Tree)
 
 const withTree = (Component, catalog, options = {}) => {
-  return ({match}) => {
+  return ({match, history}) => {
     return (
       <div style={{display: 'flex', width: '100%'}}>
         <div style={{flex: 3, minWidth: 300}}>
           <ConnectedTree activePage={match.params.folderId} catalog={catalog} />
         </div>
         <div style={{flex: 15}}>
-          <div style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
-            <Component match={match} {...options} />
-          </div>
+          <Component match={match} {...options} />
         </div>
         <div style={{flex: '1 4 5%', minWidth: 100}}></div>
 
         <div style={{position: 'fixed', bottom: 20, right: 20}}>
-          <FloatingActionButton secondary onTouchTap={() => this.props.dispatch(push('/site/page/new'))}>
+          <FloatingActionButton secondary
+            onTouchTap={() => history.push(`/catalog/${catalog}/folder/${match.params.folder}/product/new`)}
+          >
             <ContentAdd />
           </FloatingActionButton>
         </div>
