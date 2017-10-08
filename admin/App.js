@@ -30,6 +30,17 @@ const store = createStore(
 )
 persistStore(store, {whitelist: ['app',]})
 
+
+networkInterface.useAfter([{
+  applyAfterware({response}, next) {
+    console.log('afterware?');
+    if (response.status === 401) {
+      store.dispatch({type: 'LOGOUT'})
+    }
+    next()
+  }
+}])
+
 export default () =>
   <ApolloProvider client={client} store={store}>
     <AppContainer history={history} />

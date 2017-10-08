@@ -1,5 +1,5 @@
 import express from 'express'
-import {get, find} from 'lodash'
+import {get, find, includes} from 'lodash'
 import cors from 'cors'
 import jwtExpress from 'express-jwt'
 import jwt from 'jsonwebtoken'
@@ -122,7 +122,7 @@ const requireUser = [
     getToken: req => req.cookies.authtoken,
   }).unless({path: ['/auth/google']}),
   (req, res, next) => {
-    if (!req.user) {
+    if (!req.user || (req.site && !includes(req.site.users, req.user.email))) {
       res.sendStatus(401)
     } else {
       next()
