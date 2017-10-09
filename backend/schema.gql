@@ -82,6 +82,14 @@ input BlockRefInput {
   ref: ID!
 }
 
+input FolderInput {
+  id: ID
+  parent: ID
+  catalog: String
+  name: String!
+  locale: String
+}
+
 type Query {
   pages: [Page]
   page(id: ID!): Page
@@ -102,4 +110,6 @@ type Mutation {
   saveStaticText(input: StaticTextInput!): StaticText
   attachImage(type: String!, id: ID!, url: String!): Boolean
   upsertItem(id: ID, folder: ID!, data: JSON!, locale: String): Item
+  deleteItem(id: ID!): Boolean
+  upsertFolder(folder: FolderInput!): Folder
 }

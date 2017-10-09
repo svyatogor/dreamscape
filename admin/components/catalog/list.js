@@ -11,6 +11,8 @@ import {
   IconMenu,
   IconButton,
   MenuItem,
+  Dialog,
+  FlatButton,
 } from 'material-ui'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
 import {grey500} from 'material-ui/styles/colors'
@@ -21,9 +23,14 @@ import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
 import {t} from '../../common/utils'
-import {toggleField} from '../../actions'
+import {toggleField, showNotification} from '../../actions'
 
 class List extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+  }
+
   get configurationMenu() {
     const {
       catalog: {fields, labelField},
@@ -58,10 +65,54 @@ class List extends React.Component {
     )
   }
 
+  get deleteConfirmationDialog() {
+    const {labelField} = this.props.catalog
+    const {requestDelete} = this.state
+    return (<Dialog
+      title="Delete item?"
+      actions={
+        [
+          <FlatButton
+            label="Cancel"
+            keyboardFocused
+            onClick={() => this.setState({requestDelete: null})}
+          />,
+          <FlatButton
+            label="Delete"
+            primary
+            onClick={() => this.deleteItem()}
+          />,
+        ]
+      }
+      modal={false}
+      open={!!requestDelete}
+      onRequestClose={() => this.setState({requestDelete: null})}
+    >
+      {requestDelete &&
+        `Are you sure you want to delete ${t(this.state.requestDelete.data[labelField])}`
+      }
+    </Dialog>)
+  }
+
+  deleteItem() {
+    this.props.deleteItem({
+      variables: {id: this.state.requestDelete.id},
+      refetchQueries: ['items'],
+    }).then(() => {
+      this.setState({requestDelete: null})
+      this.props.showNotification('Item deleted')
+    })
+  }
+
+  requestDelete(item) {
+    this.setState({requestDelete: item})
+  }
+
   render() {
-    const {visibleFields, data, folderData, catalogKey, match: {params: {folder}}} = this.props
+    const {visibleFields, data, folderData, catalogKey, push, match: {params: {folder}}} = this.props
     return (
       <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
+        {this.deleteConfirmationDialog}
         <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
           {this.configurationMenu}
         </CardTitle>
@@ -79,9 +130,12 @@ class List extends React.Component {
               {map(visibleFields, f => <TableRowColumn key={f}>{t(item.data[f])}</TableRowColumn>)}
               <TableRowColumn style={{textAlign: 'right'}}>
                 <IconButton
-                  href={`/admin/catalog/${catalogKey}/folder/${folder}/product/${item.id}`}
+                  onTouchTap={() => push(`/catalog/${catalogKey}/folder/${folder}/product/${item.id}`)}
                 >
                   <i className="material-icons">edit</i>
+                </IconButton>
+                <IconButton onTouchTap={() => this.requestDelete(item)}>
+                  <i className="material-icons">delete</i>
                 </IconButton>
               </TableRowColumn>
             </TableRow>))}
@@ -106,6 +160,12 @@ const folder = gql`
   }
 `
 
+const deleteItem = gql`
+  mutation deleteItem($id: ID!) {
+    deleteItem(id: $id)
+  }
+`
+
 const mapStateToProps = (state, ownProps) => {
   return {
     visibleFields: [
@@ -123,7 +183,8 @@ const enhance = compose(
   graphql(items, {
     options: ({match}) => ({ variables: { folder: match.params.folder } }),
   }),
-  connect(mapStateToProps, {toggleField, push})
+  graphql(deleteItem, {name: 'deleteItem'}),
+  connect(mapStateToProps, {toggleField, push, showNotification})
 )
 
 export default enhance(List)

@@ -14,6 +14,7 @@ import HTML5Backend from 'react-dnd-html5-backend'
 import {showNotification} from '../../actions'
 import {t} from '../../common/utils'
 import folders from '../../graphql/folders.gql'
+import NewFolder from './new_folder'
 
 const folderIcon = <i className="mdi mdi-folder" style={{fontSize: 24, top: 4, color: '#757575'}} />
 
@@ -145,21 +146,42 @@ const enhance = compose(
 )
 const ConnectedTree = enhance(Tree)
 
-const withTree = (Component, catalog, options = {}) => {
-  return ({match, history}) => {
+class TreeWrapper extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {}
+  }
+
+  render() {
+    const {match, history, catalog, children} = this.props
+    const childrenWithParams = React.Children.map(children, child => {
+      return React.cloneElement(child, {match})
+    })
     return (
       <div style={{display: 'flex', width: '100%'}}>
+        {this.state.addFolder &&
+          <NewFolder
+            parent={match.params.folder}
+            catalog={catalog}
+            onFolderSaved={() => this.setState({addFolder: false})} />
+        }
         <div style={{flex: 3, minWidth: 300}}>
-          <ConnectedTree activePage={match.params.folderId} catalog={catalog} />
+          <ConnectedTree activePage={match.params.folder} catalog={catalog} />
         </div>
         <div style={{flex: 15}}>
-          <Component match={match} {...options} />
+          {childrenWithParams}
         </div>
         <div style={{flex: '1 4 5%', minWidth: 100}}></div>
 
         <div style={{position: 'fixed', bottom: 20, right: 20}}>
           <FloatingActionButton secondary
+            onTouchTap={() => this.setState({addFolder: true})}
+          >
+            <i className="mdi mdi-folder-plus" style={{fontSize: '24px'}} />
+          </FloatingActionButton>
+          <FloatingActionButton secondary
             onTouchTap={() => history.push(`/catalog/${catalog}/folder/${match.params.folder}/product/new`)}
+            style={{marginLeft: 10}}
           >
             <ContentAdd />
           </FloatingActionButton>
@@ -169,4 +191,4 @@ const withTree = (Component, catalog, options = {}) => {
   }
 }
 
-export {withTree}
+export {TreeWrapper}

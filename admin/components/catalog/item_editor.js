@@ -11,6 +11,7 @@ import {
   Toggle,
   SelectField,
 } from 'redux-form-material-ui'
+import {push} from 'react-router-redux'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
@@ -19,19 +20,16 @@ import common from '../../common.scss'
 
 class ItemEditor extends Component {
   onSubmit(data) {
-    const newItem = !data.id
     const {match: {params: {folder}}, locale} = this.props
     return this.props.mutate({variables: {
       id: data.id,
       data,
       locale,
       folder,
-    }})
+    }, refetchQueries: ['items']})
       .then(({data}) => {
         this.props.showNotification("Item saved")
-        // if (newItem) {
-        //   this.props.push(`../${data.upsertItem.id}`)
-        // }
+        this.props.push(`/catalog/product/folder/${folder}`)
       })
       .catch((error) => {
         throw new SubmissionError(error.graphQLErrors[0].errors)
@@ -130,6 +128,7 @@ const mapStateToProps = ({app}, ownProps) => {
   const initialValues = mapValues(item, (value, field) =>
     get(catalog.fields, [field, 'localized']) ? t(value, app.locale) : value
   )
+  initialValues.id = get(ownProps, 'data.item.id')
   return {
     initialValues,
     locale: app.locale
@@ -139,7 +138,8 @@ const mapStateToProps = ({app}, ownProps) => {
 const itemGql = gql`
   query item($id: ID!) {
     item(id: $id) {
-      id data
+      id
+      data
     }
   }
 `
@@ -152,7 +152,7 @@ const enhance = compose(
     }),
   ),
   graphql(upsertItem),
-  connect(mapStateToProps, {showNotification}),
+  connect(mapStateToProps, {showNotification, push}),
   reduxForm({form: 'page', enableReinitialize: true, keepDirtyOnReinitialize: true}),
 )
 

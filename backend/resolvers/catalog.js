@@ -24,10 +24,41 @@ export default class {
 
   @query
   static async items({site}, {folder}) {
-    return (await Item.where({site: site.id, folder})).map(item => ({
+    return (await Item.where({site: site.id, folder, deleted: false})).map(item => ({
       id: item.id,
       data: item.toObject()
     }))
+  }
+
+  @mutation
+  static async upsertFolder({site}, {folder}) {
+    let {id, name, parent, locale, catalog} = folder
+    if (id) {
+
+    } else {
+      if (parent) {
+        const parentFolder = await Folder.findOne({_id: parent, site: site.id})
+        if (!parentFolder) {
+          throw new Error("Folder doesn't exist or you don't have access to it")
+        }
+        console.log(parentFolder);
+        catalog = parentFolder.catalog
+      }
+      if (!parent && !catalog) {
+        throw new Error("Either parent folder or catalog have to be defined")
+      }
+
+      let position = 0
+      const lastFolder = await Folder.findOne({parent}).sort('-position').select('position')
+      if (lastFolder) {
+        position = lastFolder.position
+      }
+      position++
+
+      const folder = new Folder({name: {[locale]: name}, parent, position, catalog, site: site.id})
+      await folder.save()
+      return folder
+    }
   }
 
   @mutation
@@ -47,15 +78,13 @@ export default class {
         throw new Error("Folder doesn't exist or you don't have access to it")
       }
       locale = 'en'
-      item = new Item()
       let position = 0
       const lastItem = await Item.findOne({folder}).sort('-position').select('position')
       if (lastItem) {
-        position = lastItem.position
+        position = lastItem.position || 0
       }
-      item.site = site.id
-      item.folder = folder
-      item.position = position + 1
+      position++
+      item = new Item({site: site.id, folder, position, deleted: false})
     }
 
     forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized}, field) => {
@@ -73,6 +102,11 @@ export default class {
       id: item.id,
       data: item.toObject(),
     }
+  }
+
+  @mutation
+  static deleteItem({site}, {id}) {
+    return Item.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 
   static queries = {}
