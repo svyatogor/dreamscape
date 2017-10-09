@@ -70,6 +70,7 @@
     "nunjucks": "^3.0.1",
     "object-assign": "4.1.1",
     "passport": "^0.3.2",
+    "passport-facebook": "^2.1.1",
     "passport-google-oauth2": "^0.1.6",
     "passport-windowslive": "^1.0.2",
     "postcss-flexbugs-fixes": "3.0.0",

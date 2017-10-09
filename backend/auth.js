@@ -5,16 +5,18 @@ import jwtExpress from 'express-jwt'
 import jwt from 'jsonwebtoken'
 import {Strategy as GoogleStrategy} from 'passport-google-oauth2'
 import {Strategy as WindowsLiveStrategy} from 'passport-windowslive'
+import {Strategy as FacebookStrategy} from 'passport-facebook'
 import passport from 'passport'
 import {User} from './models'
 
 const auth = express()
 
 const findOrCreateFromProfile = (profile, done) => {
-  User.findOne({email: profile.email}).then(user => {
+  const email = profile.email || get(profile, 'emails.preferred') || get(profile, 'emails.0.value')
+  User.findOne({email}).then(user => {
     const opts = {
       name: profile.displayName,
-      email: profile.email || get(profile, 'emails.preferred'),
+      email,
       avatar: profile.photos ? profile.photos[0].value : null
     }
     if (user) {
@@ -56,6 +58,18 @@ passport.use(new WindowsLiveStrategy({
   }
 ))
 
+passport.use(new FacebookStrategy({
+    clientID:     process.env.FACEBOOK_CLIENT_ID,
+    clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    callbackURL: `https://api.${process.env.ROOT_DOMAIN}/auth/facebook/callback`,
+    profileFields: ['id', 'displayName', 'photos', 'email'],
+    passReqToCallback: true
+  },
+  (request, accessToken, refreshToken, profile, done) => {
+    findOrCreateFromProfile(profile, done)
+  }
+))
+
 auth.use(passport.initialize())
 
 auth.get('/auth/google/callback',
@@ -71,6 +85,17 @@ auth.get('/auth/google/callback',
 
 auth.get('/auth/windowslive/callback',
 	passport.authenticate( 'windowslive', {session: false}), (req, res) => {
+  res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
+    domain: `.${process.env.ROOT_DOMAIN}`,
+    httpOnly: true,
+    path: '/',
+    expires: new Date(Date.now() + 365 * 24 * 3600 * 1000)
+  })
+  res.redirect(req.cookies.redirect)
+})
+
+auth.get('/auth/facebook/callback',
+	passport.authenticate( 'facebook', {session: false}), (req, res) => {
   res.cookie('authtoken', jwt.sign(req.user, process.env.JWT_SECRET), {
     domain: `.${process.env.ROOT_DOMAIN}`,
     httpOnly: true,
@@ -113,6 +138,14 @@ auth.get('/admin/api/auth/windowslive',
     next()
   },
   passport.authenticate('windowslive', { scope: ['wl.signin', 'wl.basic', 'wl.contacts_emails'], session: false})
+)
+
+auth.get('/admin/api/auth/facebook',
+  (req, res, next) => {
+    res.cookie('redirect', req.get('Referrer'), {domain: `.${process.env.ROOT_DOMAIN}`})
+    next()
+  },
+  passport.authenticate('facebook', { scope: ['email'], session: false})
 )
 
 const requireUser = [
