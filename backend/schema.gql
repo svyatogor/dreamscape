@@ -112,4 +112,5 @@ type Mutation {
   upsertItem(id: ID, folder: ID!, data: JSON!, locale: String): Item
   deleteItem(id: ID!): Boolean
   upsertFolder(folder: FolderInput!): Folder
+  deleteFolder(id: ID!): Boolean
 }

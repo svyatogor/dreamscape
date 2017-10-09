@@ -122,7 +122,7 @@ const upsertItem = gql`
   }
 `
 
-const mapStateToProps = ({app}, ownProps) => {
+const mapStateToProps = ({app, ...state}, ownProps) => {
   const item = get(ownProps, 'data.item.data')
   const {catalog} = ownProps
   const initialValues = mapValues(item, (value, field) =>
@@ -131,6 +131,7 @@ const mapStateToProps = ({app}, ownProps) => {
   initialValues.id = get(ownProps, 'data.item.id')
   return {
     initialValues,
+    formValues: {...initialValues, ...getFormValues('item')(state)},
     locale: app.locale
   }
 }
@@ -153,7 +154,7 @@ const enhance = compose(
   ),
   graphql(upsertItem),
   connect(mapStateToProps, {showNotification, push}),
-  reduxForm({form: 'page', enableReinitialize: true, keepDirtyOnReinitialize: true}),
+  reduxForm({form: 'item', enableReinitialize: true, keepDirtyOnReinitialize: true}),
 )
 
 export default enhance(ItemEditor)

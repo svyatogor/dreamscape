@@ -13,6 +13,7 @@ import {
   MenuItem,
   Dialog,
   FlatButton,
+  Divider,
 } from 'material-ui'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
 import {grey500} from 'material-ui/styles/colors'
@@ -48,6 +49,17 @@ class List extends React.Component {
         targetOrigin={{horizontal: 'right', vertical: 'top'}}
         style={{marginLeft: 'auto', marginTop: -5}}
       >
+        <MenuItem
+          primaryText="Rename folder"
+          leftIcon={<i className="material-icons">edit</i>}
+        />
+        <MenuItem
+          primaryText="Delete folder"
+          style={{color: 'red'}}
+          onTouchTap={() => this.requestDeleteFolder()}
+          leftIcon={<i className="material-icons">delete</i>}
+        />
+        <Divider />
         {Object.keys(controllableFields).sort().map(key => {
           const disabled = key === labelField
           const checked = includes(visibleFields, key)
@@ -65,9 +77,9 @@ class List extends React.Component {
     )
   }
 
-  get deleteConfirmationDialog() {
+  get deleteItemConfirmationDialog() {
     const {labelField} = this.props.catalog
-    const {requestDelete} = this.state
+    const {requestDeleteItem} = this.state
     return (<Dialog
       title="Delete item?"
       actions={
@@ -75,7 +87,7 @@ class List extends React.Component {
           <FlatButton
             label="Cancel"
             keyboardFocused
-            onClick={() => this.setState({requestDelete: null})}
+            onClick={() => this.setState({requestDeleteItem: null})}
           />,
           <FlatButton
             label="Delete"
@@ -85,34 +97,65 @@ class List extends React.Component {
         ]
       }
       modal={false}
-      open={!!requestDelete}
-      onRequestClose={() => this.setState({requestDelete: null})}
+      open={!!requestDeleteItem}
+      onRequestClose={() => this.setState({requestDeleteItem: null})}
     >
-      {requestDelete &&
-        `Are you sure you want to delete ${t(this.state.requestDelete.data[labelField])}`
+      {requestDeleteItem &&
+        `Are you sure you want to delete ${t(this.state.requestDeleteItem.data[labelField])}`
       }
+    </Dialog>)
+  }
+
+  get deleteFolderConfirmationDialog() {
+    const {requestDeleteFolder} = this.state
+    return (<Dialog
+      title="Delete item?"
+      actions={
+        [
+          <FlatButton
+            label="Cancel"
+            keyboardFocused
+            onClick={() => this.setState({requestDeleteFolder: null})}
+          />,
+          <FlatButton
+            label="Delete"
+            primary
+            onClick={() => this.deleteItem()}
+          />,
+        ]
+      }
+      modal={false}
+      open={!!requestDeleteFolder}
+      onRequestClose={() => this.setState({requestDeleteFolder: null})}
+    >
+      Are you sure you want to delete this folder with all subfolders and items?
     </Dialog>)
   }
 
   deleteItem() {
     this.props.deleteItem({
-      variables: {id: this.state.requestDelete.id},
+      variables: {id: this.state.requestDeleteItem.id},
       refetchQueries: ['items'],
     }).then(() => {
-      this.setState({requestDelete: null})
+      this.setState({requestDeleteItem: null})
       this.props.showNotification('Item deleted')
     })
   }
 
-  requestDelete(item) {
-    this.setState({requestDelete: item})
+  requestDeleteItem(item) {
+    this.setState({requestDeleteItem: item})
+  }
+
+  requestDeleteFolder() {
+    this.setState({requestDeleteFolder: true})
   }
 
   render() {
     const {visibleFields, data, folderData, catalogKey, push, match: {params: {folder}}} = this.props
     return (
       <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
-        {this.deleteConfirmationDialog}
+        {this.deleteItemConfirmationDialog}
+        {this.deleteFolderConfirmationDialog}
         <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
           {this.configurationMenu}
         </CardTitle>
@@ -134,7 +177,7 @@ class List extends React.Component {
                 >
                   <i className="material-icons">edit</i>
                 </IconButton>
-                <IconButton onTouchTap={() => this.requestDelete(item)}>
+                <IconButton onTouchTap={() => this.requestDeleteItem(item)}>
                   <i className="material-icons">delete</i>
                 </IconButton>
               </TableRowColumn>

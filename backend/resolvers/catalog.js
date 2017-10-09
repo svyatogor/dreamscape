@@ -109,6 +109,11 @@ export default class {
     return Item.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 
+  @mutation
+  static async deleteFolder({site}, {id}) {
+    // const folder = Folder.findOne
+  }
+
   static queries = {}
   static mutations = {}
 }
