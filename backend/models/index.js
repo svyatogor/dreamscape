@@ -3,7 +3,7 @@ import Page from './page'
 import StaticText from './static_text'
 import Site from './site'
 import Folder from './folder'
-import Item from './Item'
+import Item from './item'
 
 export {
   User,
