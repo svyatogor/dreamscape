@@ -77,6 +77,10 @@ form {
   max-width: 300px;
 }
 
+.wide-form {
+  max-width: 800px;
+}
+
 #redactor-modal-box, .redactor-dropdown {
   z-index: 2000;
 }

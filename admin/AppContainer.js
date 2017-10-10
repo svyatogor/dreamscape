@@ -3,6 +3,10 @@ import {Drawer, MenuItem, Divider, CircularProgress} from 'material-ui'
 import {Route, NavLink} from 'react-router-dom'
 import {connect} from 'react-redux'
 import {ConnectedRouter} from 'react-router-redux'
+import {graphql} from 'react-apollo'
+import {map, get, includes} from 'lodash'
+import {pluralize, humanize} from 'inflection'
+import siteQuery from './graphql/site.gql'
 import {getSession} from './actions'
 import Notification from './components/notification'
 import styles from './App.scss'
@@ -11,6 +15,7 @@ import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 import SnippetsEditor from './components/snippets_editor'
+import Catalog from './components/catalog'
 import Login from './components/login'
 
 class MainContainer extends React.Component {
@@ -22,7 +27,9 @@ class MainContainer extends React.Component {
   }
 
   render() {
-    return (<ConnectedRouter history={this.props.history}>
+    const {history, data: {site}} = this.props
+
+    return (<ConnectedRouter history={history}>
       <div className={styles.appContainer}>
         <Header onMenu={() => this.setState({open: true})} />
         <Drawer
@@ -33,20 +40,48 @@ class MainContainer extends React.Component {
           <NavLink to="/site">
             <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-sitemap" /></div>}>Site</MenuItem>
           </NavLink>
+          {map(get(site, 'documentTypes'), (docType, key) =>
+            <NavLink to={`/catalog/${key}`} key={key}>
+              <MenuItem
+                leftIcon={<div className="menuIcon"><i className={`mdi mdi-${docType.icon}`} /></div>}
+              >
+                {humanize(pluralize(key))}
+              </MenuItem>
+            </NavLink>
+          )}
+          {includes(get(site, 'features'), 'members') && (
+            <NavLink to="/members">
+              <MenuItem
+                leftIcon={<div className="menuIcon"><i className="mdi mdi-account" /></div>}
+              >
+                Members
+              </MenuItem>
+            </NavLink>
+          )}
+          {includes(get(site, 'features'), 'eShop') && (
+            <NavLink to="/members">
+              <MenuItem
+                leftIcon={<div className="menuIcon"><i className="mdi mdi-cart" /></div>}
+              >
+                Orders
+              </MenuItem>
+            </NavLink>
+          )}
+          <Divider />
           <NavLink to="/snippets">
             <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-code-braces" /></div>}>Snippets</MenuItem>
           </NavLink>
-          <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">view_list</i></div>}>Catalog</MenuItem>
-          <MenuItem leftIcon={<div className="menuIcon"><i className="material-icons">photo_library</i></div>}>Assets</MenuItem>
-          <Divider />
+          <NavLink to="/settings">
+            <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-settings" /></div>}>Settings</MenuItem>
+          </NavLink>
 
           <footer className="copyright">&copy; 2014-2017 Dreamscape CMS</footer>
         </Drawer>
-
         <section className={styles.appBody}>
           <Route exact path="/" component={Welcome} />
           <Route path="/site" component={SiteEditor} />
           <Route path="/snippets" component={SnippetsEditor} />
+          <Route path="/catalog/:catalogKey" component={Catalog} />
         </section>
         <Notification />
       </div>
@@ -54,6 +89,7 @@ class MainContainer extends React.Component {
   }
 }
 
+const ConnectedMainContainer = graphql(siteQuery)(MainContainer)
 
 
 class AppContainer extends React.Component {
@@ -66,7 +102,7 @@ class AppContainer extends React.Component {
     if (session.authenticated === false) {
       return <Login />
     } else if (session.authenticated === true) {
-      return <MainContainer {...this.props} />
+      return <ConnectedMainContainer {...this.props} />
     } else {
       return (<div className={styles.appContainer}>
         <div style={{height: '100%', display: 'flex', flexDirection: 'column',  justifyContent: 'center', alignItems: 'center'}}>

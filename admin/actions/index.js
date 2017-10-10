@@ -26,3 +26,10 @@ export function logout() {
       dispatch({type: 'LOGOUT'})
     })
 }
+
+export function toggleField(site, catalog, field) {
+  return {
+    type: 'TOGGLE_FIELD_VISIBILITY',
+    payload: {site, catalog, field},
+  }
+}
