@@ -120,7 +120,7 @@ class List extends React.Component {
           <FlatButton
             label="Delete"
             primary
-            onClick={() => this.deleteItem()}
+            onClick={() => this.deleteFolder()}
           />,
         ]
       }
@@ -139,6 +139,19 @@ class List extends React.Component {
     }).then(() => {
       this.setState({requestDeleteItem: null})
       this.props.showNotification('Item deleted')
+    })
+  }
+
+  deleteFolder() {
+    const {showNotification, push, deleteFolder, folderData, catalogKey} = this.props
+    console.log(folderData);
+    deleteFolder({
+      variables: {id: folderData.folder.id},
+      refetchQueries: ['folders'],
+    }).then(() => {
+      this.setState({requestDeleteFolder: null})
+      showNotification('Folder deleted')
+      push(`/catalog/${catalogKey}`)
     })
   }
 
@@ -199,13 +212,19 @@ const items = gql`
 `
 const folder = gql`
   query items($id: ID!) {
-    folder(id: $id) { name }
+    folder(id: $id) { id name }
   }
 `
 
 const deleteItem = gql`
   mutation deleteItem($id: ID!) {
     deleteItem(id: $id)
+  }
+`
+
+const deleteFolder = gql`
+  mutation deleteFolder($id: ID!) {
+    deleteFolder(id: $id)
   }
 `
 
@@ -227,6 +246,7 @@ const enhance = compose(
     options: ({match}) => ({ variables: { folder: match.params.folder } }),
   }),
   graphql(deleteItem, {name: 'deleteItem'}),
+  graphql(deleteFolder, {name: 'deleteFolder'}),
   connect(mapStateToProps, {toggleField, push, showNotification})
 )
 

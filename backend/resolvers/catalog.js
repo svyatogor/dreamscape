@@ -5,12 +5,12 @@ import {Folder, Item} from '../models'
 export default class {
   @query
   static folders({site}, {catalog}) {
-    return Folder.where({site: site.id, catalog})
+    return Folder.where({site: site.id, catalog, deleted: false})
   }
 
   @query
   static folder({site}, {id}) {
-    return Folder.findOne({site: site.id, _id: id})
+    return Folder.findOne({site: site.id, _id: id, deleted: false})
   }
 
   @query
@@ -34,7 +34,20 @@ export default class {
   static async upsertFolder({site}, {folder}) {
     let {id, name, parent, locale, catalog} = folder
     if (id) {
-
+      const folder = await Folder.findOne({_id: id, site: site.id})
+      if (!folder) {
+        throw new Error("Folder doesn't exist or you don't have access to it")
+      }
+      if (parent) {
+        const parentFolder = await Folder.findOne({_id: parent, site: site.id})
+        if (!parentFolder) {
+          throw new Error("Folder doesn't exist or you don't have access to it")
+        }
+        folder.parent = parent
+      }
+      folder.name[locale] = name
+      await folder.save()
+      return folder
     } else {
       if (parent) {
         const parentFolder = await Folder.findOne({_id: parent, site: site.id})
@@ -55,7 +68,7 @@ export default class {
       }
       position++
 
-      const folder = new Folder({name: {[locale]: name}, parent, position, catalog, site: site.id})
+      const folder = new Folder({name: {[locale]: name}, parent, position, catalog, site: site.id, deleted: false})
       await folder.save()
       return folder
     }
@@ -111,7 +124,7 @@ export default class {
 
   @mutation
   static async deleteFolder({site}, {id}) {
-    // const folder = Folder.findOne
+    return Folder.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 
   static queries = {}
