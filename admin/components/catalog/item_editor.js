@@ -81,7 +81,7 @@ class ItemEditor extends Component {
   }
 
   imageRender(key, field) {
-    const val = get(this.props.formValues, ['properties', key])
+    const val = get(this.props.formValues, key)
     return (<div key={key} className={common.formControl}>
       <label htmlFor="">{humanize(key)}</label>
       <DropzoneS3Uploader
