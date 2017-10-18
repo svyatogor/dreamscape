@@ -123,7 +123,7 @@ export default class {
   }
 
   @mutation
-  static async deleteFolder({site}, {id}) {
+  static deleteFolder({site}, {id}) {
     return Folder.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 
