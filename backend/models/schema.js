@@ -38,6 +38,7 @@ const ordersSchema = new Schema({
 
 const itemSchema = new Schema({
   catalog: String,
+  deleted: Boolean,
   folder: {type: Schema.Types.ObjectId, ref: 'Folder'},
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
 }, {strict: false, timestamps: true})
@@ -49,6 +50,7 @@ const folderSchema = new Schema({
   parent: {type: Schema.Types.ObjectId, ref: 'Folder'},
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
   catalog: String,
+  deleted: Boolean,
 })
 
 const pageSchema = new Schema({
