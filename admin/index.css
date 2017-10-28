@@ -100,3 +100,8 @@ form {
   color: #aaa;
   font-size: 32px;
 }
+
+button .mdi {
+  margin-top: 5px;
+  color: #444 !important;
+}

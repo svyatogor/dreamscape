@@ -34,8 +34,12 @@ export class section {
       return Promise.resolve()
     }
 
-    return Promise.all(page.sections[sectionName].map(block =>
-      require('./index')[underscore(block._type)].render(block, context)
-    )).then(results => results.join(''))
+    return Promise.all(page.sections[sectionName].map(block => {
+      try {
+        return require('./index')[underscore(block._type)].render(block, context)
+      } catch (e) {
+        console.log(`Cannot render block:`, block, e);
+      }
+    })).then(results => results.join(''))
   }
 }

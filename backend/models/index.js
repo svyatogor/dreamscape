@@ -4,11 +4,13 @@ import StaticText from './static_text'
 import Site from './site'
 import Folder from './folder'
 import Item from './item'
+import FileList from './file_list'
 
 export {
   User,
   Page,
   StaticText,
+  FileList,
   Site,
   Folder,
   Item,

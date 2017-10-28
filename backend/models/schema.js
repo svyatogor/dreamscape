@@ -74,6 +74,21 @@ const staticTextSchema = new Schema({
   global: {type: Boolean, default: false}
 })
 
+const fileSchema = new Schema({
+  originalName: String,
+  displayName: Object,
+  size: Number,
+  type: String,
+  url: String,
+})
+
+const fileListSchema = new Schema({
+  files: [fileSchema],
+  template: String,
+  site: {type: Schema.Types.ObjectId, ref: 'Site'},
+})
+
+
 export {
   userSchema,
   pageSchema,
@@ -83,4 +98,5 @@ export {
   folderSchema,
   memberSchema,
   ordersSchema,
+  fileListSchema,
 }

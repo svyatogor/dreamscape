@@ -54,6 +54,21 @@ type Folder {
   position: Int
 }
 
+type File {
+  originalName: String
+  displayName: JSON
+  size: Int
+  type: String
+  url: String
+}
+
+type FileList {
+  id: ID!
+  files: [File!]
+  template: String
+  site: ID!
+}
+
 type Item {
   id: ID!
   data: JSON
@@ -90,10 +105,25 @@ input FolderInput {
   locale: String
 }
 
+input FileListInput {
+  id: ID
+  template: String
+  files: [FileInput!]!
+}
+
+input FileInput {
+  originalName: String!
+  displayName: JSON
+  size: Int
+  type: String
+  url: String
+}
+
 type Query {
   pages: [Page]
   page(id: ID!): Page
   staticText(id: ID!): StaticText
+  fileList(id: ID!): FileList
   site: Site
   snippets: [StaticText]
   folders(catalog: String!): [Folder!]
@@ -108,6 +138,7 @@ type Mutation {
   addBlock(block: BlockInput!): ID
   removeBlock(block: BlockRefInput!): Boolean
   saveStaticText(input: StaticTextInput!): StaticText
+  upsertFileList(input: FileListInput!, locale: String!): FileList
   attachImage(type: String!, id: ID!, url: String!): Boolean
   upsertItem(id: ID, folder: ID!, data: JSON!, locale: String): Item
   deleteItem(id: ID!): Boolean

@@ -6,11 +6,13 @@ const resolvers = {
     ...require('./static_text').default.queries,
     ...require('./site').default.queries,
     ...require('./catalog').default.queries,
+    ...require('./file_list').default.queries,
   },
   Mutation: {
     ...require('./page').default.mutations,
     ...require('./static_text').default.mutations,
     ...require('./catalog').default.mutations,
+    ...require('./file_list').default.mutations,
   },
   JSON: GraphQLJSON
 }

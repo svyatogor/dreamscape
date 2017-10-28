@@ -45,7 +45,7 @@ const renderPage = async ({req, res}, page, context) => {
       env.addExtension(name, new tag())
     })
     return new Promise((resolve, reject) => {
-      env.render(`${page.layout}/index.html`, context, (err, result) => {
+      env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {
         if (err) {
           console.log(err)
           return reject(err)
