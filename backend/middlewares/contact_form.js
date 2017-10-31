@@ -47,7 +47,8 @@ contact_form.post('/contact_form', bodyParser.urlencoded(), (req, res, next) => 
   } else {
     renderEmail(req, 'email', value).then(html => {
       transporter.sendMail({
-        from: {
+        from: "noreply@dreamscape.tech",
+        replyTo: {
           name: value.name,
           address: value.email,
         },
