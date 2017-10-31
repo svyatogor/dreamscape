@@ -18,6 +18,7 @@ import upsertPage from '../graphql/upsertPage.gql'
 import siteQuery from '../graphql/site.gql'
 import {t} from '../common/utils'
 import common from '../common.scss'
+import {RedactorField as Redactor} from '../redactor'
 
 const required = value => isEmpty(value) && 'Cannot be blank'
 
@@ -108,6 +109,15 @@ class PageEditorGeneral extends React.Component {
           multiLine
           rows={2}
           className={common.formControl}
+        />
+      )
+    } else if (prop.type === 'html') {
+      return (
+        <Field
+          name={`properties.${key}`}
+          key={key}
+          component={Redactor}
+          label={humanize(key)}          
         />
       )
     } else if (prop.type === 'boolean') {
