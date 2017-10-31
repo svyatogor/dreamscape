@@ -18,7 +18,7 @@ import upsertPage from '../graphql/upsertPage.gql'
 import siteQuery from '../graphql/site.gql'
 import {t} from '../common/utils'
 import common from '../common.scss'
-import {RedactorField as Redactor} from '../redactor'
+import {RedactorField as Redactor} from '../components/redactor'
 
 const required = value => isEmpty(value) && 'Cannot be blank'
 
