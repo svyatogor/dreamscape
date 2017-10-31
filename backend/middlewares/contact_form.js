@@ -41,6 +41,7 @@ contact_form.post('/contact_form', bodyParser.urlencoded(), (req, res, next) => 
         ...req.body.contact_form,
         errors: joiToForms()(error),
         success: false,
+        error,
       }
     })
   } else {
@@ -59,6 +60,7 @@ contact_form.post('/contact_form', bodyParser.urlencoded(), (req, res, next) => 
             contact_form: {
               ...req.body.contact_form,
               success: false,
+              error: err,
             }
           })
           console.error(err)
