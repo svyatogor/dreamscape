@@ -48,10 +48,10 @@ contact_form.post('/contact_form', bodyParser.urlencoded(), (req, res, next) => 
     renderEmail(req, 'email', value).then(html => {
       transporter.sendMail({
         from: "noreply@dreamscape.tech",
-        replyTo: {
-          name: value.name,
-          address: value.email,
-        },
+        // replyTo: {
+        //   name: value.name,
+        //   address: value.email,
+        // },
         to: req.site.notificationEmail,
         subject: 'Contact form',
         html,
