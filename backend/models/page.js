@@ -1,4 +1,4 @@
-import {map, pickBy, mapValues, omit, find, has} from 'lodash'
+import {map, pickBy, mapValues, omit, find, has, reverse} from 'lodash'
 import mongoose from 'mongoose'
 import {t} from '../common/utils'
 import {pageSchema} from './schema'
@@ -15,7 +15,7 @@ class PageClass {
         fullPath.push(parent.slug)
         self = parent
       }
-      return fullPath.join('/')
+      return reverse(fullPath).join('/')
     })
   }
 
