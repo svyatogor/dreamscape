@@ -1,5 +1,5 @@
 import nunjucks from 'nunjucks'
-import {zipObject, map, reduce, forEach} from 'lodash'
+import {zipObject, map, reduce, forEach, isNil, isEmpty, isNaN} from 'lodash'
 import langs from 'langs'
 import Promise from 'bluebird'
 import * as tags from './tags'
@@ -43,6 +43,14 @@ const renderPage = async ({req, res}, page, context) => {
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())
+    })
+    // TODO: Refactor me
+    env.addFilter('currency', (str, currency, defaultValue = '-') => {
+      if (isNil(currency) || isEmpty(currency)) {
+        return defaultValue
+      }
+      const val = parseFloat(str).toLocaleString(locale, {style: 'currency', currency})
+      return isNaN(val) ? defaultValue : val
     })
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {

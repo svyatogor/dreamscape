@@ -1,4 +1,4 @@
-import {isNil, get, forEach, omit} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 
@@ -100,14 +100,21 @@ export default class {
       item = new Item({site: site.id, folder, position, deleted: false})
     }
 
-    forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized}, field) => {
+    forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type}, field) => {
       if (localized) {
         item.set(field, {
           ...get(item, field, {}),
           [locale]: data[field],
         })
       } else {
-        item.set(field, data[field])
+        if (type === "number" || type === "money") {
+          const val = type === 'money' ? parseFloat(data[field]) : parseInt(data[field], 2)
+          item.set(field, isNaN(val) ? null : val)
+        } else if (isEmpty(data[field])) {
+          item.set(field, null)
+        } else {
+          item.set(field, data[field])
+        }
       }
     })
     await item.save()

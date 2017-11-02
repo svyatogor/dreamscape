@@ -67,7 +67,7 @@ admin.use('/api/s3', require('react-dropzone-s3-uploader/s3router')({
   // headers: {'Access-Control-Allow-Origin': '*'},  // optional
   ACL: 'public-read',
   getFileKeyDir: req => {
-    return `${req.site.key}`
+    return `${req.site.key}/files`
   }
 }));
 

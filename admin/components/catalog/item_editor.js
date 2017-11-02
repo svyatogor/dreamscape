@@ -72,6 +72,34 @@ class ItemEditor extends Component {
     )
   }
 
+  moneyRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={TextField}
+        floatingLabelText={humanize(key)}
+        fullWidth floatingLabelFixed
+        required={key === this.props.catalog.labelField}
+        className={common.formControl}
+      />
+    )
+  }
+
+  numberRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={TextField}
+        floatingLabelText={humanize(key)}
+        fullWidth floatingLabelFixed
+        required={key === this.props.catalog.labelField}
+        className={common.formControl}
+      />
+    )
+  }
+
   booleanRender(key, field) {
     return <Field key={key} name={key} component={Toggle} label={humanize(key)} className={common.formControl} />
   }

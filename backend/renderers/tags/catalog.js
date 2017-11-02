@@ -1,6 +1,7 @@
 import {defaults, map} from 'lodash'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
+const s = require('sugar')
 
 export class catalog {
   constructor(renderContext) {
@@ -38,26 +39,26 @@ export class catalog {
       const originalValue = ctx[key]
 
       const filter = jsonic(opts.filter)
-      console.log({
-        site: ctx.site._id,
-        deleted: false,
-        catalog,
-        ...filter,
-      });
+      const rawFilter = opts.rawFilter ? eval(`(${opts.rawFilter})`) : {}
       let itemsQuery = Item.where({
         site: ctx.site._id,
         deleted: false,
         catalog,
         ...filter,
+        ...rawFilter,
       })
 
       if (opts.limit) {
         itemsQuery = itemsQuery.limit(opts.limit)
       }
 
+      if (opts.sort) {
+        itemsQuery = itemsQuery.sort(opts.sort)
+      }
+
       const items = await itemsQuery
       if (items.length === 0) {
-        callback(null, elseBody())
+        callback(null, elseBody ? elseBody() : '')
         return
       }
       const data = await Promise.all(map(items, async item => {
