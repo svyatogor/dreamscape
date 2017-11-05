@@ -42,7 +42,6 @@ const itemSchema = new Schema({
   folder: {type: Schema.Types.ObjectId, ref: 'Folder'},
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
 }, {strict: false, timestamps: true})
-itemSchema.plugin(require('mongoose-simple-random'))
 
 const folderSchema = new Schema({
   name: Object,
