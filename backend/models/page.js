@@ -26,6 +26,7 @@ class PageClass {
       ...omit(this.toObject({virtuals: true}), ['properties', 'title']),
       title: t(this.title, locale),
       path: await this.path,
+      params: this.params,
       ...mapValues(this.properties, (prop, key) => {
         if (localizedProperies.includes(key)) {
           return t(prop, locale)

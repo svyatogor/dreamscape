@@ -28,32 +28,46 @@ export class catalog {
   }
 
   async run({ctx}, catalog, options, body, elseBody, callback) {
-    console.log(options);
     if (ctx.inspect) {
       return callback(null, '')
     }
 
     try {
       const opts = defaults(options, {as: 'item', filter: '{}'})
+      if (opts.sort === 'random') {
+        delete opts.sort
+        opts.random = true
+      }
       const key = opts.as
       const originalValue = ctx[key]
 
       const filter = jsonic(opts.filter)
       const rawFilter = opts.rawFilter ? eval(`(${opts.rawFilter})`) : {}
-      let itemsQuery = Item.where({
+
+      let criteria = {
         site: ctx.site._id,
         deleted: false,
         catalog,
         ...filter,
         ...rawFilter,
-      })
-
-      if (opts.limit) {
-        itemsQuery = itemsQuery.limit(opts.limit)
       }
 
-      if (opts.sort) {
-        itemsQuery = itemsQuery.sort(opts.sort)
+      if (opts.random) {
+        const ids = (await Item.aggregate({
+          $match: criteria
+        }).project({_id: 1}).sample(opts.limit)).map(e => e._id)
+        criteria = {_id: {$in: ids}}
+      }
+      let itemsQuery = Item.find(criteria)
+
+      if (!opts.random) {
+        if (opts.limit) {
+          itemsQuery = itemsQuery.limit(opts.limit)
+        }
+
+        if (opts.sort) {
+          itemsQuery = itemsQuery.sort(opts.sort)
+        }
       }
 
       const items = await itemsQuery

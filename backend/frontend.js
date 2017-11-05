@@ -1,6 +1,6 @@
 import express from 'express'
 import {Page} from './models'
-import {reduce, get, last, isEmpty, filter, forEach} from 'lodash'
+import {map, findLastIndex, isNil, get, identity, find, forEach, reject, slice} from 'lodash'
 import {renderPage} from './renderers'
 const frontend = express.Router()
 
@@ -48,28 +48,21 @@ async function resolvePath(path, req) {
     path = ['index']
   }
 
-  const allPages = await Page.find({site: req.site.id, slug: {$in: path}}).populate('parent')
+  const allPages = (await Page.find({site: req.site.id, slug: {$in: path}}).populate('parent'))
 
-  const pages = reduce(path, (sum, slug, i) => {
-    if (isEmpty(slug)) {
-      return sum
-    }
-    const matches = filter(allPages, {slug})
-    let page
-    if (i === 0) {
-      page = matches.filter(p => !p.parent || p.parent.slug === 'index' || p.parent.slug === '/')[0]
-    } else {
-      page = matches.filter(p => get(p.parent, 'slug') === path[i-1])[0]
-    }
-    return [...sum, page]
-  }, [])
+  const pages = map(path, (slug, i) =>
+    find(allPages, page =>
+      page.slug === slug && (
+        i === 0 ? !page.parent : get(page.parent, 'slug') === path[i-1]
+      )
+    )
+  )
 
-  if (pages.some(p => !p)) {
-    return Promise.reject(`Page not found: ${path}`)
-  }
-  const page = pages[pages.length-1]
+  const pageIdx = findLastIndex(pages, identity)
+  const page = pages[pageIdx]
+  page.parents = reject(pages, isNil)
   page.path = path.join('/')
-  page.parents = pages
+  page.params = slice(path, pageIdx + 1).join('/')
   return page
 }
 
