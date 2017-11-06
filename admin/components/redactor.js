@@ -4,8 +4,17 @@ import {graphql} from 'react-apollo'
 import attachImage from '../graphql/attachImage.gql'
 
 class Redactor extends React.Component {
+  static id = 0
+
+  constructor(props) {
+    super(props)
+    this.id = "redactor-" + Redactor.id
+    Redactor.id++
+  }
+
   render() {
-    return <textarea id="redactor" defaultValue={this.props.value} />
+    console.log(this.props);
+    return <textarea id={this.id} defaultValue={this.props.value} />
   }
 
   shouldComponentUpdate() {
@@ -18,7 +27,7 @@ class Redactor extends React.Component {
 
   componentWillReceiveProps(newProps) {
     if (newProps.value && newProps.value !== this.value) {
-      global.$('#redactor').redactor('code.set', newProps.value)
+      global.$('#' + this.id).redactor('code.set', newProps.value)
       this.value = newProps.value
     }
   }
@@ -36,7 +45,7 @@ class Redactor extends React.Component {
     const onUpload = this.onUpload.bind(this)
     const self = this
     const {parent} = this.props
-    global.$('#redactor').redactor({
+    global.$('#' + this.id).redactor({
       minHeight: this.props.minHeight || 300,
       maxHeight: this.props.maxHeight || 300,
       plugins: ['source', 'table', 'fullscreen', 'fontsize', 'fontcolor', 'fontfamily', 'imagemanager'],
