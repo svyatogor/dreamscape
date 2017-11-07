@@ -37,7 +37,7 @@ export class menu {
       } else if (root === 'root') {
         pagesQuery = Page.find({published: true, site: ctx.site._id, parent: null})
       } else if (isString(root)) {
-        const {id: parent} = await resolvePath(root, ctx.req)
+        const {id: parent} = await resolvePath(root, {...ctx.req})
         pagesQuery = Page.find({published: true, site: ctx.site._id, parent})
       } else if (root._id) {
         pagesQuery = Page.find({published: true, site: ctx.site._id, parent: root._id})

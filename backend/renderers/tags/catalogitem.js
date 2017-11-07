@@ -30,9 +30,10 @@ export class catalogitem {
 
       const item = await Item.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
       ctx[key] = await item.toContext({locale: ctx.req.locale})
-      const result = body()
-      ctx[key] = originalValue
-      callback(null, result)
+      body((error, data) => {
+        ctx[key] = originalValue
+        callback(error, data)
+      })
     } catch (e) {
       console.log(e);
       callback(e)
