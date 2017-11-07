@@ -41,10 +41,10 @@ export class catalogfolder {
       folder.count = await Item.count(q)
       if (opts.pageSize) {
         let page = ctx.req.query.page
-        folder.page = page
         if (!page || isNaN(page)) {
           page = 1
         }
+        folder.pageNumber = page
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
         items = items.sort('createdAt').skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }

@@ -70,6 +70,17 @@ export class catalog {
         }
       }
 
+      ctx.itemsCount = await Item.count(criteria)
+      if (opts.pageSize) {
+        let page = ctx.req.query.page
+        if (!page || isNaN(page)) {
+          page = 1
+        }
+        ctx.pageNumber = page
+        ctx.pagesCount = Math.ceil(ctx.itemsCount / opts.pageSize)
+        itemsQuery = itemsQuery.skip((page - 1) * opts.pageSize).limit(opts.pageSize)
+      }
+
       const items = await itemsQuery
       if (items.length === 0) {
         callback(null, elseBody ? elseBody() : '')

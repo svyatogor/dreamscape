@@ -25,6 +25,10 @@ export class paginate {
       return callback(null, '')
     }
 
+    if (collection === 'self') {
+      collection = ctx
+    }
+
     try {
       let url = `/${ctx.req.locale}/${ctx.page.path}`
       if (ctx.page.params) {
@@ -34,7 +38,7 @@ export class paginate {
       const links = []
       links.push(`<a href="${url}?${qs.stringify({...q, page: 1})}">&lt;&lt;</a>`)
       for (let page = 1; page <= collection.pagesCount; page++) {
-        const klass = page === Number(collection.page) ? 'active' : 'inactive'
+        const klass = page === Number(collection.pageNumber) ? 'active' : 'inactive'
         links.push(`<a class="${klass}" href="${url}?${qs.stringify({...q, page})}">${page}</a>`)
       }
       links.push(`<a href="${url}?${qs.stringify({...q, page: collection.pagesCount})}">&gt;&gt;</a>`)
