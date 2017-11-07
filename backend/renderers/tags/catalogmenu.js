@@ -35,7 +35,7 @@ export class catalogmenu {
       } else if (opts.root && opts.root._id) {
         parent = opts.root._id
       }
-      foldersQuery = Folder.find({site: ctx.site._id, catalog, parent})
+      foldersQuery = Folder.find({site: ctx.site._id, catalog, parent, deleted: false})
       // if (root === 'self') {
       //   pagesQuery = Page.find({site: ctx.site._id, parent: ctx.page._id})
       // } else if (root === 'parent') {
