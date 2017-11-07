@@ -97,7 +97,7 @@ export default class {
         position = lastItem.position || 0
       }
       position++
-      item = new Item({site: site.id, folder, position, deleted: false})
+      item = new Item({site: site.id, folder, position, deleted: false, catalog: catalogKey})
     }
 
     forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type}, field) => {
