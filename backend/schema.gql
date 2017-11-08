@@ -134,6 +134,7 @@ type Query {
 
 type Mutation {
   upsertPage(page: PageInput!, locale: String): Page
+  deletePage(id: ID!): Boolean
   orderPages(pages: [ID!]!): [Page]
   addBlock(block: BlockInput!): ID
   removeBlock(block: BlockRefInput!): Boolean

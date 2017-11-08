@@ -64,6 +64,18 @@ export default class {
   }
 
   @mutation
+  static async deletePage({site}, {id}) {
+    const page = await Page.findOne({_id: id, site: site.id})
+    if (!page) {
+      return false
+    } else {
+      page.set('site', null)
+      await page.save()
+      return true
+    }
+  }
+
+  @mutation
   static async addBlock({site}, {block}) {
     const {page: id, section, _type} = block
     let page = await Page.findById(id)

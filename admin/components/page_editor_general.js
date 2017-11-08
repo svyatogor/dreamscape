@@ -15,6 +15,7 @@ import {humanize} from 'inflection'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
 import {showNotification} from '../actions'
 import upsertPage from '../graphql/upsertPage.gql'
+import deletePage from '../graphql/deletePage.gql'
 import siteQuery from '../graphql/site.gql'
 import {t} from '../common/utils'
 import common from '../common.scss'
@@ -31,7 +32,8 @@ class PageEditorGeneral extends React.Component {
   onSubmit(data) {
     const page = omit(data, '__typename', 'sections')
     const newPage = !data.id
-    return this.props.mutate({variables: {page, locale: this.props.locale}})
+    console.log(this.props);
+    return this.props.upsertPage({variables: {page, locale: this.props.locale}})
       .then(({data}) => {
         this.props.showNotification("Page saved")
         if (newPage) {
@@ -91,9 +93,23 @@ class PageEditorGeneral extends React.Component {
         <Field name="published" component={Toggle} label="Published" />
         {map(this.properties, prop => this.renderPropetyField(prop))}
         <div className={common.formActions}>
-          <RaisedButton label="Save" primary={true} disabled={pristine || submitting} type="submit" />
+          <RaisedButton label="Save" primary disabled={pristine || submitting} type="submit" />
+          {this.props.page.id &&
+            <RaisedButton style={{float: 'right'}} label="Delete" secondary onTouchTap={() => this.deletePage()} />
+          }
         </div>
       </form>)
+  }
+
+  deletePage() {
+    this.props.deletePage({variables: {id: this.props.page.id}})
+      .then(() => {
+        this.props.showNotification("Page deleted")
+        // this.props.push(`/site`)
+      })
+      .catch((error) => {
+        throw new SubmissionError(error.graphQLErrors[0].errors)
+      })
   }
 
   renderPropetyField(prop) {
@@ -117,7 +133,7 @@ class PageEditorGeneral extends React.Component {
           name={`properties.${key}`}
           key={key}
           component={Redactor}
-          label={humanize(key)}          
+          label={humanize(key)}
         />
       )
     } else if (prop.type === 'boolean') {
@@ -243,7 +259,16 @@ const enhance = compose(
       refetchQueries: [
         'pages',
       ],
-    }
+    },
+    name: 'upsertPage',
+  }),
+  graphql(deletePage, {
+    options: {
+      refetchQueries: [
+        'pages',
+      ],
+    },
+    name: 'deletePage',
   }),
   connect(mapStateToProps, {showNotification, push}),
   reduxForm({form: 'page', enableReinitialize: true, keepDirtyOnReinitialize: true}),
