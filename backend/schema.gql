@@ -145,4 +145,5 @@ type Mutation {
   deleteItem(id: ID!): Boolean
   upsertFolder(folder: FolderInput!): Folder
   deleteFolder(id: ID!): Boolean
+  orderFolders(folders: [ID!]!): [Folder]
 }

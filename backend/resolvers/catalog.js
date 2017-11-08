@@ -1,4 +1,4 @@
-import {isEmpty, isNil, get, forEach, omit} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 
@@ -132,6 +132,13 @@ export default class {
   @mutation
   static deleteFolder({site}, {id}) {
     return Folder.update({ _id: id, site: site.id }, { $set: { deleted: true }})
+  }
+
+  @mutation
+  static async orderFolders({site}, {folders}) {
+    return Promise.all(map(folders, (folder, position) =>
+      Folder.findOneAndUpdate({_id: folder, site: site._id}, {$set: {position}}, {new: true})
+    ))
   }
 
   static queries = {}

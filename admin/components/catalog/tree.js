@@ -2,10 +2,9 @@ import React from 'react'
 import {FloatingActionButton, Paper} from 'material-ui'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import {connect} from 'react-redux'
-import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex, isNumber, without} from 'lodash'
+import _, {get, isEmpty, isEqual, filter, map, find, sortBy, findIndex, isNumber, without} from 'lodash'
 import {List} from 'material-ui'
 import {push} from 'react-router-redux'
-import {get} from 'lodash'
 import {compose} from 'recompose'
 import {graphql, gql} from 'react-apollo'
 import {DragDropContext} from 'react-dnd'
@@ -27,47 +26,48 @@ class Tree extends React.Component {
   }
 
   move(id, after, d) {
-    const self = this.state.pages.find(page => page.id === id)
+    const collection = this.state.folders
+    const self = find(collection, {id})
     if (isNumber(after)) {
-      const otherPages = without(this.state.pages, self)
-      this.setState({pages: [...otherPages, {...self, position: after}]})
+      const otherItems = without(collection, self)
+      this.setState({pages: [...otherItems, {...self, position: after}]})
       return
     }
-    let otherPages = this.state.pages.filter(page => page.parent !== self.parent)
-    let pages = _(this.state.pages)
+    let otherItems = collection.filter(page => page.parent !== self.parent)
+    let sortedItems = _(collection)
       .filter({parent: self.parent})
       .sortBy('position')
       .map((page, i) => ({...page, position: i}))
       .value()
-    const other = findIndex(pages, {id: after})
-    pages = pages.map(page => {
-      if (page.id === self.id) {
-        return {...page, position: other}
-      } else if (page.position === other) {
-        return {...page, position: page.position + (d < 0 ? 1 : -1)}
-      } else if (page.position > other) {
-        return {...page, position: page.position + 1}
+    const other = findIndex(sortedItems, {id: after})
+    sortedItems = sortedItems.map(item => {
+      if (item.id === self.id) {
+        return {...item, position: other}
+      } else if (item.position === other) {
+        return {...item, position: item.position + (d < 0 ? 1 : -1)}
+      } else if (item.position > other) {
+        return {...item, position: item.position + 1}
       } else {
-        return page
+        return item
       }
     })
-    this.setState({pages: [...otherPages, ...pages]})
+    this.setState({folders: [...otherItems, ...sortedItems]})
   }
 
   commitMove(parent) {
-    const pages = sortBy(filter(this.state.pages, {parent}), 'position')
-    const optimisticResponse = pages.map(page => ({
-      ...page,
-      parent: page.parent ? {
-        __typename: 'Page',
-        id: page.parent
+    const items = sortBy(filter(this.state.folders, {parent}), 'position')
+    const optimisticResponse = items.map(item => ({
+      ...item,
+      parent: item.parent ? {
+        __typename: 'Folder',
+        id: item.parent
       } : null
     }))
     return this.props.saveOrder({
-      variables: {pages: map(pages, 'id')},
+      variables: {folders: map(items, 'id')},
       optimisticResponse: {
         __typename: 'Mutation',
-        orderPages: optimisticResponse,
+        orderFolders: optimisticResponse,
       },
     })
       .then(({data}) => {
@@ -137,10 +137,23 @@ const mapStateToProps = ({app: {locale}}, {data}) => {
   }
 }
 
+
+const saveOrder = gql`
+mutation orderFolders($folders: [ID!]!) {
+  orderFolders(folders: $folders) {
+    id
+    parent
+    position
+    name
+  }
+}
+`
+
 const enhance = compose(
   graphql(folders, {
     options: ({catalog}) => ({variables: {catalog}})
   }),
+  graphql(saveOrder, {name: 'saveOrder'}),
   connect(mapStateToProps, {push, showNotification}),
   DragDropContext(HTML5Backend)
 )
