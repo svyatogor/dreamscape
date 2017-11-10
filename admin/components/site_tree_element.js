@@ -12,7 +12,24 @@ const collectDrag = (connect, monitor) => ({
 
 const collectDrop = (connect, monitor) => ({
   connectDropTarget: connect.dropTarget(),
-  isOver: monitor.isOver(),
+  isOver: monitor.isOver({ shallow: true }),
+})
+
+
+const DropDivider = DropTarget('page', {
+  drop: props => {
+    return {id: props.id, action: props.before ? 'before' : 'after'}
+  },
+}, collectDrop)((props) => {
+  const background = props.isOver ? '#dbdbdb' : 'transparent'
+  return props.connectDropTarget(<div style={{
+    position: 'absolute',
+    width: '100%',
+    height: 20,
+    background,
+    zIndex: 2,
+    marginTop: props.before ? -10 : -12
+  }} />)
 })
 
 class SiteTreeElement extends React.Component {
@@ -29,8 +46,10 @@ class SiteTreeElement extends React.Component {
       isOverCurrent,
       position,
       parent,
-      move,
       commitMove,
+      hover,
+      onMove,
+      onHover,
       ...props} = this.props
 
     const style = {}
@@ -40,45 +59,40 @@ class SiteTreeElement extends React.Component {
       style.opacity = .5
     }
 
-    if (isOver || isOverCurrent) {
-      props.nestedItems = []
-      // style.borderBottom = '2px dashed #ccc'
+    if (isOver) {
+      style.fontWeight = 'bold'
     }
 
     return connectDragPreview(connectDropTarget(connectDragSource(
-      <div style={style}><ListItem {...props} /></div>
+      <div style={{...style, position: 'relative'}}>
+        {<DropDivider id={id} before />}
+        <ListItem {...props} />
+        {<DropDivider id={id} />}
+      </div>
     )), {captureDraggingState: true})
   }
 
   static dragSpec = {
     beginDrag(props) {
-      return {id: props.id, originalPosition: props.position, parent: props.parent}
+      return {id: props.id, position: props.position, parent: props.parent}
     },
 
     endDrag(props, monitor) {
-      const {id: droppedId, originalPosition, parent} = monitor.getItem()
       if (monitor.didDrop()) {
-        props.commitMove(parent)
+        props.onMove(props.id, monitor.getDropResult().id, monitor.getDropResult().action)
+        // props.commitMove(parent)
       } else {
-        props.move(droppedId, originalPosition);
+        // props.move(droppedId, originalPosition);
       }
     },
   }
 
   static dropSpec = {
-    canDrop(props, monitor) {
-      const { parent: draggedParent } = monitor.getItem();
-      const { parent: overParent } = props;
-      return draggedParent === overParent
-    },
-
-    hover(props, monitor) {
-      const {y} = monitor.getDifferenceFromInitialOffset()
-      const { id: draggedId, parent: draggedParent } = monitor.getItem();
-      const { id: overId, parent: overParent } = props;
-      if (draggedId !== overId && draggedParent === overParent) {
-        props.move(draggedId, overId, y)
+    drop: (props, monitor) => {
+      if (monitor.didDrop()) {
+        return monitor.getDropResult()
       }
+      return {id: props.id, action: 'move'}
     },
   }
 }

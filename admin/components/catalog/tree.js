@@ -2,7 +2,7 @@ import React from 'react'
 import {FloatingActionButton, Paper} from 'material-ui'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import {connect} from 'react-redux'
-import _, {get, isEmpty, isEqual, filter, map, find, sortBy, findIndex, isNumber, without} from 'lodash'
+import _, {get, isEmpty, isEqual, filter, map, find, sortBy, findIndex, reject} from 'lodash'
 import {List} from 'material-ui'
 import {push} from 'react-router-redux'
 import {compose} from 'recompose'
@@ -25,49 +25,42 @@ class Tree extends React.Component {
     }
   }
 
-  move(id, after, d) {
-    const collection = this.state.folders
-    const self = find(collection, {id})
-    if (isNumber(after)) {
-      const otherItems = without(collection, self)
-      this.setState({pages: [...otherItems, {...self, position: after}]})
-      return
-    }
-    let otherItems = collection.filter(page => page.parent !== self.parent)
-    let sortedItems = _(collection)
-      .filter({parent: self.parent})
-      .sortBy('position')
-      .map((page, i) => ({...page, position: i}))
-      .value()
-    const other = findIndex(sortedItems, {id: after})
-    sortedItems = sortedItems.map(item => {
-      if (item.id === self.id) {
-        return {...item, position: other}
-      } else if (item.position === other) {
-        return {...item, position: item.position + (d < 0 ? 1 : -1)}
-      } else if (item.position > other) {
-        return {...item, position: item.position + 1}
-      } else {
-        return item
-      }
-    })
-    this.setState({folders: [...otherItems, ...sortedItems]})
+  hover(id) {
+    this.setState({hover: id})
   }
 
-  commitMove(parent) {
-    const items = sortBy(filter(this.state.folders, {parent}), 'position')
-    const optimisticResponse = items.map(item => ({
-      ...item,
-      parent: item.parent ? {
-        __typename: 'Folder',
-        id: item.parent
-      } : null
-    }))
+  move(id, targetId, action) {
+    if (id === targetId) {
+      return
+    }
+    const collection = this.state.folders
+    const target = find(collection, {id: targetId})
+    const self = find(collection, {id})
+    let {parent} = target
+    let sortedItems
+    if (action === 'move') {
+      parent = target.id
+      sortedItems = [...filter(collection, {parent: target}), self]
+    } else {
+      let sortableItems = _(collection)
+        .reject({id})
+        .filter({parent})
+        .sortBy('position')
+        .value()
+      const i = findIndex(sortableItems, {id: targetId})
+      sortedItems = action === 'before' ?
+      [...sortableItems.slice(0, i), {...self, parent}, target, ...sortableItems.slice(i+1, sortableItems.length)] :
+      [...sortableItems.slice(0, i), target, {...self, parent}, ...sortableItems.slice(i+1, sortableItems.length)]
+      sortedItems = map(sortedItems, (item, position) => ({...item, position}))
+    }
+
+    this.setState({hover: null})
+
     return this.props.saveOrder({
-      variables: {folders: map(items, 'id')},
+      variables: {folders: map(sortedItems, 'id'), parent},
       optimisticResponse: {
         __typename: 'Mutation',
-        orderFolders: optimisticResponse,
+        orderFolders: sortedItems,
       },
     })
       .then(({data}) => {
@@ -100,10 +93,11 @@ class Tree extends React.Component {
         primaryText={t(folder.name, this.props.locale)}
         key={folder.id}
         id={folder.id}
+        hover={folder.id === this.state.hover}
         position={folder.position}
         parent={folder.parent}
-        move={this.move.bind(this)}
-        commitMove={this.commitMove.bind(this)}
+        onMove={this.move.bind(this)}
+        onHover={this.hover.bind(this)}
         onTouchTap={() => this.props.push(`/catalog/${this.props.catalog}/folder/${folder.id}`)}
         {...props}
       />
@@ -139,8 +133,8 @@ const mapStateToProps = ({app: {locale}}, {data}) => {
 
 
 const saveOrder = gql`
-mutation orderFolders($folders: [ID!]!) {
-  orderFolders(folders: $folders) {
+mutation orderFolders($folders: [ID!]!, $parent: ID) {
+  orderFolders(folders: $folders, parent: $parent) {
     id
     parent
     position

@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex, isNumber, without} from 'lodash'
+import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex, reject} from 'lodash'
 import {List} from 'material-ui'
 import {push} from 'react-router-redux'
 import {get} from 'lodash'
@@ -22,48 +22,42 @@ class Tree extends React.Component {
     this.state = {}
   }
 
-  move(id, after, d) {
-    const self = this.state.pages.find(page => page.id === id)
-    if (isNumber(after)) {
-      const otherPages = without(this.state.pages, self)
-      this.setState({pages: [...otherPages, {...self, position: after}]})
+  move(id, targetId, action) {
+    if (id === targetId) {
       return
     }
-    let otherPages = this.state.pages.filter(page => page.parent !== self.parent)
-    let pages = _(this.state.pages)
-      .filter({parent: self.parent})
-      .sortBy('position')
-      .map((page, i) => ({...page, position: i}))
-      .value()
-    const other = findIndex(pages, {id: after})
-    pages = pages.map(page => {
-      if (page.id === self.id) {
-        return {...page, position: other}
-      } else if (page.position === other) {
-        return {...page, position: page.position + (d < 0 ? 1 : -1)}
-      } else if (page.position > other) {
-        return {...page, position: page.position + 1}
-      } else {
-        return page
-      }
-    })
-    this.setState({pages: [...otherPages, ...pages]})
-  }
-
-  commitMove(parent) {
-    const pages = sortBy(filter(this.state.pages, {parent}), 'position')
-    const optimisticResponse = pages.map(page => ({
-      ...page,
-      parent: page.parent ? {
-        __typename: 'Page',
-        id: page.parent
-      } : null
-    }))
+    const collection = this.state.pages
+    const target = find(collection, {id: targetId})
+    const self = find(collection, {id})
+    let {parent} = target
+    let sortedItems
+    if (action === 'move') {
+      parent = target.id
+      sortedItems = [...filter(collection, {parent: target}), self]
+    } else {
+      let sortableItems = _(collection)
+        .reject({id})
+        .filter({parent})
+        .sortBy('position')
+        .value()
+      const i = findIndex(sortableItems, {id: targetId})
+      sortedItems = action === 'before' ?
+      [...sortableItems.slice(0, i), {...self, parent}, target, ...sortableItems.slice(i+1, sortableItems.length)] :
+      [...sortableItems.slice(0, i), target, {...self, parent}, ...sortableItems.slice(i+1, sortableItems.length)]
+      sortedItems = map(sortedItems, (item, position) => ({...item, position}))
+    }
+    this.setState({hover: null})
     return this.props.saveOrder({
-      variables: {pages: map(pages, 'id')},
+      variables: {pages: map(sortedItems, 'id'), parent},
       optimisticResponse: {
         __typename: 'Mutation',
-        orderPages: optimisticResponse,
+        orderPages: sortedItems.map(page => ({
+          ...page,
+          parent: page.parent ? {
+            __typename: 'Page',
+            id: page.parent
+          } : null
+        })),
       },
     })
       .then(({data}) => {
@@ -72,6 +66,10 @@ class Tree extends React.Component {
       .catch((error) => {
         this.props.showNotification("Ooops, could not save new page order")
       })
+  }
+
+  hover(id) {
+    this.setState({hover: id})
   }
 
   componentWillReceiveProps({pages}) {
@@ -98,8 +96,9 @@ class Tree extends React.Component {
         id={page.id}
         position={page.position}
         parent={page.parent}
-        move={this.move.bind(this)}
-        commitMove={this.commitMove.bind(this)}
+        onMove={this.move.bind(this)}
+        onHover={this.hover.bind(this)}
+        hover={page.id === this.state.hover}
         style={{color: page.published ?  '#000' : '#888'}}
         onTouchTap={() => this.props.push(`/site/page/${page.id}`)}
         {...props}
@@ -153,8 +152,8 @@ const mapStateToProps = ({app: {locale}, routing}, {data, activePage}) => {
 }
 
 const saveOrder = gql`
-  mutation orderPges($pages: [ID!]!) {
-    orderPages(pages: $pages) {
+  mutation orderPges($pages: [ID!]!, $parent: ID) {
+    orderPages(pages: $pages, parent: $parent) {
       id
       title
       published

@@ -45,7 +45,9 @@ export default class {
         }
         folder.parent = parent
       }
-      folder.name[locale] = name
+      if (name) {
+        folder.name[locale] = name
+      }
       await folder.save()
       return folder
     } else {
@@ -135,9 +137,9 @@ export default class {
   }
 
   @mutation
-  static async orderFolders({site}, {folders}) {
+  static async orderFolders({site}, {folders, parent}) {
     return Promise.all(map(folders, (folder, position) =>
-      Folder.findOneAndUpdate({_id: folder, site: site._id}, {$set: {position}}, {new: true})
+      Folder.findOneAndUpdate({_id: folder, site: site._id}, {$set: {position, parent}}, {new: true})
     ))
   }
 

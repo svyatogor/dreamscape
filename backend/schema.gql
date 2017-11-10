@@ -135,7 +135,7 @@ type Query {
 type Mutation {
   upsertPage(page: PageInput!, locale: String): Page
   deletePage(id: ID!): Boolean
-  orderPages(pages: [ID!]!): [Page]
+  orderPages(pages: [ID!]!, parent: ID): [Page]
   addBlock(block: BlockInput!): ID
   removeBlock(block: BlockRefInput!): Boolean
   saveStaticText(input: StaticTextInput!): StaticText
@@ -145,5 +145,5 @@ type Mutation {
   deleteItem(id: ID!): Boolean
   upsertFolder(folder: FolderInput!): Folder
   deleteFolder(id: ID!): Boolean
-  orderFolders(folders: [ID!]!): [Folder]
+  orderFolders(folders: [ID!]!, parent: ID): [Folder]
 }

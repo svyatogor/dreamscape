@@ -110,9 +110,9 @@ export default class {
   }
 
   @mutation
-  static async orderPages({site}, {pages}) {
+  static async orderPages({site}, {pages, parent}) {
     return Promise.all(map(pages, (page, position) =>
-      Page.findOneAndUpdate({_id: page, site: site._id}, {$set: {position}}, {new: true}).populate('parent')
+      Page.findOneAndUpdate({_id: page, site: site._id}, {$set: {position, parent}}, {new: true}).populate('parent')
     ))
   }
 
