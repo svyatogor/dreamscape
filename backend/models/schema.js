@@ -88,6 +88,38 @@ const fileListSchema = new Schema({
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
 })
 
+const addressSchema = new Schema({
+  country: String,
+  city: String,
+  postalCode: String,
+  line1: String,
+  line2: String,
+  name: String,
+  phone: String,
+})
+
+const orderLineSchema = new Schema({
+  product: {type: Schema.Types.ObjectId, ref: 'Item'},
+  name: String,
+  count: Number,
+  price: Number,
+  tax: Number,
+  total: Number,
+})
+
+const orderSchema = new Schema({
+  lines: [orderLineSchema],
+  site: {type: Schema.Types.ObjectId, ref: 'Site'},
+  billingAddress: addressSchema,
+  shippingAddress: addressSchema,
+  status: String,
+  paymentMethod: String,
+  paymentStatus: String,
+  subtotal: Number,
+  tax: Number,
+  deliveryCost: Number,
+  total: Number,
+})
 
 export {
   userSchema,
@@ -99,4 +131,5 @@ export {
   memberSchema,
   ordersSchema,
   fileListSchema,
+  orderSchema,
 }

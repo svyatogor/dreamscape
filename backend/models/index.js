@@ -5,6 +5,7 @@ import Site from './site'
 import Folder from './folder'
 import Item from './item'
 import FileList from './file_list'
+import Cart from './eshop/cart'
 
 export {
   User,
@@ -14,4 +15,5 @@ export {
   Site,
   Folder,
   Item,
+  Cart,
 }
