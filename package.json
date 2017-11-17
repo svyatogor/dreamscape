@@ -63,6 +63,7 @@
     "langs": "^2.0.0",
     "lodash": "^4.17.4",
     "material-ui": "^0.18.7",
+    "material-ui-search-bar": "^0.4.1",
     "mdi": "^2.0.46",
     "mongoose": "^4.11.4",
     "mongoose-seeder": "^1.2.1",
