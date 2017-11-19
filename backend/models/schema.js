@@ -71,7 +71,8 @@ const staticTextSchema = new Schema({
   images: [String],
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
   key: String,
-  global: {type: Boolean, default: false}
+  global: {type: Boolean, default: false},
+  type: String,
 })
 
 const fileSchema = new Schema({

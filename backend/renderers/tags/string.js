@@ -1,9 +1,9 @@
 import {t} from '../../common/utils'
 import {StaticText} from '../../models'
 
-export class snippet {
+export class string {
   constructor(renderContext) {
-    this.tags = ['snippet']
+    this.tags = ['string']
   }
 
   parse(parser, nodes, lexer) {
@@ -12,23 +12,15 @@ export class snippet {
     const args = parser.parseSignature(null, true);
     parser.advanceAfterBlockEnd(tok.value);
 
-    let body = parser.parseUntilBlocks('endsnippet');
-    parser.advanceAfterBlockEnd();
-
-    return new nodes.CallExtensionAsync(this, 'run', args, [body]);
+    return new nodes.CallExtensionAsync(this, 'run', args);
   }
 
-  run({ctx}, snippetName, options, body, callback) {
-    if (typeof options === 'function') {
-      callback = body
-      body = options
-      options = {type: 'html'}
-    }
+  run({ctx}, str, callback) {
     if (ctx.inspect) {
       return callback(null, null)
     }
 
-    const props = {site: ctx.site._id, key: snippetName, global: true}
+    const props = {site: ctx.site._id, key: str, global: true}
     return StaticText.findOne(props)
       .then(text => {
         if (text) {
@@ -36,9 +28,9 @@ export class snippet {
           callback(null, localText)
           return localText
         } else {
-          text = new StaticText({...props, content: {en: body()}, type: options.type})
+          text = new StaticText({...props, content: {en: str}, type: 'string'})
           return text.save().catch(e => console.log(e)).then(() => {
-            callback(null, body())
+            callback(null, str)
           })
         }
       })

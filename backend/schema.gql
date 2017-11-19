@@ -11,6 +11,7 @@ type StaticText implements Block {
   _type: String!
   content: JSON
   key: String
+  type: String
   global: Boolean
 }
 
