@@ -1,16 +1,20 @@
 import express from 'express'
+import cookieParser from 'cookie-parser'
+import flash from 'connect-flash'
+import session from 'express-session'
 import {Page} from './models'
 import {map, findLastIndex, isNil, get, identity, find, forEach, reject, slice} from 'lodash'
 import {renderPage} from './renderers'
 const frontend = express.Router()
+frontend.use(cookieParser())
+frontend.use(flash())
+frontend.use(session({secret: process.env.SESSION_SECRET, name: 'session_id', saveUninitialized: true, resave: true}));
 
 frontend.use('/data', express.static(__dirname + '/../data'))
-
+forEach(require('./middlewares'), middleware => frontend.use(middleware))
 frontend.get('/*', (req, res, next) => {
   renderRequest(req.path, {req, res, next})
 })
-
-forEach(require('./middlewares'), middleware => frontend.use(middleware))
 
 frontend.use((req, res) => {
   res.sendStatus(404)
@@ -22,6 +26,9 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
     site: req.site,
   }
   resolvePath(requestPath, req).then(page => {
+    if (!page) {
+      res.sendStatus(404)
+    }
     return renderPage({req, res}, page, context)
       .then(() => res.end())
       .catch((e) => {
@@ -60,6 +67,7 @@ async function resolvePath(path, req) {
 
   const pageIdx = findLastIndex(pages, identity)
   const page = pages[pageIdx]
+  if (!page) return null
   page.parents = reject(pages, isNil)
   page.path = path.join('/')
   page.params = slice(path, pageIdx + 1).join('/')

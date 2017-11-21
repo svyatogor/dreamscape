@@ -93,9 +93,9 @@ const addressSchema = new Schema({
   country: String,
   city: String,
   postalCode: String,
-  line1: String,
-  line2: String,
+  streetAddress: String,
   name: String,
+  email: String,
   phone: String,
 })
 
@@ -104,11 +104,14 @@ const orderLineSchema = new Schema({
   name: String,
   count: Number,
   price: Number,
+  discount: Number,
+  discountType: String,
   tax: Number,
   total: Number,
 })
 
 const orderSchema = new Schema({
+  number: Number,
   lines: [orderLineSchema],
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
   billingAddress: addressSchema,
@@ -118,8 +121,20 @@ const orderSchema = new Schema({
   paymentStatus: String,
   subtotal: Number,
   tax: Number,
+  deliveryMethod: String,
   deliveryCost: Number,
   total: Number,
+  createdAt: Date,
+  updatedAt: Date,
+})
+
+orderSchema.pre('save', next => {
+  const now = new Date()
+  this.updated_at = now
+  if (!this.created_at) {
+    this.created_at = now
+  }
+  next()
 })
 
 export {

@@ -1,10 +1,11 @@
 import mongoose from 'mongoose'
-import {pickBy, isEmpty} from 'lodash'
+import {get, pickBy, isEmpty} from 'lodash'
 import {itemSchema} from '../schema'
 import {Site} from '../index'
+import Item from '../item'
 import {t} from '../../common/utils'
 
-class Product {
+export default class Product extends Item {
   async toContext({locale}) {
     const site = await Site.findOne({_id: this.site})
     const object = this.toObject({virtuals: true})
@@ -12,12 +13,19 @@ class Product {
     Object.keys(pickBy(fields, {localized: true})).forEach(field => {
       object[field] = t(object[field], locale)
     })
+    object.finalPrice = this.finalPrice
     return object
   }
 
   get finalPrice() {
-    return !isEmpty(this.specialPrice) ? this.specialPrice : this.price
+    return !isEmpty(this.get('specialPrice')) ? this.get('specialPrice') : this.get('price')
+  }
+
+  get productName() {
+    console.trace()
+    return Site.findOne({_id: this.get('site')}).then(site => {
+      const {labelField, defaultLocale = 'en'} = site.documentTypes[this.catalog]
+      return this.get(labelField)[defaultLocale]
+    })
   }
 }
-itemSchema.loadClass(Product)
-export default mongoose.model('Item', itemSchema)

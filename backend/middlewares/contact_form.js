@@ -23,7 +23,7 @@ const schema = Joi.object().keys({
     message: Joi.string().required()
 })
 
-contact_form.post('/contact_form', bodyParser.urlencoded(), (req, res, next) => {
+contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req, res, next) => {
   const ref = req.get('Referrer')
   let path
   if (!isEmpty(ref)) {

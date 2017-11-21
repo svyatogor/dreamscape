@@ -15,6 +15,7 @@ import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
 import SiteEditor from './components/site_editor'
 import SnippetsEditor from './components/snippets_editor'
+import OrdersManager from './components/eshop/orders_manager'
 import Catalog from './components/catalog'
 import Login from './components/login'
 
@@ -59,7 +60,7 @@ class MainContainer extends React.Component {
             </NavLink>
           )}
           {includes(get(site, 'features'), 'eShop') && (
-            <NavLink to="/members">
+            <NavLink to="/orders">
               <MenuItem
                 leftIcon={<div className="menuIcon"><i className="mdi mdi-cart" /></div>}
               >
@@ -80,6 +81,7 @@ class MainContainer extends React.Component {
         <section className={styles.appBody}>
           <Route exact path="/" component={Welcome} />
           <Route path="/site" component={SiteEditor} />
+          <Route path="/orders" component={OrdersManager} />
           <Route path="/snippets" component={SnippetsEditor} />
           <Route path="/catalog/:catalogKey" component={Catalog} />
         </section>

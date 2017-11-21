@@ -1,4 +1,5 @@
 scalar JSON
+scalar Date
 
 interface Block {
   _type: String!
@@ -120,6 +121,37 @@ input FileInput {
   url: String
 }
 
+type OrderLine {
+  product: ID!
+  name: String!
+  count: Int!
+  price: Float
+  total: Float
+}
+
+type Address {
+  country: String
+  city: String
+  postalCode: String
+  streetAddress: String
+  name: String
+  email: String
+  phone: String
+}
+
+type Order {
+  id: ID!
+  number: Int
+  lines: [OrderLine!]!
+  billingAddress: Address
+  shippingAddress: Address
+  status: String!
+  paymentMethod: String!
+  paymentStatus: String!
+  total: Float
+  createdAt: Date
+}
+
 type Query {
   pages: [Page]
   page(id: ID!): Page
@@ -131,6 +163,8 @@ type Query {
   folder(id: ID!): Folder
   items(folder: ID!): [Item!]!
   item(id: ID!): Item
+  eshopOrders(status: String, limit: Int, offset: Int): [Order]
+  eshopOrder(id: ID!): Order
 }
 
 type Mutation {

@@ -1,4 +1,5 @@
 import GraphQLJSON from 'graphql-type-json'
+import GraphQLDate from 'graphql-date'
 
 const resolvers = {
   Query: {
@@ -7,14 +8,17 @@ const resolvers = {
     ...require('./site').default.queries,
     ...require('./catalog').default.queries,
     ...require('./file_list').default.queries,
+    ...require('./eshop').default.queries,
   },
   Mutation: {
     ...require('./page').default.mutations,
     ...require('./static_text').default.mutations,
     ...require('./catalog').default.mutations,
     ...require('./file_list').default.mutations,
+    ...require('./eshop').default.mutations,
   },
-  JSON: GraphQLJSON
+  JSON: GraphQLJSON,
+  Date: GraphQLDate,
 }
 
 export default resolvers

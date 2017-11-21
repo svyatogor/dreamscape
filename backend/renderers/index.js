@@ -8,7 +8,7 @@ const renderPage = async ({req, res}, page, context) => {
   const {site} = context
   const locale = req.locale
   const breadcrumbs = await Promise.map(page.parents, p => p.toContext({locale, site}))
-
+  const flash = req.flash()
   reduce(
     breadcrumbs,
     (path, page) => {
@@ -38,8 +38,10 @@ const renderPage = async ({req, res}, page, context) => {
       req: {
         ...req,
         localeName: langs.where('1', req.locale).local,
-      }
+      },
+      flash,
     }
+    console.log(flash)
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())

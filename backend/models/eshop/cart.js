@@ -15,9 +15,9 @@ export default class {
   add(product) {
     const idx = findIndex(this._items, {product})
     if (idx > -1) {
-      this.items[idx].count++
+      this._items[idx].count++
     } else {
-      this.items.push({product, count: 1})
+      this._items.push({product, count: 1})
     }
   }
 
@@ -27,30 +27,22 @@ export default class {
 
   get items() {
     if (!this.__items)  {
-      const objects = Product.find({_id: {$in: map(this._item, 'product')}})
-      this.__items = map(this._items, i => ({
-        ...i,
-        product: find(objects, o => String(o._id) === i.product)
-      }))
+      return Product.find({_id: {$in: map(this._items, 'product')}}).then(objects => {
+        this.__items = map(this._items, i => ({
+          ...i,
+          product: find(objects, o => String(o._id) === i.product)
+        }))
+        return this.__items
+      })
     }
     return this.__items
   }
 
   get total() {
-    return sumBy(this.items, 'finaPrice')
+    return sumBy(this.items, item => item.product.finalPrice)
   }
 
   serialize() {
     return JSON.stringify(this._items)
-  }
-
-  createOrder() {
-    if (this.count === 0) {
-      throw new Error("Cannot create an empty order")
-    }
-
-    const order = new Order({site: this.site})
-
-    return order
   }
 }
