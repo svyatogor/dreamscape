@@ -56,7 +56,6 @@ export default class {
         if (!parentFolder) {
           throw new Error("Folder doesn't exist or you don't have access to it")
         }
-        console.log(parentFolder);
         catalog = parentFolder.catalog
       }
       if (!parent && !catalog) {
@@ -109,9 +108,12 @@ export default class {
           [locale]: data[field],
         })
       } else {
+        console.log(field, data[field], isEmpty(data[field]))
         if (type === "number" || type === "money") {
           const val = type === 'money' ? parseFloat(data[field]) : parseInt(data[field], 2)
           item.set(field, isNaN(val) ? null : val)
+        } else if (type === 'boolean') {
+          item.set(field, data[field])
         } else if (isEmpty(data[field])) {
           item.set(field, null)
         } else {
