@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {get, pickBy, isEmpty} from 'lodash'
+import {get, pickBy, isEmpty, isNil} from 'lodash'
 import {itemSchema} from '../schema'
 import {Site} from '../index'
 import Item from '../item'
@@ -18,11 +18,10 @@ export default class Product extends Item {
   }
 
   get finalPrice() {
-    return !isEmpty(this.get('specialPrice')) ? this.get('specialPrice') : this.get('price')
+    return !isNil(this.get('discountedPrice')) && this.get('discountedPrice') > 0 ? this.get('discountedPrice') : this.get('price')
   }
 
   get productName() {
-    console.trace()
     return Site.findOne({_id: this.get('site')}).then(site => {
       const {labelField, defaultLocale = 'en'} = site.documentTypes[this.catalog]
       return this.get(labelField)[defaultLocale]
