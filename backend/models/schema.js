@@ -16,26 +16,6 @@ const siteSchema = new Schema({
   documentTypes: JSON,
 })
 
-const memberSchema = new Schema({
-  email: String,
-  firstName: String,
-  lastName: String,
-  passwordHash: String,
-}, {strict: false, timestamps: true})
-
-const ordersSchema = new Schema({
-  member: {type: Schema.Types.ObjectId, ref: 'Member'},
-  items: [{
-    product: {type: Schema.Types.ObjectId, required: true},
-    quantity: {type: Number, default: 1},
-    price: Number,
-    discount: Number,
-    subtotal: Number,
-  }],
-  total: Number,
-  status: {type: String},
-}, {strict: false, timestamps: true})
-
 const itemSchema = new Schema({
   catalog: String,
   deleted: Boolean,
@@ -124,18 +104,18 @@ const orderSchema = new Schema({
   deliveryMethod: String,
   deliveryCost: Number,
   total: Number,
-  createdAt: Date,
-  updatedAt: Date,
-})
+  // createdAt: Date,
+  // updatedAt: Date,
+}, {strict: false, timestamps: true})
 
-orderSchema.pre('save', next => {
-  const now = new Date()
-  this.updated_at = now
-  if (!this.created_at) {
-    this.created_at = now
-  }
-  next()
-})
+// orderSchema.pre('save', function(next) {
+//   const now = new Date()
+//   this.updatedAt = now
+//   if (!this.createdAt) {
+//     this.created_at = now
+//   }
+//   next()
+// })
 
 export {
   userSchema,
@@ -144,8 +124,6 @@ export {
   staticTextSchema,
   itemSchema,
   folderSchema,
-  memberSchema,
-  ordersSchema,
   fileListSchema,
   orderSchema,
 }

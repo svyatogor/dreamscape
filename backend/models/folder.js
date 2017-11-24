@@ -7,8 +7,10 @@ class FolderClass {
     return {
       ...this.toObject({virtuals: true}),
       name: t(this.name, locale),
+      leaf: (await Folder.count({parent: this._id, deleted: false})) === 0
     }
   }
 }
 folderSchema.loadClass(FolderClass)
-export default mongoose.model('Folder', folderSchema)
+const Folder = mongoose.model('Folder', folderSchema)
+export default Folder

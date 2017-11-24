@@ -1,6 +1,7 @@
 import Promise from 'bluebird'
 import {t} from '../../common/utils'
 import Cart from '../../models/eshop/cart'
+import Order from '../../models/eshop/order'
 
 export class shopping_cart {
   constructor(renderContext) {
@@ -13,13 +14,19 @@ export class shopping_cart {
     const args = parser.parseSignature(null, true);
     parser.advanceAfterBlockEnd(tok.value);
 
-    let body = parser.parseUntilBlocks('checkout_form', 'finally', 'endshopping_cart');
+    let body = parser.parseUntilBlocks('checkout_form', 'payment', 'finally', 'endshopping_cart');
     let checkoutForm = null
     let finalBlock = null
+    let paymentBlock = null
 
     if(parser.skipSymbol('checkout_form')) {
       parser.skip(lexer.TOKEN_BLOCK_END);
-      checkoutForm = parser.parseUntilBlocks('finally', 'endshopping_cart');
+      checkoutForm = parser.parseUntilBlocks('payment', 'finally', 'endshopping_cart');
+    }
+
+    if(parser.skipSymbol('payment')) {
+      parser.skip(lexer.TOKEN_BLOCK_END);
+      paymentBlock = parser.parseUntilBlocks('finally', 'endshopping_cart');
     }
 
     if(parser.skipSymbol('finally')) {
@@ -27,10 +34,10 @@ export class shopping_cart {
       finalBlock = parser.parseUntilBlocks('endshopping_cart');
     }
     parser.advanceAfterBlockEnd();
-    return new nodes.CallExtensionAsync(this, 'run', args, [body, checkoutForm, finalBlock]);
+    return new nodes.CallExtensionAsync(this, 'run', args, [body, checkoutForm, paymentBlock, finalBlock]);
   }
 
-  async run({ctx}, body, checkoutForm, finalBlock, callback) {
+  async run({ctx}, body, checkoutForm, paymentBlock, finalBlock, callback) {
     if (ctx.inspect) {
       return callback(null, null)
     }
@@ -57,6 +64,14 @@ export class shopping_cart {
 
     if (ctx.page.params === 'thankyou' && finalBlock) {
       finalBlock(callback)
+      return
+    }
+
+    const urlMatch = ctx.page.params.match(/complete\/(.+)/)
+    if (urlMatch && paymentBlock) {
+      const orderId = urlMatch[1]
+      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId})
+      paymentBlock(callback)
       return
     }
 

@@ -3,8 +3,9 @@ import BaseJoi from 'joi'
 import JoiPhoneNumberExtensions from 'joi-phone-number-extensions'
 import {form as  joiToForms} from 'joi-errors-for-forms'
 import bodyParser from 'body-parser'
-import {get} from 'lodash'
+import {get, includes} from 'lodash'
 import fetch from 'node-fetch'
+import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
 import PaymentServices from './payment_services'
@@ -24,7 +25,6 @@ const addressSchema = Joi.object().keys({
 const orderSchema = Joi.object().keys({
   billingAddress: addressSchema.required(),
   shippingAddress: addressSchema.optional(),
-  paymentMethod: Joi.string().required(),
   deliveryMethod: Joi.string().optional(),
 })
 
@@ -58,98 +58,50 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
   order.billingAddress = value.billingAddress
   order.shippingAddress = value.shippingAddress
   order.deliveryMethod = value.deliveryMethod
-  order.paymentMethod = value.paymentMethod
-  order.status = 'new'
-
-  const paymentService = PaymentServices[order.paymentMethod]
-  if (!paymentService) {
-    req.flash('error', 'eshop.errors.unsuported_payment_option')
-    res.redirect(req.get('Referrer'))
-    return
-  }
+  order.status = 'draft'
 
   try {
-    console.log(order);
     await order.save()
-    // res.cookie('cart', [])
+    res.redirect(get(req.site, 'eshop.cartPage') + '/complete/' + order._id)
   } catch (e) {
     console.log(e)
     req.flash('error', 'eshop.errors.generic_checkout_error')
     res.redirect(req.get('Referrer'))
     return
   }
-  await paymentService(order, req, res)
-
-  // TODO:
-  // const enoughStock = await order.enoughStock()
-  // if (!enoughStock) {
-  //   req.flash('error', 'eshop.errors.cart_not_enough_stock')
-  //   res.redirect(res.redirect(req.site.eshop.cartPage || req.get('Referrer')))
-  //   return
-  // }
 })
 
-eshop.post('/eshop/paypal/start', async (req, res, next) => {
-  const payload = {
-    "intent": "sale",
-    // "experience_profile_id":"experience_profile_id",
-    "redirect_urls":
-    {
-      "return_url": "https://example.com",
-      "cancel_url": "https://example.com"
-    },
-    "payer":
-    {
-      "payment_method": "paypal"
-    },
-    "transactions": [
-    {
-      "amount":
-      {
-        "total": "4.00",
-        "currency": "USD",
-        "details":
-        {
-          "subtotal": "2.00",
-          "shipping": "1.00",
-          "tax": "2.00",
-          "shipping_discount": "-1.00"
-        }
-      },
-      "item_list":
-      {
-        "items": [
-        {
-          "quantity": "1",
-          "name": "item 1",
-          "price": "1",
-          "currency": "USD",
-          "description": "item 1 description",
-          "tax": "1"
-        },
-        {
-          "quantity": "1",
-          "name": "item 2",
-          "price": "1",
-          "currency": "USD",
-          "description": "item 2 description",
-          "tax": "1"
-        }]
-      },
-      "description": "The payment transaction description.",
-      "invoice_number": "merchant invoice",
-      "custom": "merchant custom data"
-    }]
+eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, next) => {
+  if (!includes(req.site.eshop.allowedPaymentMethods, 'cash_on_delivery')) {
+    res.sendStatus(404)
+    return
+  }
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
   }
 
-  // curl -v https://api.sandbox.paypal.com/v1/oauth2/token \
-  // -H "Accept: application/json" \
-  // -H "Accept-Language: en_US" \
-  // -u "client_id:secret" \
-  // -d "grant_type=client_credentials"
+  order.set({paymentMethod: 'cash_on_delivery', paymentStatus: 'pending', status: 'new'})
+  // deduct stock!
+  await order.save()
+  res.cookie('cart', [])
+  res.redirect(get(req.site, 'eshop.cartPage') + '/thankyou')
+})
 
-  const auth ='Basic ' + new Buffer('AQGhxWTR0wcE-A5lGxdiihHp8F_xO9-RTwf0TQWVhF7jEN25ocVtVDCw18JvUqzK8sdwK1KbKWuY_I4Q:EP_ONj3ds1jbAo6FGMma4d4kp0s5AjhXVWk0JhswvNNE-1EAhRujkqGvkQbtdv_RXDpGvZuD6eJi9CjV').toString('base64');
-  const credentials = await fetch('https://api.sandbox.paypal.com/v1/oauth2/token', {
+eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
+  if (!includes(req.site.eshop.allowedPaymentMethods, 'paypal')) {
+    res.sendStatus(404)
+    return
+  }
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+
+  const auth = 'Basic ' + new Buffer(req.site.eshop.paypalClientId + ':' + req.site.eshop.paypalSecret).toString('base64');
+  const credentials = await fetch(`${process.env.PAYPAL_API_URL}/oauth2/token`, {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -159,7 +111,92 @@ eshop.post('/eshop/paypal/start', async (req, res, next) => {
   })
   const accessToken = (await credentials.json()).access_token
 
-  const paymentRes = await fetch('https://api.sandbox.paypal.com/v1/payments/payment', {
+  const executeRes = await fetch(`${process.env.PAYPAL_API_URL}/payments/payment/${order.get('paypalPaymentRequest').id}/execute`, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'authorization': `bearer ${accessToken}`
+    },
+    body: JSON.stringify({payer_id: req.body.payerID})
+  })
+  const receipt = await executeRes.json()
+  if (receipt.state === 'approved') {
+    order.set({
+      receipt,
+      paymentStatus: 'paid',
+      status: 'new'
+    })
+    res.cookie('cart', [])
+  }
+  await order.save()
+  res.json(receipt)
+})
+
+eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => {
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+  const cartPage = get(req.site, 'eshop.cartPage')
+  const payload = {
+    intent: "sale",
+    redirect_urls: {
+      return_url: `${req.protocol}://${req.hostname}${cartPage}/thankyou`,
+      cancel_url: `${req.protocol}://${req.hostname}${cartPage}/complete/${order._id}`,
+    },
+    payer: {
+      payment_method: "paypal"
+    },
+    transactions: [
+      {
+        amount: {
+          total: numeral(order.total).format('0.00'),
+          currency: "EUR",
+          // "details": {
+          //   "subtotal": "2.00",
+          //   "shipping": "1.00",
+          //   "tax": "2.00",
+          //   "shipping_discount": "-1.00"
+          // }
+        },
+        item_list: {
+          items: order.lines.map(line => ({
+            name: line.name,
+            quantity: line.count,
+            price: numeral(line.total).format('0.00'),
+            currency: 'EUR',
+          })),
+          shipping_address: {
+            recipient_name: get(order.shippingAddress, 'name', order.billingAddress.name),
+            line1: get(order.shippingAddress, 'streetAddress', order.billingAddress.streetAddress),
+            city: get(order.shippingAddress, 'city', order.billingAddress.city),
+            country_code: get(order.shippingAddress, 'country', order.billingAddress.country || 'CY'),
+            postal_code: get(order.shippingAddress, 'postalCode', order.billingAddress.postalCode),
+            phone: get(order.shippingAddress, 'phone', order.billingAddress.phone),
+          }
+        },
+        description: `Payment for order #${order.number} at ${req.site.eshop.legalName}`,
+        invoice_number: order.number,
+        payment_options: {
+          allowed_payment_method: "INSTANT_FUNDING_SOURCE"
+        },
+      }
+    ]
+  }
+
+  const auth = 'Basic ' + new Buffer(req.site.eshop.paypalClientId + ':' + req.site.eshop.paypalSecret).toString('base64');
+  const credentials = await fetch(`${process.env.PAYPAL_API_URL}/oauth2/token`, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: auth
+    },
+    body: "grant_type=client_credentials"
+  })
+  const accessToken = (await credentials.json()).access_token
+
+  const paymentRes = await fetch(`${process.env.PAYPAL_API_URL}/payments/payment`, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
@@ -167,6 +204,8 @@ eshop.post('/eshop/paypal/start', async (req, res, next) => {
     },
     body: JSON.stringify(payload)
   })
-  const payment = await paymentRes.json()
-  res.json(payment)
+  const paypalPaymentRequest = await paymentRes.json()
+  order.set({paymentMethod: 'paypal', paypalPaymentRequest})
+  await order.save()
+  res.json(paypalPaymentRequest)
 })
