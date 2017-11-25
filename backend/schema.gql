@@ -143,13 +143,14 @@ type Order {
   id: ID!
   number: Int
   lines: [OrderLine!]!
-  billingAddress: Address
+  billingAddress: Address!
   shippingAddress: Address
   status: String!
-  paymentMethod: String!
-  paymentStatus: String!
+  paymentMethod: String
+  paymentStatus: String
   total: Float
   createdAt: Date
+  receipt: JSON
 }
 
 type Query {
@@ -163,8 +164,7 @@ type Query {
   folder(id: ID!): Folder
   items(folder: ID!): [Item!]!
   item(id: ID!): Item
-  eshopOrders(status: String, limit: Int, offset: Int): [Order]
-  eshopOrder(id: ID!): Order
+  eshopOrders(search: String, limit: Int, offset: Int): [Order]
 }
 
 type Mutation {
