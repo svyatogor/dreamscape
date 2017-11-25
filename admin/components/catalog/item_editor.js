@@ -146,6 +146,7 @@ const upsertItem = gql`
   mutation upsertItem($id: ID, $folder: ID!, $data: JSON!, $locale: String!) {
     upsertItem(id: $id, folder: $folder, data: $data, locale: $locale) {
       id
+      data
     }
   }
 `

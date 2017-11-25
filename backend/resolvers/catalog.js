@@ -1,4 +1,4 @@
-import {isEmpty, isNil, get, forEach, omit, map} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 
@@ -108,9 +108,11 @@ export default class {
           [locale]: data[field],
         })
       } else {
-        console.log(field, data[field], isEmpty(data[field]))
         if (type === "number" || type === "money") {
-          const val = type === 'money' ? parseFloat(data[field].replace(',', '.')) : parseInt(data[field], 2)
+          if (isString(data[field]) && type === 'money') {
+            data[field] = data[field].replace(',', '.')
+          }
+          const val = type === 'money' ? parseFloat(data[field]) : parseInt(data[field], 10)
           item.set(field, isNaN(val) ? null : val)
         } else if (type === 'boolean') {
           item.set(field, data[field])
