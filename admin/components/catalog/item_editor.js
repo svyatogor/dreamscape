@@ -21,12 +21,23 @@ import common from '../../common.scss'
 class ItemEditor extends Component {
   onSubmit(data) {
     const {match: {params: {folder}}, locale} = this.props
+    const refetchQueries = data.id ? [] : [{
+      query: gql`
+        query items($folder: ID!) {
+          items(folder: $folder) {
+            id
+            data
+          }
+        }
+      `,
+      variables: {folder}
+    }]
     return this.props.mutate({variables: {
       id: data.id,
       data,
       locale,
       folder,
-    }, refetchQueries: ['items']})
+    }, refetchQueries})
       .then(({data}) => {
         this.props.showNotification("Item saved")
         this.props.push(`..`)
