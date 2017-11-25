@@ -25,6 +25,7 @@ import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
 import {t} from '../../common/utils'
 import {toggleField, showNotification} from '../../actions'
+import { isBoolean } from 'util';
 
 class List extends React.Component {
   constructor(props) {
@@ -175,7 +176,7 @@ class List extends React.Component {
         <Table selectable={false}>
           <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
             <TableRow>
-              {visibleFields.map(f =>
+              {map(visibleFields, f =>
                 <TableHeaderColumn key={f}>{humanize(f)}</TableHeaderColumn>
               )}
               <TableHeaderColumn />
@@ -183,10 +184,15 @@ class List extends React.Component {
           </TableHeader>
           <TableBody displayRowCheckbox={false}>
             {map(data.items, item => (<TableRow key={item.id} hoverable>
-              {map(visibleFields, f => <TableRowColumn key={f}>{t(item.data[f])}</TableRowColumn>)}
+              {map(visibleFields, f =>
+                <TableRowColumn key={f}>
+                  {isBoolean(item.data[f]) && item.data[f] && <i className="mdi mdi-check" />}
+                  {!isBoolean(item.data[f]) && t(item.data[f])}
+                </TableRowColumn>
+              )}
               <TableRowColumn style={{textAlign: 'right'}}>
                 <IconButton
-                  onTouchTap={() => push(`/catalog/${catalogKey}/folder/${folder}/product/${item.id}`)}
+                  onTouchTap={() => push(`/catalog/${catalogKey}/folder/${folder}/item/${item.id}`)}
                 >
                   <i className="material-icons">edit</i>
                 </IconButton>
@@ -211,7 +217,7 @@ const items = gql`
   }
 `
 const folder = gql`
-  query items($id: ID!) {
+  query folder($id: ID!) {
     folder(id: $id) { id name }
   }
 `
@@ -238,12 +244,12 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const enhance = compose(
+  graphql(items, {
+    options: ({match}) => ({ variables: { folder: match.params.folder } }),
+  }),
   graphql(folder, {
     options: ({match}) => ({ variables: { id: match.params.folder } }),
     name: 'folderData'
-  }),
-  graphql(items, {
-    options: ({match}) => ({ variables: { folder: match.params.folder } }),
   }),
   graphql(deleteItem, {name: 'deleteItem'}),
   graphql(deleteFolder, {name: 'deleteFolder'}),

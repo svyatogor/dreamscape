@@ -187,7 +187,7 @@ class TreeWrapper extends React.Component {
             <i className="mdi mdi-folder-plus" style={{fontSize: '24px'}} />
           </FloatingActionButton>
           <FloatingActionButton secondary
-            onTouchTap={() => history.push(`/catalog/${catalog}/folder/${match.params.folder}/product/new`)}
+            onTouchTap={() => history.push(`/catalog/${catalog}/folder/${match.params.folder}/item/new`)}
             style={{marginLeft: 10}}
           >
             <ContentAdd />

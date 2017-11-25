@@ -29,7 +29,7 @@ class ItemEditor extends Component {
     }, refetchQueries: ['items']})
       .then(({data}) => {
         this.props.showNotification("Item saved")
-        this.props.push(`/catalog/product/folder/${folder}`)
+        this.props.push(`..`)
       })
       .catch((error) => {
         throw new SubmissionError(error.graphQLErrors[0].errors)
@@ -176,9 +176,9 @@ const itemGql = gql`
 
 const enhance = compose(
   branch(
-    props => !!props.match.params.productId,
+    props => !!props.match.params.itemId,
     graphql(itemGql, {
-      options: props => ({variables: {id: props.match.params.productId}})
+      options: props => ({variables: {id: props.match.params.itemId}})
     }),
   ),
   graphql(upsertItem),
