@@ -110,7 +110,7 @@ export default class {
       } else {
         console.log(field, data[field], isEmpty(data[field]))
         if (type === "number" || type === "money") {
-          const val = type === 'money' ? parseFloat(data[field]) : parseInt(data[field], 2)
+          const val = type === 'money' ? parseFloat(data[field].replace(',', '.')) : parseInt(data[field], 2)
           item.set(field, isNaN(val) ? null : val)
         } else if (type === 'boolean') {
           item.set(field, data[field])
