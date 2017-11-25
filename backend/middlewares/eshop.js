@@ -36,7 +36,7 @@ eshop.get('/eshop/add_to_cart/:id', async (req, res, next) => {
   cart.add(req.params.id)
   res.cookie('cart', cart.serialize())
   req.flash('info', 'eshop.info.product_added')
-  res.redirect(req.get('Referrer'))
+  res.redirect(get(req.site, 'eshop.cartPage'))
 })
 
 eshop.post('/eshop/checkout', async (req, res, next) => {
