@@ -63,8 +63,6 @@ class SnippetForm extends React.Component {
         autoDetectWindowHeight
       >
       <form style={{maxWidth: '100%'}}>
-        <Field name="key" component={TextField} hintText="Snippet name" floatingLabelText="Name" floatingLabelFixed
-          fullWidth />
         {field}
       </form>
     </Dialog>)
@@ -132,11 +130,6 @@ class SnippetsEditor extends React.Component {
                 onTouchTap={() => this.setState({showNewSnippetDialog: true, snippet})}
               />)}
         </div>
-      </div>
-      <div style={{position: 'fixed', bottom: 20, right: 20}}>
-        <FloatingActionButton secondary onTouchTap={() => this.setState({showNewSnippetDialog: true, snippet: {}})}>
-          <ContentAdd />
-        </FloatingActionButton>
       </div>
 
       <ReduxSnippetForm

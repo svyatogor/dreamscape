@@ -62,12 +62,6 @@ class PageEditorGeneral extends React.Component {
           fullWidth className={common.formControl} />
         <Field name="linkText" component={TextField} hintText="How page appears in the menus" floatingLabelText="Link text"
           fullWidth floatingLabelFixed className={common.formControl} />
-        <Field name="slug" component={TextField} hintText="Slug is used for the URL" floatingLabelText="Slug"
-          fullWidth floatingLabelFixed className={common.formControl} />
-        <Field name="description" component={TextField} hintText="SEO description" floatingLabelText="Paragraph about your page"
-          fullWidth multiLine={true} rows={2} rowsMax={2} floatingLabelFixed className={common.formControl} />
-        <Field name="keywords" component={TextField} hintText="SEO keywords" floatingLabelText="Keywords to be added to the global ones"
-          fullWidth multiLine={true} rows={2} rowsMax={2} floatingLabelFixed className={common.formControl} />
         <Field
           name="layout"
           component={SelectField}
