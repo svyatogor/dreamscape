@@ -40,7 +40,6 @@ const pageSchema = new Schema({
   parent: {type: Schema.Types.ObjectId, ref: 'Page'},
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
   title: Object,
-  linkText: Object,
   sections: Object,
   properties: Object,
   position: {type: Number, default: 9999}

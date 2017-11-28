@@ -31,7 +31,6 @@ type Page {
   layout: String
   parent: Page
   title: JSON
-  linkText: JSON
   sections: JSON
   properties: JSON
   position: Int
@@ -83,7 +82,6 @@ input PageInput {
   layout: String
   parent: ID
   title: String
-  linkText: String
   properties: JSON
   position: Int
 }

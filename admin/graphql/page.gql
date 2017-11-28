@@ -3,7 +3,6 @@ query page($id: ID!) {
     id
     slug
     title
-    linkText
     parent {id}
     layout
     published
