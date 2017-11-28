@@ -6,6 +6,7 @@
     "node": ">=7.0"
   },
   "dependencies": {
+    "async-lock": "^1.1.0",
     "autoprefixer": "7.1.1",
     "aws-sdk": "^2.94.0",
     "babel": "^6.23.0",
@@ -89,7 +90,7 @@
     "propellerkit": "^1.1.0",
     "querystring": "^0.2.0",
     "react": "^15.6.1",
-    "react-apollo": "^2.0.1",
+    "react-apollo": "^1.4.8",
     "react-dev-utils": "^3.0.2",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
