@@ -36,7 +36,7 @@ export class catalogfolder {
       }
 
       folder = await folder.toContext({locale: ctx.req.locale})
-      const q = {catalog, site: ctx.site._id, folder: ctx.page.params}
+      const q = {catalog, site: ctx.site._id, folder: ctx.page.params, deleted: false}
       let items = Item.find(q)
       folder.count = await Item.count(q)
       if (opts.pageSize) {
