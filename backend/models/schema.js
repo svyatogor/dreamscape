@@ -86,6 +86,8 @@ const orderLineSchema = new Schema({
   discount: Number,
   discountType: String,
   tax: Number,
+  taxAmount: Number,
+  subtotal: Number,
   total: Number,
 })
 
@@ -102,6 +104,7 @@ const orderSchema = new Schema({
   tax: Number,
   deliveryMethod: String,
   deliveryCost: Number,
+  deliveryDiscount: Number,
   total: Number,
   // createdAt: Date,
   // updatedAt: Date,

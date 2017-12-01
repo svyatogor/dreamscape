@@ -111,6 +111,22 @@ class ItemEditor extends Component {
     )
   }
 
+  selectRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={SelectField}
+        floatingLabelText={humanize(key)}
+        fullWidth floatingLabelFixed
+        required={key === this.props.catalog.labelField}
+        className={common.formControl}
+      >
+        {map(field.options, (value, key) => <MenuItem value={key} primaryText={value} key={key} />)}
+      </Field>
+    )
+  }
+
   booleanRender(key, field) {
     return <Field key={key} name={key} component={Toggle} label={humanize(key)} className={common.formControl} />
   }

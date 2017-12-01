@@ -2,6 +2,7 @@ import nunjucks from 'nunjucks'
 import {zipObject, map, reduce, forEach, isNil, isEmpty, isNaN} from 'lodash'
 import langs from 'langs'
 import Promise from 'bluebird'
+import cheerio from 'cheerio'
 import * as tags from './tags'
 
 const renderPage = async ({req, res}, page, context) => {
@@ -88,7 +89,9 @@ const renderEmail = async (req, template, context) => {
           console.log(err)
           return reject(err)
         }
-        return resolve(result)
+
+        const title = cheerio.load(result)('title').text()
+        return resolve(result, title)
       })
     })
   } catch(e) {

@@ -8,11 +8,10 @@ import fetch from 'node-fetch'
 import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
-import PaymentServices from './payment_services'
 
 const Joi = BaseJoi.extend(JoiPhoneNumberExtensions)
 
-const addressSchema = Joi.object().keys({
+const addressSchema = site => Joi.object().keys({
   name: Joi.string().max(250).required(),
   email: Joi.string().email().required(),
   phone: Joi.phoneNumber().defaultRegion('CY').format('NATIONAL'),
@@ -22,10 +21,10 @@ const addressSchema = Joi.object().keys({
   streetAddress: Joi.string().required(),
 })
 
-const orderSchema = Joi.object().keys({
-  billingAddress: addressSchema.required(),
-  shippingAddress: addressSchema.optional(),
-  deliveryMethod: Joi.string().optional(),
+const orderSchema = site => Joi.object().keys({
+  billingAddress: addressSchema(site).required(),
+  shippingAddress: addressSchema(site).optional(),
+  deliveryMethod: Joi.string().required().only(Object.keys(site.eshop.deliveryMethods)),
 })
 
 export const eshop = express()
@@ -39,6 +38,14 @@ eshop.get('/eshop/add_to_cart/:id', async (req, res, next) => {
   res.redirect(get(req.site, 'eshop.cartPage'))
 })
 
+eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
+  const cart = new Cart(req)
+  cart.remove(req.params.id)
+  res.cookie('cart', cart.serialize())
+  req.flash('info', 'eshop.info.product_added')
+  res.redirect(get(req.site, 'eshop.cartPage'))
+})
+
 eshop.post('/eshop/checkout', async (req, res, next) => {
   const cart = new Cart(req)
 
@@ -47,18 +54,18 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     return
   }
 
-  const {value, error} = Joi.validate(req.body, orderSchema, {abortEarly: false, stripUnknown: true})
+  const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
   if (error) {
     req.flash('validation', joiToForms()(error))
     res.redirect(get(req.site, 'eshop.cartPage') || req.get('Referrer'))
     return
   }
 
-  const order = await Order.buildFromCart(cart)
+  const order = new Order({site: req.site._id, status: 'draft'})
   order.billingAddress = value.billingAddress
   order.shippingAddress = value.shippingAddress
-  order.deliveryMethod = value.deliveryMethod
-  order.status = 'draft'
+  await order.addItemsFromCart(cart)
+  await order.setDeliveryMethod(value.deliveryMethod, req.site.eshop.deliveryMethods[value.deliveryMethod])
 
   try {
     await order.save()
@@ -82,11 +89,18 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
     return
   }
 
-  order.set({paymentMethod: 'cash_on_delivery', paymentStatus: 'pending', status: 'new'})
-  // deduct stock!
-  await order.save()
-  res.cookie('cart', [])
-  res.redirect(get(req.site, 'eshop.cartPage') + '/thankyou')
+  order.set({paymentMethod: 'cash_on_delivery', paymentStatus: 'pending'})
+  order.finilize(() => Promise.resolve())
+    .then(async () => {
+      await order.save()
+      res.cookie('cart', [])
+      res.redirect(get(req.site, 'eshop.cartPage') + '/thankyou')
+    })
+    .catch(e => {
+      console.log(e)
+      req.flash('error', 'eshop.errors.generic_checkout_error')
+      res.redirect(req.get('Referrer'))
+    })
 })
 
 eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
@@ -111,25 +125,37 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
   })
   const accessToken = (await credentials.json()).access_token
 
-  const executeRes = await fetch(`${process.env.PAYPAL_API_URL}/payments/payment/${order.get('paypalPaymentRequest').id}/execute`, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'authorization': `bearer ${accessToken}`
-    },
-    body: JSON.stringify({payer_id: req.body.payerID})
-  })
-  const receipt = await executeRes.json()
-  if (receipt.state === 'approved') {
-    order.set({
-      receipt,
-      paymentStatus: 'paid',
-      status: 'new'
+  let receipt
+  try {
+    await order.finilize(() => {
+      return fetch(`${process.env.PAYPAL_API_URL}/payments/payment/${order.get('paypalPaymentRequest').id}/execute`, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          'authorization': `bearer ${accessToken}`
+        },
+        body: JSON.stringify({payer_id: req.body.payerID})
+      })
+        .then(result => result.json())
+        .then(receipt => {
+          if (receipt.state === 'approved') {
+            order.set({
+              receipt,
+              paymentStatus: 'paid',
+            })
+          } else {
+            return Promise.reject()
+          }
+        })
     })
+    await order.save()
     res.cookie('cart', [])
+    res.json(receipt)
+  } catch (e) {
+    console.log(e)
+    req.flash('error', 'eshop.errors.generic_checkout_error')
+    res.redirect(req.get('Referrer'))
   }
-  await order.save()
-  res.json(receipt)
 })
 
 eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => {
@@ -153,12 +179,12 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
         amount: {
           total: numeral(order.total).format('0.00'),
           currency: "EUR",
-          // "details": {
-          //   "subtotal": "2.00",
-          //   "shipping": "1.00",
-          //   "tax": "2.00",
-          //   "shipping_discount": "-1.00"
-          // }
+          "details": {
+            "shipping": numeral(order.deliveryCost).format('0.00'),
+            "subtotal": numeral(order.subtotal).format('0.00'),
+            "tax": numeral(order.taxTotal).format('0.00'),
+            // "shipping_discount": "-1.00"
+          }
         },
         item_list: {
           items: order.lines.map(line => ({

@@ -4,18 +4,12 @@ import url from 'url'
 import bodyParser from 'body-parser'
 import Joi from 'joi'
 import {form as  joiToForms} from 'joi-errors-for-forms'
-import nodemailer from 'nodemailer'
-import aws from 'aws-sdk'
+import {mailTransporter} from '../common/mailer'
 import {renderRequest} from '../frontend'
 import {renderEmail} from '../renderers'
 
 export const contact_form = express()
 
-const transporter = nodemailer.createTransport({
-  SES: new aws.SES({
-    apiVersion: '2010-12-01'
-  })
-})
 
 const schema = Joi.object().keys({
     name: Joi.string().max(250).required(),
@@ -46,7 +40,7 @@ contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req
     })
   } else {
     renderEmail(req, 'email', value).then(html => {
-      transporter.sendMail({
+      mailTransporter.sendMail({
         from: "noreply@dreamscape.tech",
         // replyTo: {
         //   name: value.name,

@@ -1,6 +1,5 @@
 import Product from './product'
-import Order from './order'
-import {isNil, isEmpty, findIndex, map, find, sumBy} from 'lodash'
+import {isNil, isEmpty, findIndex, map, find, sumBy, reject} from 'lodash'
 
 export default class {
   constructor(req) {
@@ -21,6 +20,10 @@ export default class {
     }
   }
 
+  remove(product) {
+    this._items = reject(this._items, {product})
+  }
+
   get count() {
     return this._items.length;
   }
@@ -39,7 +42,7 @@ export default class {
   }
 
   get total() {
-    return sumBy(this.items, item => item.product.finalPrice)
+    return sumBy(this.items, item => item.product.finalPrice * item.count)
   }
 
   serialize() {
