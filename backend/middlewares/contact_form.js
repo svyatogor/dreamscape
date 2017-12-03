@@ -39,7 +39,7 @@ contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req
       }
     })
   } else {
-    renderEmail(req, 'email', value).then(html => {
+    renderEmail(req, 'email', value).then(({body, subject}) => {
       mailTransporter.sendMail({
         from: "noreply@dreamscape.tech",
         // replyTo: {
@@ -47,8 +47,8 @@ contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req
         //   address: value.email,
         // },
         to: req.site.notificationEmail,
-        subject: 'Contact form',
-        html,
+        subject,
+        html: body,
       }, (err, info) => {
         if (err) {
           renderRequest(errorPath, {req, res, next}, {

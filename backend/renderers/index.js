@@ -42,7 +42,6 @@ const renderPage = async ({req, res}, page, context) => {
       },
       flash,
     }
-    console.log(flash)
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())
@@ -83,15 +82,22 @@ const renderEmail = async (req, template, context) => {
       req
     }
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
+    env.addFilter('currency', (str, currency, defaultValue = '-') => {
+      if (isNil(currency) || isEmpty(currency)) {
+        return defaultValue
+      }
+      const val = parseFloat(str).toLocaleString(req.locale, {style: 'currency', currency})
+      return isNaN(val) ? defaultValue : val
+    })
     return new Promise((resolve, reject) => {
-      env.render(`${template}/index.html`, context, (err, result) => {
+      env.render(`${template}/index.html`, context, (err, body) => {
         if (err) {
           console.log(err)
           return reject(err)
         }
 
-        const title = cheerio.load(result)('title').text()
-        return resolve(result, title)
+        const subject = cheerio.load(body)('title').text()
+        return resolve({body, subject})
       })
     })
   } catch(e) {

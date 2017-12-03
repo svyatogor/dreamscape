@@ -53,8 +53,8 @@ class OrderClass {
     })
   }
 
-  async finilize(completePayment) {
-    await lock.acquire('eshop-stock-reduce', async () => {
+  finilize(completePayment) {
+    return lock.acquire('eshop-stock-reduce', async () => {
       const products = await Promise.map(this.lines, async line => {
         return Product.findOne({_id: line.product, site: this.site, $where: `this.stock >= ${line.count}`})
       })
@@ -62,35 +62,32 @@ class OrderClass {
         throw new Error("Not enough stock")
       }
       await completePayment()
-      await Promise.all(this.lines, line =>
-        Product.findOneAndUpdate({_id: line.product}, {$inc: {stock: -1}})
+      await Promise.map(this.lines, line =>
+        Product.findByIdAndUpdate(line.product, {$inc: {stock: -1 * line.count}})
       )
-    }).then(async (result) => {
-      if (!result) {
-        return
-      }
-
+    }).then(async () => {
       this.set({status: 'new'})
       await this.save()
 
       const site = await Site.findOne({_id: this.site}).cache(10)
-      await renderEmail({site}, 'email_order_confirmation', this).then((html, subject) => {
+      await renderEmail({site}, 'email_order_confirmation', {order: this}).then(({body, subject}) => {
+        console.log('subject', subject)
         mailTransporter.sendMail({
           from: get(site, 'fromEmail', process.env.FROM_EMAIL),
           to: this.billingAddress.email,
           subject,
-          html,
+          html: body,
         })
       })
 
-      await renderEmail({site}, 'email_admin_new_order', this).then((html, subject) => {
-        mailTransporter.sendMail({
-          from: get(site, 'fromEmail', process.env.FROM_EMAIL),
-          to: site.notificationEmail,
-          subject,
-          html,
-        })
-      })
+      // await renderEmail({site}, 'email_admin_new_order', this).then((html, subject) => {
+      //   mailTransporter.sendMail({
+      //     from: get(site, 'fromEmail', process.env.FROM_EMAIL),
+      //     to: site.notificationEmail,
+      //     subject,
+      //     html,
+      //   })
+      // })
     })
 
   }

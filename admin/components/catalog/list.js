@@ -1,110 +1,26 @@
 import React from 'react'
 import {
-  Table,
-  TableBody,
-  TableHeader,
-  TableHeaderColumn,
-  TableRow,
-  TableRowColumn,
   Card,
   CardTitle,
-  IconMenu,
-  IconButton,
   MenuItem,
   Dialog,
   FlatButton,
   Divider,
 } from 'material-ui'
-import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
-import {grey500} from 'material-ui/styles/colors'
-import {omitBy, includes, get, map} from 'lodash'
-import {humanize} from 'inflection'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
+import {get} from 'lodash'
 import {t} from '../../common/utils'
-import {toggleField, showNotification} from '../../actions'
-import { isBoolean } from 'util';
+import {showNotification} from '../../actions'
+import ItemsList from './items_list'
+import ListConfigurationMenu from './list_configuration_menu'
 
 class List extends React.Component {
   constructor(props) {
     super(props)
     this.state = {}
-  }
-
-  get configurationMenu() {
-    const {
-      catalog: {fields, labelField},
-      catalogKey,
-      site: {key: siteKey},
-      visibleFields, toggleField
-    } = this.props
-    const controllableFields = omitBy(fields, ({type}) =>
-      type === 'html' || type === 'image'
-    )
-    return (
-      <IconMenu
-        iconButtonElement={<IconButton><MoreVertIcon color={grey500} /></IconButton>}
-        anchorOrigin={{horizontal: 'right', vertical: 'top'}}
-        targetOrigin={{horizontal: 'right', vertical: 'top'}}
-        style={{marginLeft: 'auto', marginTop: -5}}
-      >
-        <MenuItem
-          primaryText="Rename folder"
-          leftIcon={<i className="material-icons">edit</i>}
-        />
-        <MenuItem
-          primaryText="Delete folder"
-          style={{color: 'red'}}
-          onTouchTap={() => this.requestDeleteFolder()}
-          leftIcon={<i className="material-icons">delete</i>}
-        />
-        <Divider />
-        {Object.keys(controllableFields).sort().map(key => {
-          const disabled = key === labelField
-          const checked = includes(visibleFields, key)
-          return (<MenuItem
-            primaryText={humanize(key)}
-            key={key}
-            style={{paddingLeft: disabled ? 70 : (checked ? -5 : 55)}}
-            onTouchTap={() => toggleField(siteKey, catalogKey, key)}
-            disabled={disabled}
-            checked={checked}
-          />)
-        })}
-
-      </IconMenu>
-    )
-  }
-
-  get deleteItemConfirmationDialog() {
-    const {labelField} = this.props.catalog
-    const {requestDeleteItem} = this.state
-    return (<Dialog
-      title="Delete item?"
-      actions={
-        [
-          <FlatButton
-            label="Cancel"
-            keyboardFocused
-            onClick={() => this.setState({requestDeleteItem: null})}
-          />,
-          <FlatButton
-            label="Delete"
-            primary
-            onClick={() => this.deleteItem()}
-          />,
-        ]
-      }
-      modal={false}
-      open={!!requestDeleteItem}
-      onRequestClose={() => this.setState({requestDeleteItem: null})}
-    >
-      {requestDeleteItem &&
-        `Are you sure you want to delete ${t(this.state.requestDeleteItem.data[labelField])}`
-      }
-    </Dialog>)
   }
 
   get deleteFolderConfirmationDialog() {
@@ -133,16 +49,6 @@ class List extends React.Component {
     </Dialog>)
   }
 
-  deleteItem() {
-    this.props.deleteItem({
-      variables: {id: this.state.requestDeleteItem.id},
-      refetchQueries: ['items'],
-    }).then(() => {
-      this.setState({requestDeleteItem: null})
-      this.props.showNotification('Item deleted')
-    })
-  }
-
   deleteFolder() {
     const {showNotification, push, deleteFolder, folderData, catalogKey} = this.props
     console.log(folderData);
@@ -156,75 +62,39 @@ class List extends React.Component {
     })
   }
 
-  requestDeleteItem(item) {
-    this.setState({requestDeleteItem: item})
-  }
-
   requestDeleteFolder() {
     this.setState({requestDeleteFolder: true})
   }
 
   render() {
-    const {visibleFields, data, folderData, catalogKey, push, match: {params: {folder}}} = this.props
+    const {catalogKey, catalog, site, folderData, match: {params: {folder}}} = this.props
     return (
       <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
-        {this.deleteItemConfirmationDialog}
         {this.deleteFolderConfirmationDialog}
         <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
-          {this.configurationMenu}
+          <ListConfigurationMenu {...this.props}>
+            <MenuItem
+              primaryText="Rename folder"
+              leftIcon={<i className="material-icons">edit</i>}
+            />
+            <MenuItem
+              primaryText="Delete folder"
+              style={{color: 'red'}}
+              onTouchTap={() => this.requestDeleteFolder()}
+              leftIcon={<i className="material-icons">delete</i>}
+            />
+            <Divider />
+          </ListConfigurationMenu>
         </CardTitle>
-        <Table selectable={false}>
-          <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
-            <TableRow>
-              {map(visibleFields, f =>
-                <TableHeaderColumn key={f}>{humanize(f)}</TableHeaderColumn>
-              )}
-              <TableHeaderColumn />
-            </TableRow>
-          </TableHeader>
-          <TableBody displayRowCheckbox={false}>
-            {map(data.items, item => (<TableRow key={item.id} hoverable>
-              {map(visibleFields, f =>
-                <TableRowColumn key={f}>
-                  {isBoolean(item.data[f]) && item.data[f] && <i className="mdi mdi-check" />}
-                  {!isBoolean(item.data[f]) && t(item.data[f])}
-                </TableRowColumn>
-              )}
-              <TableRowColumn style={{textAlign: 'right'}}>
-                <IconButton
-                  onTouchTap={() => push(`/catalog/${catalogKey}/folder/${folder}/item/${item.id}`)}
-                >
-                  <i className="material-icons">edit</i>
-                </IconButton>
-                <IconButton onTouchTap={() => this.requestDeleteItem(item)}>
-                  <i className="material-icons">delete</i>
-                </IconButton>
-              </TableRowColumn>
-            </TableRow>))}
-          </TableBody>
-        </Table>
+        <ItemsList folder={folder} site={site} catalog={catalog} catalogKey={catalogKey} />
       </Card>
     );
   }
 }
 
-const items = gql`
-  query items($folder: ID!) {
-    items(folder: $folder) {
-      id
-      data
-    }
-  }
-`
 const folder = gql`
   query folder($id: ID!) {
     folder(id: $id) { id name }
-  }
-`
-
-const deleteItem = gql`
-  mutation deleteItem($id: ID!) {
-    deleteItem(id: $id)
   }
 `
 
@@ -234,26 +104,13 @@ const deleteFolder = gql`
   }
 `
 
-const mapStateToProps = (state, ownProps) => {
-  return {
-    visibleFields: [
-      get(ownProps, 'catalog.labelField'),
-      ...get(state.app.visibleFields, [ownProps.site.key, ownProps.catalogKey], []),
-    ]
-  }
-}
-
 const enhance = compose(
-  graphql(items, {
-    options: ({match}) => ({ variables: { folder: match.params.folder } }),
-  }),
   graphql(folder, {
     options: ({match}) => ({ variables: { id: match.params.folder } }),
     name: 'folderData'
   }),
-  graphql(deleteItem, {name: 'deleteItem'}),
   graphql(deleteFolder, {name: 'deleteFolder'}),
-  connect(mapStateToProps, {toggleField, push, showNotification})
+  connect(() => ({}), {push, showNotification})
 )
 
 export default enhance(List)

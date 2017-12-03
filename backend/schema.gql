@@ -72,6 +72,7 @@ type FileList {
 
 type Item {
   id: ID!
+  folder: ID
   data: JSON
 }
 
@@ -160,7 +161,7 @@ type Query {
   snippets: [StaticText]
   folders(catalog: String!): [Folder!]
   folder(id: ID!): Folder
-  items(folder: ID!): [Item!]!
+  items(folder: ID, search: String): [Item!]!
   item(id: ID!): Item
   eshopOrders(search: String, limit: Int, offset: Int): [Order]
 }

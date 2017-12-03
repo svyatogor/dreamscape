@@ -81,6 +81,7 @@ const addressSchema = new Schema({
 const orderLineSchema = new Schema({
   product: {type: Schema.Types.ObjectId, ref: 'Item'},
   name: String,
+  image: String,
   count: Number,
   price: Number,
   discount: Number,

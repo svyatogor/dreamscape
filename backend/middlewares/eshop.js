@@ -46,6 +46,19 @@ eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
   res.redirect(get(req.site, 'eshop.cartPage'))
 })
 
+eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
+  const cart = new Cart(req)
+  console.log(req.params);
+  if (req.params.action_cart_count === 'inc_cart_count') {
+    cart.inc(req.params.id, 1)
+  } else if (req.params.action_cart_count === 'dec_cart_count') {
+    cart.inc(req.params.id, -1)
+  }
+  res.cookie('cart', cart.serialize())
+  req.flash('info', 'eshop.info.product_added')
+  res.redirect(get(req.site, 'eshop.cartPage'))
+})
+
 eshop.post('/eshop/checkout', async (req, res, next) => {
   const cart = new Cart(req)
 

@@ -23,9 +23,18 @@ export default class {
   }
 
   @query
-  static async items({site}, {folder}) {
-    return (await Item.where({site: site.id, folder, deleted: false})).map(item => ({
+  static async items({site}, {folder, search}) {
+    const q = {site: site.id, deleted: false}
+    if (folder) {
+      q.folder = folder
+    }
+
+    if (search) {
+      q['$text'] = {$search: search}
+    }
+    return (await Item.where(q)).map(item => ({
       id: item.id,
+      folder: item.folder,
       data: item.toObject()
     }))
   }

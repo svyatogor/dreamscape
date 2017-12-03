@@ -24,6 +24,13 @@ export default class {
     this._items = reject(this._items, {product})
   }
 
+  inc(product, count) {
+    const idx = findIndex(this._items, {product})
+    if (idx >= 0) {
+      this._items[idx].count += count
+    }
+  }
+
   get count() {
     return this._items.length;
   }
