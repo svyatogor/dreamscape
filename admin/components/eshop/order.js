@@ -12,26 +12,43 @@ import {
   TableHeaderColumn,
   TableRowColumn,
 } from 'material-ui'
+import {graphql, gql} from 'react-apollo'
+import {compose} from 'recompose'
+import {connect} from 'react-redux'
 import {get, map} from 'lodash'
 import {humanize} from 'inflection'
 import moment from 'moment'
+import {showNotification} from '../../actions'
 
 const Colors = {
   new: 'green',
-  shipped: 'yellow',
+  shipped: '#c7ca00',
   completed: 'blue',
   default: '#ccc',
 }
 
-export default class extends React.Component {
+class Order extends React.Component {
   getOrderSubtitle({billingAddress: d}) {
     return (<span>
       {d.name} &lt;{d.email}&gt; ({d.phone}), {d.city} {d.postalCode} {d.streetAddress}
     </span>)
   }
 
+  setStatus(newStatus) {
+    this.props.mutate({
+      variables: {order: this.props.order.id, status: newStatus},
+      refetchQueries: ['orders']
+    }).then(() => {
+      this.props.showNotification(`Order marked as ${newStatus}`)
+    }).catch(e => {
+      console.log(e);
+      this.props.showNotification(`Ooos, something went wrong.`)
+    })
+  }
+
   render() {
     const {order} = this.props
+    const finiteStatus = ['completed', 'canceled'].includes(order.status)
     return (
       <Card style={{marginBottom: 20}} containerStyle={{borderTopStyle: 'solid', borderTopWidth: 4, borderColor: get(Colors, order.status, Colors.default)}}>
         <CardHeader
@@ -73,9 +90,15 @@ export default class extends React.Component {
           </Table>
         </CardText>
         <CardActions expandable>
-          <FlatButton icon={<i className="mdi mdi-truck" />} label="Ship" onClick={this.handleExpand} />
-          <FlatButton icon={<i className="mdi mdi-check" />} label="Complete" onClick={this.handleReduce} />
-          <FlatButton style={{float: 'right'}} label="Cancel" secondary onClick={this.handleReduce} />
+          {!finiteStatus && order.status !== 'shipped' &&
+            <FlatButton icon={<i className="mdi mdi-truck" />} label="Ship" onClick={() => this.setStatus('shipped')} />
+          }
+          {!finiteStatus &&
+            <FlatButton icon={<i className="mdi mdi-check" />} label="Complete" onClick={() => this.setStatus('completed')} />
+          }
+          {!finiteStatus &&
+            <FlatButton style={{float: 'right'}} secondary label="Cancel" onClick={() => this.setStatus('canceled')} />
+          }
           {order.paymentMethod === 'paypal' &&
             <FlatButton
               icon={<i className="mdi mdi-receipt" />}
@@ -88,3 +111,16 @@ export default class extends React.Component {
     )
   }
 }
+
+const updateOrderStatus = gql`
+  mutation updateOrderStatus($order: ID!, $status: OrderStatus!) {
+    updateOrderStatus(order: $order, status: $status) { id }
+  }
+`
+
+const e = compose(
+  graphql(updateOrderStatus),
+  connect(() => ({}), {showNotification})
+)
+
+export default e(Order)

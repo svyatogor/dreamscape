@@ -14,7 +14,6 @@ const annotate = order => {
   }
 }
 
-
 export default class {
   @query
   static async eshopOrders({site}, {search, limit, offset}) {
@@ -25,7 +24,7 @@ export default class {
     // }
 
     if (isEmpty(search)) {
-      orders = orders.where({status: {$not: {$in: ['draft', 'completed']}}})
+      orders = orders.where({status: {$not: {$in: ['draft', 'completed', 'canceled']}}})
     } else {
       orders = orders.where({$text: {$search: search}})
     }
@@ -41,6 +40,22 @@ export default class {
   // static async eshopOrder({site}, {id}) {
   //   return annotate(await Order.findOne({site: site._id, _id: id}))
   // }
+
+  @mutation
+  static async updateOrderStatus({site}, {order: _id, status}) {
+    const order = await Order.findOne({site: site._id, _id})
+    if (['draft', 'completed', 'canceled'].includes(order.status)) {
+      return order
+    }
+
+    order.set({status})
+    if (status === 'canceled') {
+      await order.returnStock()
+    }
+
+    await order.save()
+    return order
+  }
 
   static queries = {}
   static mutations = {}

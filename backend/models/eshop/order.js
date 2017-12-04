@@ -99,6 +99,12 @@ class OrderClass {
     this.set({status: 'canceled'})
     await this.save()
   }
+
+  returnStock() {
+    return Promise.map(this.lines, line =>
+      Product.findByIdAndUpdate(line.product, {$inc: {stock: line.count}})
+    )
+  }
 }
 orderSchema.loadClass(OrderClass)
 const Order = mongoose.model('Order', orderSchema)

@@ -1,6 +1,14 @@
 scalar JSON
 scalar Date
 
+enum OrderStatus {
+  draft
+  new
+  canceled
+  shipped
+  completed
+}
+
 interface Block {
   _type: String!
   ref: ID
@@ -180,4 +188,5 @@ type Mutation {
   upsertFolder(folder: FolderInput!): Folder
   deleteFolder(id: ID!): Boolean
   orderFolders(folders: [ID!]!, parent: ID): [Folder]
+  updateOrderStatus(order: ID!, status: OrderStatus!): Order
 }
