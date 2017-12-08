@@ -6,9 +6,7 @@ import {push} from 'react-router-redux'
 import {get} from 'lodash'
 import {compose} from 'recompose'
 import {graphql, gql} from 'react-apollo'
-import {DragDropContext} from 'react-dnd'
 import SiteTreeElement from './site_tree_element'
-import HTML5Backend from 'react-dnd-html5-backend'
 import {showNotification} from '../actions'
 import {t} from '../common/utils'
 import pages from '../graphql/pages.gql'
@@ -169,6 +167,5 @@ const enhance = compose(
   graphql(pages),
   graphql(saveOrder, {name: 'saveOrder'}),
   connect(mapStateToProps, {push, showNotification}),
-  DragDropContext(HTML5Backend)
 )
 export default enhance(Tree)

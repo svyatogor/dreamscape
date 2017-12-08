@@ -7,9 +7,7 @@ import {List} from 'material-ui'
 import {push} from 'react-router-redux'
 import {compose} from 'recompose'
 import {graphql, gql} from 'react-apollo'
-import {DragDropContext} from 'react-dnd'
 import Folder from '../site_tree_element'
-import HTML5Backend from 'react-dnd-html5-backend'
 import {showNotification} from '../../actions'
 import {t} from '../../common/utils'
 import folders from '../../graphql/folders.gql'
@@ -149,7 +147,6 @@ const enhance = compose(
   }),
   graphql(saveOrder, {name: 'saveOrder'}),
   connect(mapStateToProps, {push, showNotification}),
-  DragDropContext(HTML5Backend)
 )
 const ConnectedTree = enhance(Tree)
 

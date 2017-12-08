@@ -18,6 +18,7 @@ import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
+import Row from './dragable_row'
 import { isBoolean } from 'util';
 
 class ItemsList extends React.Component {
@@ -69,6 +70,13 @@ class ItemsList extends React.Component {
     this.setState({requestDeleteItem: item})
   }
 
+  move(id, newPosition) {
+    this.props.moveItem({
+      variables: {id, newPosition},
+      refetchQueries: ['items'],
+    })
+  }
+
   render() {
     const {visibleFields, data, catalogKey, push} = this.props
     return (
@@ -83,7 +91,7 @@ class ItemsList extends React.Component {
           </TableRow>
         </TableHeader>
         <TableBody displayRowCheckbox={false}>
-          {map(data.items, item => (<TableRow key={item.id} hoverable>
+          {map(data.items, item => (<Row key={item.id} id={item.id} position={item.position} onMove={(newPosition) => this.move(item.id, newPosition)}>
             {map(visibleFields, f =>
               <TableRowColumn key={f}>
                 {isBoolean(item.data[f]) && item.data[f] && <i className="mdi mdi-check" />}
@@ -100,7 +108,7 @@ class ItemsList extends React.Component {
                 <i className="material-icons">delete</i>
               </IconButton>
             </TableRowColumn>
-          </TableRow>))}
+          </Row>))}
         </TableBody>
       </Table>
     );
@@ -113,6 +121,7 @@ const items = gql`
       id
       folder
       data
+      position
     }
   }
 `
@@ -120,6 +129,12 @@ const items = gql`
 const deleteItem = gql`
   mutation deleteItem($id: ID!) {
     deleteItem(id: $id)
+  }
+`
+
+const moveItem = gql`
+  mutation moveItem($id: ID!, $newPosition: Int!) {
+    moveItem(id: $id, newPosition: $newPosition)
   }
 `
 
@@ -135,7 +150,8 @@ const mapStateToProps = (state, ownProps) => {
 const enhance = compose(
   graphql(items),
   graphql(deleteItem, {name: 'deleteItem'}),
-  connect(mapStateToProps, {push, showNotification})
+  graphql(moveItem, {name: 'moveItem'}),
+  connect(mapStateToProps, {push, showNotification}),
 )
 
 export default enhance(ItemsList)

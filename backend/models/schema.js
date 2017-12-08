@@ -19,6 +19,7 @@ const siteSchema = new Schema({
 const itemSchema = new Schema({
   catalog: String,
   deleted: Boolean,
+  position: Number,
   folder: {type: Schema.Types.ObjectId, ref: 'Folder'},
   site: {type: Schema.Types.ObjectId, ref: 'Site'},
 }, {strict: false, timestamps: true})

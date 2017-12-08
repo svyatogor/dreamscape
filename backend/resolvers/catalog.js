@@ -32,9 +32,10 @@ export default class {
     if (search) {
       q['$text'] = {$search: search}
     }
-    return (await Item.where(q)).map(item => ({
+    return (await Item.where(q).sort('position')).map(item => ({
       id: item.id,
       folder: item.folder,
+      position: item.position,
       data: item.toObject()
     }))
   }
@@ -135,8 +136,30 @@ export default class {
     await item.save()
     return {
       id: item.id,
+      position: item.position,
       data: item.toObject(),
     }
+  }
+
+  @mutation
+  static async moveItem({site}, {id, newPosition}) {
+    const item = await Item.findOne({site, _id: id})
+    if (newPosition === item.position) {
+      return
+    } else if (newPosition < item.position) {
+      await Item.update({folder: item.folder, position: {$gte: newPosition, $lt: item.position}},
+        {$inc: {position: 1}},
+        {multi: true}
+      )
+    } else if (newPosition > item.position) {
+      await Item.update({folder: item.folder, position: {$gt: item.position, $lte: newPosition}},
+        {$inc: {position: -1}},
+        {multi: true}
+      )
+    }
+
+    item.set('position', newPosition)
+    await item.save()
   }
 
   @mutation

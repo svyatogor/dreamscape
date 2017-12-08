@@ -6,6 +6,8 @@ import {ConnectedRouter} from 'react-router-redux'
 import {graphql} from 'react-apollo'
 import {map, get, includes} from 'lodash'
 import {pluralize, humanize} from 'inflection'
+import {DragDropContext} from 'react-dnd'
+import HTML5Backend from 'react-dnd-html5-backend'
 import siteQuery from './graphql/site.gql'
 import {getSession} from './actions'
 import Notification from './components/notification'
@@ -116,4 +118,4 @@ class AppContainer extends React.Component {
   }
 }
 
-export default connect(state => ({session: state.session}), {getSession})(AppContainer)
+export default connect(state => ({session: state.session}), {getSession})(DragDropContext(HTML5Backend)(AppContainer))

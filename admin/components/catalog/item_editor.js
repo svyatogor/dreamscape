@@ -27,6 +27,7 @@ class ItemEditor extends Component {
           items(folder: $folder) {
             id
             data
+            position
           }
         }
       `,

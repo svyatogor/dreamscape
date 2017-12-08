@@ -80,6 +80,7 @@ type FileList {
 
 type Item {
   id: ID!
+  position: Int
   folder: ID
   data: JSON
 }
@@ -184,6 +185,7 @@ type Mutation {
   upsertFileList(input: FileListInput!, locale: String!): FileList
   attachImage(type: String!, id: ID!, url: String!): Boolean
   upsertItem(id: ID, folder: ID!, data: JSON!, locale: String): Item
+  moveItem(id: ID!, newPosition: Int!): Boolean
   deleteItem(id: ID!): Boolean
   upsertFolder(folder: FolderInput!): Folder
   deleteFolder(id: ID!): Boolean
