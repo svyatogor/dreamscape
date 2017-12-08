@@ -33,7 +33,7 @@ export class catalog {
     }
 
     try {
-      const opts = defaults(options, {as: 'item', filter: '{}'})
+      const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
       if (opts.sort === 'random') {
         delete opts.sort
         opts.random = true
