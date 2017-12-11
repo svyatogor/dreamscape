@@ -46,7 +46,7 @@ export class catalogfolder {
         }
         folder.pageNumber = page
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
-        items = items.sort('createdAt').skip((page - 1) * opts.pageSize).limit(opts.pageSize)
+        items = items.sort('position').skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }
       folder.items = await Promise.map(await items, item => item.toContext({locale: ctx.req.locale}))
       ctx[key] = folder

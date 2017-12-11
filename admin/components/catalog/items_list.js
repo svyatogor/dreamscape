@@ -10,12 +10,13 @@ import {
   Dialog,
   FlatButton,
 } from 'material-ui'
-import {get, map} from 'lodash'
+import {get, map, isDate} from 'lodash'
 import {humanize} from 'inflection'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {push} from 'react-router-redux'
+import moment from 'moment'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
 import Row from './dragable_row'
@@ -77,8 +78,24 @@ class ItemsList extends React.Component {
     })
   }
 
+  formatColumn(data, fieldDef) {
+    if (!fieldDef) {
+      return null
+    }
+    const {type} = fieldDef
+    if (type === 'boolean') {
+      return data ? <i className="mdi mdi-check" /> : null
+    }
+
+    if (type === 'date') {
+      return data ? moment(data).format('ll') : '-'
+    }
+
+    return t(data)
+  }
+
   render() {
-    const {visibleFields, data, catalogKey, push} = this.props
+    const {visibleFields, data, catalogKey, push, catalog} = this.props
     return (
       <Table selectable={false}>
         <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -94,8 +111,7 @@ class ItemsList extends React.Component {
           {map(data.items, item => (<Row key={item.id} id={item.id} position={item.position} onMove={(newPosition) => this.move(item.id, newPosition)}>
             {map(visibleFields, f =>
               <TableRowColumn key={f}>
-                {isBoolean(item.data[f]) && item.data[f] && <i className="mdi mdi-check" />}
-                {!isBoolean(item.data[f]) && t(item.data[f])}
+                {this.formatColumn(item.data[f], catalog.fields[f])}
               </TableRowColumn>
             )}
             <TableRowColumn style={{textAlign: 'right'}}>

@@ -126,6 +126,8 @@ export default class {
           item.set(field, isNaN(val) ? null : val)
         } else if (type === 'boolean') {
           item.set(field, data[field])
+        } else if (type === 'date') {
+          item.set(field, new Date(data[field]))
         } else if (isEmpty(data[field])) {
           item.set(field, null)
         } else {

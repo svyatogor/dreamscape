@@ -10,6 +10,7 @@ import {
   TextField,
   Toggle,
   SelectField,
+  DatePicker,
 } from 'redux-form-material-ui'
 import {push} from 'react-router-redux'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
@@ -112,6 +113,21 @@ class ItemEditor extends Component {
     )
   }
 
+  dateRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={DatePicker}
+        autoOk
+        floatingLabelText={humanize(key)}
+        fullWidth floatingLabelFixed
+        required={key === this.props.catalog.labelField}
+        className={common.formControl}
+      />
+    )
+  }
+
   selectRender(key, field) {
     return (
       <Field
@@ -186,9 +202,17 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
     get(catalog.fields, [field, 'localized']) ? t(value, app.locale) : value
   )
   initialValues.id = get(ownProps, 'data.item.id')
+  const castTypes = data =>
+    mapValues(data, (value, field) => {
+      if (get(catalog.fields, [field, 'type']) === 'date') {
+        return new Date(value)
+      }
+
+      return value
+    })
   return {
-    initialValues,
-    formValues: {...initialValues, ...getFormValues('item')(state)},
+    initialValues: castTypes(initialValues),
+    formValues: castTypes({...initialValues, ...getFormValues('item')(state)}),
     locale: app.locale
   }
 }
