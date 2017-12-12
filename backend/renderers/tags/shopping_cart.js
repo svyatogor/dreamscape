@@ -70,7 +70,7 @@ export class shopping_cart {
     const urlMatch = ctx.page.params.match(/complete\/(.+)/)
     if (urlMatch && paymentBlock) {
       const orderId = urlMatch[1]
-      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId})
+      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId}).then(order => order.toContext(ctx.req))
       paymentBlock(callback)
       return
     }

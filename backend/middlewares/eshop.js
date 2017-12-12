@@ -14,17 +14,17 @@ const Joi = BaseJoi.extend(JoiPhoneNumberExtensions)
 const addressSchema = site => Joi.object().keys({
   name: Joi.string().max(250).required(),
   email: Joi.string().email().required(),
-  phone: Joi.phoneNumber().defaultRegion('CY').format('NATIONAL'),
+  phone: Joi.string().optional(), //phoneNumber().defaultRegion('CY').format('NATIONAL'),
   country: Joi.string().max(2).optional().default('CY'),
-  city: Joi.string().required(),
-  postalCode: Joi.string().required(),
-  streetAddress: Joi.string().required(),
+  city: Joi.string().optional(),
+  postalCode: Joi.string().optional(),
+  streetAddress: Joi.string().optional(),
 })
 
 const orderSchema = site => Joi.object().keys({
   billingAddress: addressSchema(site).required(),
   shippingAddress: addressSchema(site).optional(),
-  deliveryMethod: Joi.string().required().only(Object.keys(site.eshop.deliveryMethods)),
+  // deliveryMethod: Joi.string().required().only(Object.keys(site.eshop.deliveryMethods)),
 })
 
 export const eshop = express()
@@ -48,7 +48,6 @@ eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
 
 eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
   const cart = new Cart(req)
-  console.log(req.params);
   if (req.params.action_cart_count === 'inc_cart_count') {
     cart.inc(req.params.id, 1)
   } else if (req.params.action_cart_count === 'dec_cart_count') {
@@ -76,9 +75,9 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
 
   const order = new Order({site: req.site._id, status: 'draft'})
   order.billingAddress = value.billingAddress
-  order.shippingAddress = value.shippingAddress
+  order.shippingAddress = value.shippingAddress || value.billingAddress
   await order.addItemsFromCart(cart)
-  await order.setDeliveryMethod(value.deliveryMethod, req.site.eshop.deliveryMethods[value.deliveryMethod])
+  await order.setDefaultDeliveryMethod()
 
   try {
     await order.save()
@@ -89,6 +88,24 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     res.redirect(req.get('Referrer'))
     return
   }
+})
+
+eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res, next) => {
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+  const allowedMethods = await order.availableDeliveryMethods
+  const {delivery_method} = req.body
+  if (!Object.keys(allowedMethods).includes(delivery_method)) {
+    res.sendStatus(404)
+    return
+  }
+
+  await order.setDeliveryMethod(delivery_method, allowedMethods[delivery_method])
+  await order.save()
+  res.redirect(req.get('Referrer'))
 })
 
 eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, next) => {

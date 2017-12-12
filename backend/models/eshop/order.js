@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {sumBy, some, isNil, get} from 'lodash'
+import {sumBy, some, isNil, get, includes, pickBy, mapValues} from 'lodash'
 import Promise from 'bluebird'
 import {orderSchema} from '../schema'
 import Product from './product'
@@ -8,10 +8,22 @@ import AsyncLock from 'async-lock'
 import {mailTransporter} from '../../common/mailer'
 import {renderEmail} from '../../renderers'
 import * as deliveryMethods from '../../services/delivery'
+import {t} from '../../common/utils'
 
 const lock = new AsyncLock({Promise})
 
 class OrderClass {
+  async toContext({site, locale}) {
+    const object = this.toObject()
+    return {
+      ...object,
+      deliveryMethodLabel: t(get(site.eshop.deliveryMethods, [object.deliveryMethod, 'label'], object.deliveryMethod), locale),
+      availableDeliveryMethods: await this.availableDeliveryMethods.then(methods =>
+        mapValues(methods, method => ({...method, label: t(method.label, locale)}))
+      )
+    }
+  }
+
   async addItemsFromCart(cart) {
     const items = await cart.items
     const lines = await Promise.map(items, async item => {
@@ -49,7 +61,7 @@ class OrderClass {
     this.set({
       deliveryMethod: key,
       deliveryCost,
-      total: this.subtotal + deliveryCost
+      total: this.subtotal + this.taxTotal + deliveryCost
     })
   }
 
@@ -71,7 +83,6 @@ class OrderClass {
 
       const site = await Site.findOne({_id: this.site}).cache(10)
       await renderEmail({site}, 'email_order_confirmation', {order: this}).then(({body, subject}) => {
-        console.log('subject', subject)
         mailTransporter.sendMail({
           from: get(site, 'fromEmail', process.env.FROM_EMAIL),
           to: this.billingAddress.email,
@@ -104,6 +115,24 @@ class OrderClass {
     return Promise.map(this.lines, line =>
       Product.findByIdAndUpdate(line.product, {$inc: {stock: line.count}})
     )
+  }
+
+  get availableDeliveryMethods() {
+    return Site.findOne({_id: this.site}).then(site => {
+      return pickBy(site.get('eshop').deliveryMethods, method =>
+        (!method.countries || includes(method.countries, this.shippingAddress.country)) &&
+        (!method.excludedCountries  || !includes(method.excludedCountries, this.shippingAddress.country))
+      )
+    })
+
+  }
+
+  async setDefaultDeliveryMethod() {
+    const methods = await this.availableDeliveryMethods
+    const method = Object.keys(pickBy(methods, 'default'))[0]
+    if (method) {
+      await this.setDeliveryMethod(method, methods[method])
+    }
   }
 }
 orderSchema.loadClass(OrderClass)

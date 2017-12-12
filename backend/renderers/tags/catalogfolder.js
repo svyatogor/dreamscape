@@ -25,7 +25,7 @@ export class catalogfolder {
     }
 
     try {
-      const opts = defaults(options, {as: 'item', filter: '{}'})
+      const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
       const key = opts.as
       const originalValue = ctx[key]
 
@@ -46,7 +46,7 @@ export class catalogfolder {
         }
         folder.pageNumber = page
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
-        items = items.sort('position').skip((page - 1) * opts.pageSize).limit(opts.pageSize)
+        items = items.sort(opts.sort).skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }
       folder.items = await Promise.map(await items, item => item.toContext({locale: ctx.req.locale}))
       ctx[key] = folder

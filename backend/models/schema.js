@@ -14,6 +14,7 @@ const siteSchema = new Schema({
   users: [String],
   features: [String],
   documentTypes: JSON,
+  eshop: JSON,
 })
 
 const itemSchema = new Schema({
@@ -108,6 +109,7 @@ const orderSchema = new Schema({
   deliveryCost: Number,
   deliveryDiscount: Number,
   total: Number,
+  taxTotal: Number,
   // createdAt: Date,
   // updatedAt: Date,
 }, {strict: false, timestamps: true})

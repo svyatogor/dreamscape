@@ -12,6 +12,7 @@ import {
   TableHeaderColumn,
   TableRowColumn,
 } from 'material-ui'
+import numeral from 'numeral'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
@@ -61,7 +62,7 @@ class Order extends React.Component {
           <div style={{marginLeft: 'auto', marginRight: 40, textAlign: 'right'}}>
             <span style={{color: get(Colors, order.status, Colors.default)}}>{humanize(order.status).toUpperCase()}</span>
             <br/>
-            {order.total} <span style={{fontWeight: '200'}}>({humanize((order.paymentStatus || 'not-paid').replace('-', '_'))})</span>
+            {numeral(order.total).format('0.00')} <span style={{fontWeight: '200'}}>({humanize((order.paymentStatus || 'not-paid').replace('-', '_'))})</span>
           </div>
         </CardHeader>
         <CardText expandable={true}>
@@ -78,12 +79,12 @@ class Order extends React.Component {
               {map(order.lines, item => (<TableRow key={item.product} hoverable>
                 <TableRowColumn>{item.name}</TableRowColumn>
                 <TableRowColumn>{item.count}</TableRowColumn>
-                <TableRowColumn>{item.price}</TableRowColumn>
-                <TableRowColumn style={{textAlign: 'right'}}>{item.price * item.count}</TableRowColumn>
+                <TableRowColumn>{numeral(item.price).format('0.00')}</TableRowColumn>
+                <TableRowColumn style={{textAlign: 'right'}}>{numeral(item.price * item.count).format('0.00')}</TableRowColumn>
               </TableRow>))}
               <TableRow>
                 <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
-                  Order total: {order.total}
+                  Order total: {numeral(order.total).format('0.00')}
                 </TableRowColumn>
               </TableRow>
             </TableBody>
