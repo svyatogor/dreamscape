@@ -61,6 +61,7 @@ type Folder {
   parent: ID
   name: JSON
   position: Int
+  hidden: Boolean
 }
 
 type File {

@@ -16,6 +16,7 @@ import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
 import ItemsList from './items_list'
 import ListConfigurationMenu from './list_configuration_menu'
+import FolderEditDialog from './folder_editor'
 
 class List extends React.Component {
   constructor(props) {
@@ -66,15 +67,23 @@ class List extends React.Component {
     this.setState({requestDeleteFolder: true})
   }
 
+  showEditFolder() {
+    this.setState({showEditFolder: true})
+  }
+
   render() {
     const {catalogKey, catalog, site, folderData, match: {params: {folder}}} = this.props
+    if (folderData.loading) {
+      return null
+    }
     return (
       <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
         {this.deleteFolderConfirmationDialog}
         <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
           <ListConfigurationMenu {...this.props}>
             <MenuItem
-              primaryText="Rename folder"
+              primaryText="Edit folder"
+              onTouchTap={() => this.showEditFolder()}
               leftIcon={<i className="material-icons">edit</i>}
             />
             <MenuItem
@@ -87,6 +96,12 @@ class List extends React.Component {
           </ListConfigurationMenu>
         </CardTitle>
         <ItemsList folder={folder} site={site} catalog={catalog} catalogKey={catalogKey} />
+
+        <FolderEditDialog
+          visible={this.state.showEditFolder}
+          folder={folderData.folder}
+          onClose={() => this.setState({showEditFolder: false})}
+        />
       </Card>
     );
   }
@@ -94,7 +109,7 @@ class List extends React.Component {
 
 const folder = gql`
   query folder($id: ID!) {
-    folder(id: $id) { id name }
+    folder(id: $id) { id name hidden }
   }
 `
 
