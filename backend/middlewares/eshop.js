@@ -8,6 +8,9 @@ import fetch from 'node-fetch'
 import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
+import {mailTransporter} from '../../common/mailer'
+import {renderEmail} from '../renderers'
+import {t} from '../common/utils'
 
 const Joi = BaseJoi.extend(JoiPhoneNumberExtensions)
 
@@ -123,8 +126,9 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
   order.finilize(() => Promise.resolve())
     .then(async () => {
       await order.save()
+      await sendOrderNotificatin(req, order)
       res.cookie('cart', [])
-      res.redirect(get(req.site, 'eshop.cartPage') + '/thankyou')
+      res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
     })
     .catch(e => {
       console.log(e)
@@ -167,12 +171,13 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
         body: JSON.stringify({payer_id: req.body.payerID})
       })
         .then(result => result.json())
-        .then(receipt => {
+        .then(async receipt => {
           if (receipt.state === 'approved') {
             order.set({
               receipt,
               paymentStatus: 'paid',
             })
+            await sendOrderNotificatin(req, order)
           } else {
             return Promise.reject()
           }
@@ -198,7 +203,7 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
   const payload = {
     intent: "sale",
     redirect_urls: {
-      return_url: `${req.protocol}://${req.hostname}${cartPage}/thankyou`,
+      return_url: `${req.protocol}://${req.hostname}${cartPage}/thankyou/${order._id}`,
       cancel_url: `${req.protocol}://${req.hostname}${cartPage}/complete/${order._id}`,
     },
     payer: {
@@ -265,3 +270,29 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
   await order.save()
   res.json(paypalPaymentRequest)
 })
+
+const sendOrderNotificatin = async (req, order) => {
+  const {site, locale} = req
+  const orderData = {
+    ...order.toObject(),
+    id: order._id,
+    deliveryMethodLabel: t(get(site.eshop.deliveryMethods, [order.deliveryMethod, 'label'], order.deliveryMethod), locale),
+  }
+  await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
+    mailTransporter.sendMail({
+      from: get(site, 'fromEmail', process.env.FROM_EMAIL),
+      to: order.billingAddress.email,
+      subject,
+      html: body,
+    })
+  })
+
+  // await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
+  //   mailTransporter.sendMail({
+  //     from: get(site, 'fromEmail', process.env.FROM_EMAIL),
+  //     to: site.notificationEmail,
+  //     subject,
+  //     html: body,
+  //   })
+  // })
+}

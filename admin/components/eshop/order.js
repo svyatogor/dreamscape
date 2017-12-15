@@ -53,7 +53,7 @@ class Order extends React.Component {
     return (
       <Card style={{marginBottom: 20}} containerStyle={{borderTopStyle: 'solid', borderTopWidth: 4, borderColor: get(Colors, order.status, Colors.default)}}>
         <CardHeader
-          title={<span>#13439 <span style={{fontWeight: 'normal'}}>{moment(order.createdAt).format('ll LT')}</span></span>}
+          title={<span>#{order.number} <span style={{fontWeight: 'normal'}}>{moment(order.createdAt).format('ll LT')}</span></span>}
           subtitle={this.getOrderSubtitle(order)}
           actAsExpander
           showExpandableButton
@@ -82,6 +82,11 @@ class Order extends React.Component {
                 <TableRowColumn>{numeral(item.price).format('0.00')}</TableRowColumn>
                 <TableRowColumn style={{textAlign: 'right'}}>{numeral(item.price * item.count).format('0.00')}</TableRowColumn>
               </TableRow>))}
+              <TableRow>
+                <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
+                  Delivery - {order.delivery.label}: {numeral(order.delivery.cost).format('0.00')}
+                </TableRowColumn>
+              </TableRow>
               <TableRow>
                 <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
                   Order total: {numeral(order.total).format('0.00')}

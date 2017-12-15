@@ -148,6 +148,11 @@ type Address {
   phone: String
 }
 
+type DeliveryDescription {
+  cost: Float
+  label: String
+}
+
 type Order {
   id: ID!
   number: Int
@@ -160,6 +165,7 @@ type Order {
   total: Float
   createdAt: Date
   receipt: JSON
+  delivery: DeliveryDescription
 }
 
 type Query {

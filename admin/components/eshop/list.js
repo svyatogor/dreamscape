@@ -33,6 +33,10 @@ const ordersQuery = gql`
         streetAddress
         phone
       }
+      delivery {
+        cost
+        label
+      }
       status
       paymentMethod
       paymentStatus

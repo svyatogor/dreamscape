@@ -5,8 +5,6 @@ import {orderSchema} from '../schema'
 import Product from './product'
 import Site from '../site'
 import AsyncLock from 'async-lock'
-import {mailTransporter} from '../../common/mailer'
-import {renderEmail} from '../../renderers'
 import * as deliveryMethods from '../../services/delivery'
 import {t} from '../../common/utils'
 
@@ -17,6 +15,7 @@ class OrderClass {
     const object = this.toObject()
     return {
       ...object,
+      id: object._id,
       deliveryMethodLabel: t(get(site.eshop.deliveryMethods, [object.deliveryMethod, 'label'], object.deliveryMethod), locale),
       availableDeliveryMethods: await this.availableDeliveryMethods.then(methods =>
         mapValues(methods, method => ({...method, label: t(method.label, locale)}))
@@ -80,25 +79,6 @@ class OrderClass {
     }).then(async () => {
       this.set({status: 'new'})
       await this.save()
-
-      const site = await Site.findOne({_id: this.site}).cache(10)
-      await renderEmail({site}, 'email_order_confirmation', {order: this}).then(({body, subject}) => {
-        mailTransporter.sendMail({
-          from: get(site, 'fromEmail', process.env.FROM_EMAIL),
-          to: this.billingAddress.email,
-          subject,
-          html: body,
-        })
-      })
-
-      // await renderEmail({site}, 'email_admin_new_order', this).then((html, subject) => {
-      //   mailTransporter.sendMail({
-      //     from: get(site, 'fromEmail', process.env.FROM_EMAIL),
-      //     to: site.notificationEmail,
-      //     subject,
-      //     html,
-      //   })
-      // })
     })
 
   }
@@ -124,7 +104,6 @@ class OrderClass {
         (!method.excludedCountries  || !includes(method.excludedCountries, this.shippingAddress.country))
       )
     })
-
   }
 
   async setDefaultDeliveryMethod() {
@@ -135,6 +114,18 @@ class OrderClass {
     }
   }
 }
+orderSchema.pre('save', function(next) {
+  if (this.number) {
+    next()
+    return
+  }
+  Order.findOne({site: this.site}).sort('-number').select('number').then(lastOrder => {
+    this.number = lastOrder.number || 10000
+    this.number++
+    next()
+  })
+})
+
 orderSchema.loadClass(OrderClass)
 const Order = mongoose.model('Order', orderSchema)
 export default Order

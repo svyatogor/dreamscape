@@ -1,15 +1,19 @@
 import {get, isEmpty} from 'lodash'
 import {query, mutation} from './utils'
 import Order from '../models/eshop/order'
+import {t} from '../common/utils'
 
-const annotate = order => {
+const annotate = site => order => {
   const object = order.toObject()
-  console.log(get(order.toObject(), 'receipt.transactions.0.related_resources.0'))
   return {
     ...object,
     id: order._id,
     receipt: {
       id: get(object, 'receipt.transactions.0.related_resources.0.sale.id')
+    },
+    delivery: {
+      label: t(get(site.eshop.deliveryMethods, [order.deliveryMethod, 'label'], order.deliveryMethod)),
+      cost: order.deliveryCost,
     }
   }
 }
@@ -33,7 +37,7 @@ export default class {
       orders = orders.skip(offset || 0).limit(limit)
     }
 
-    return (await orders.sort('+createdAt')).map(annotate)
+    return (await orders.sort('+createdAt')).map(annotate(site))
   }
 
   // @query

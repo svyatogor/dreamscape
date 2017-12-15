@@ -62,14 +62,17 @@ export class shopping_cart {
       return
     }
 
-    if (ctx.page.params === 'thankyou' && finalBlock) {
+    const thankyouUrlMath = ctx.page.params.match(/thankyou\/(.+)/)
+    if (thankyouUrlMath && finalBlock) {
+      const orderId = thankyouUrlMath[1]
+      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId}).then(order => order.toContext(ctx.req))
       finalBlock(callback)
       return
     }
 
-    const urlMatch = ctx.page.params.match(/complete\/(.+)/)
-    if (urlMatch && paymentBlock) {
-      const orderId = urlMatch[1]
+    const completeUrlMatch = ctx.page.params.match(/complete\/(.+)/)
+    if (completeUrlMatch && paymentBlock) {
+      const orderId = completeUrlMatch[1]
       ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId}).then(order => order.toContext(ctx.req))
       paymentBlock(callback)
       return
