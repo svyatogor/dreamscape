@@ -85,10 +85,12 @@ class Tree extends React.Component {
         nestedItems: map(sortBy(subFolders, 'position'), this.renderFolder.bind(this)),
       }
     }
+    const textStyle = folder.hidden ? {textDecoration: 'line-through', color: '#888'} : {}
     return (
       <Folder
         leftIcon={folderIcon}
         primaryText={t(folder.name, this.props.locale)}
+        innerDivStyle={textStyle}
         key={folder.id}
         id={folder.id}
         hover={folder.id === this.state.hover}
@@ -137,6 +139,7 @@ mutation orderFolders($folders: [ID!]!, $parent: ID) {
     parent
     position
     name
+    hidden
   }
 }
 `

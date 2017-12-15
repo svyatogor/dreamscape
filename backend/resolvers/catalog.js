@@ -1,4 +1,4 @@
-import {isEmpty, isNil, get, forEach, omit, map, isString} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 
@@ -42,7 +42,8 @@ export default class {
 
   @mutation
   static async upsertFolder({site}, {folder}) {
-    let {id, name, parent, locale, catalog} = folder
+    let {id, name, parent, locale, catalog, hidden} = folder
+    console.log(folder)
     if (id) {
       const folder = await Folder.findOne({_id: id, site: site.id})
       if (!folder) {
@@ -56,7 +57,14 @@ export default class {
         folder.parent = parent
       }
       if (name) {
-        folder.name[locale] = name
+        console.log(">>>", folder.name)
+        folder.set('name', {
+          ...folder.name,
+          [locale]: name
+        })
+      }
+      if (isBoolean(hidden)) {
+        folder.hidden = hidden
       }
       await folder.save()
       return folder

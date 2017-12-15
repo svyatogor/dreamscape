@@ -9,6 +9,17 @@ import {showNotification} from '../../actions'
 import {t} from '../../common/utils'
 
 class FolderForm extends React.Component {
+  onSaveFolder(data) {
+    const {locale, showNotification, mutate, onClose} =  this.props
+    const {name, hidden, id} = data
+    const folder = {name, hidden, id, locale}
+    console.log(folder)
+    mutate({variables: {folder}}).then(() => {
+      showNotification("Folder updated")
+      onClose()
+    })
+  }
+
   render() {
     const {folder} = this.props
     if (!folder) {
@@ -19,7 +30,7 @@ class FolderForm extends React.Component {
         label="Save"
         primary={true}
         keyboardFocused={true}
-        onTouchTap={this.props.handleSubmit((data) => this.props.onSaveSnippet(data))}
+        onTouchTap={this.props.handleSubmit((data) => this.onSaveFolder(data))}
       />,
     ]
 
@@ -40,15 +51,22 @@ class FolderForm extends React.Component {
   }
 }
 
+const upsertMutation = gql`
+  mutation upsertFolder($folder: FolderInput!) {
+    upsertFolder(folder: $folder) { id name hidden }
+  }
+`
+
 const mapStateToProps = ({app: {locale}}, {folder}) => {
   return {initialValues: {
     ...folder,
     name: t(folder.name, locale),
-  }}
+  }, locale}
 }
 
 const e = compose(
-  connect(mapStateToProps),
+  connect(mapStateToProps, {showNotification}),
+  graphql(upsertMutation),
   reduxForm({form: 'folderForm', enableReinitialize: true})
 )
 

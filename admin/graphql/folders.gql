@@ -4,5 +4,6 @@ query folders($catalog: String!) {
     parent
     position
     name
+    hidden
   }
 }

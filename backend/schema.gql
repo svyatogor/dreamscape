@@ -114,6 +114,7 @@ input FolderInput {
   catalog: String
   name: String!
   locale: String
+  hidden: Boolean
 }
 
 input FileListInput {
