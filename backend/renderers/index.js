@@ -1,5 +1,5 @@
 import nunjucks from 'nunjucks'
-import {zipObject, map, reduce, forEach, isNil, isEmpty, isNaN} from 'lodash'
+import {zipObject, map, reduce, forEach, isNil, isEmpty, isNaN, get} from 'lodash'
 import langs from 'langs'
 import Promise from 'bluebird'
 import cheerio from 'cheerio'
@@ -10,6 +10,8 @@ const renderPage = async ({req, res}, page, context) => {
   const locale = req.locale
   const breadcrumbs = await Promise.map(page.parents, p => p.toContext({locale, site}))
   const flash = req.flash()
+  const referrer = get(flash, 'referrer.0')
+
   reduce(
     breadcrumbs,
     (path, page) => {
@@ -41,6 +43,7 @@ const renderPage = async ({req, res}, page, context) => {
         localeName: langs.where('1', req.locale).local,
       },
       flash,
+      referrer,
     }
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {

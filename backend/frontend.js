@@ -10,6 +10,11 @@ frontend.use(cookieParser())
 frontend.use(flash())
 frontend.use(session({secret: process.env.SESSION_SECRET, name: 'session_id', saveUninitialized: true, resave: true}));
 
+frontend.use((req, res, next) => {
+  req.flash('referrer', req.get('Referrer'))
+  next()
+})
+
 frontend.use('/data', express.static(__dirname + '/../data'))
 forEach(require('./middlewares'), middleware => frontend.use(middleware))
 frontend.get('/*', (req, res, next) => {
