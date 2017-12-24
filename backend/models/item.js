@@ -1,8 +1,9 @@
 import mongoose from 'mongoose'
-import {pickBy} from 'lodash'
+import {pickBy, omit} from 'lodash'
 import {itemSchema} from './schema'
 import {Site} from '../models'
 import {t} from '../common/utils'
+import SearchService from '../services/search'
 
 class ItemClass {
   async toContext({locale}) {
@@ -15,5 +16,6 @@ class ItemClass {
     return object
   }
 }
+
 itemSchema.loadClass(ItemClass)
 export default mongoose.model('Item', itemSchema)

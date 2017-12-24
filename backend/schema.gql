@@ -177,7 +177,7 @@ type Query {
   snippets: [StaticText]
   folders(catalog: String!): [Folder!]
   folder(id: ID!): Folder
-  items(folder: ID, search: String): [Item!]!
+  items(folder: ID, search: String, catalog: String): [Item!]!
   item(id: ID!): Item
   eshopOrders(search: String, limit: Int, offset: Int): [Order]
 }

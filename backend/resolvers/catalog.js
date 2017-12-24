@@ -1,6 +1,8 @@
-import {isEmpty, isNil, get, forEach, omit, map, isString} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString, pick, pickBy, mapValues} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
+import SearchService from '../services/search'
+import {t} from '../common/utils'
 
 export default class {
   @query
@@ -23,14 +25,17 @@ export default class {
   }
 
   @query
-  static async items({site}, {folder, search}) {
+  static async items({site}, {folder, search, catalog}) {
     const q = {site: site.id, deleted: false}
     if (folder) {
       q.folder = folder
     }
 
     if (search) {
-      q['$text'] = {$search: search}
+      const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, 'ru').then(r =>
+        r.hits.hits.map((r) => r._id)
+      )
+      q['_id'] = {$in: ids}
     }
     return (await Item.where(q).sort('position')).map(item => ({
       id: item.id,
@@ -135,7 +140,18 @@ export default class {
         }
       }
     })
+
+
     await item.save()
+    const stringFields = Object.keys(pickBy(catalog.fields, ({type}) => ['string', 'html'].includes(type)))
+    const searchableDocument = mapValues(pick(item.toObject(), stringFields), f => t(f, locale))
+    await SearchService.index({
+      index: 'ru',
+      type: catalogKey + '-' + site.id,
+      id: item.id,
+      body: searchableDocument,
+    })
+
     return {
       id: item.id,
       position: item.position,
