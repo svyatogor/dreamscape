@@ -53,7 +53,7 @@ async function resolvePath(path, req) {
     req.locale = path[0]
     path.shift()
   } else {
-    req.locale = 'en'
+    req.locale = req.site.supportedLanguages[0]
   }
 
   if (path.length === 0 || path[0] === '') {

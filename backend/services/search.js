@@ -20,6 +20,10 @@ class Search {
     return this.client.search(args)
   }
 
+  delete(args) {
+    return this.client.delete(args)
+  }
+
   simple_search(q, type, locale) {
     return this.search({
       index: locale,
@@ -27,7 +31,9 @@ class Search {
       size: 10000,
       default_operator: 'AND',
       q,
-    })
+    }).then(r =>
+      r.hits.hits.map((r) => r._id)
+    )
   }
 
   bulk(args) {

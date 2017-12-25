@@ -32,9 +32,7 @@ export default class {
     }
 
     if (search) {
-      const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, 'ru').then(r =>
-        r.hits.hits.map((r) => r._id)
-      )
+      const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, '*')
       q['_id'] = {$in: ids}
     }
     return (await Item.where(q).sort('position')).map(item => ({
@@ -141,16 +139,15 @@ export default class {
       }
     })
 
-
     await item.save()
-    const stringFields = Object.keys(pickBy(catalog.fields, ({type}) => ['string', 'html'].includes(type)))
-    const searchableDocument = mapValues(pick(item.toObject(), stringFields), f => t(f, locale))
-    await SearchService.index({
-      index: 'ru',
-      type: catalogKey + '-' + site.id,
-      id: item.id,
-      body: searchableDocument,
-    })
+    await site.supportedLanguages.map(locale =>
+      SearchService.index({
+        index: locale,
+        type: `${catalogKey}-${site.id}`,
+        id: item.id,
+        body: item.toSearchableDocument(catalog, locale),
+      })
+    )
 
     return {
       id: item.id,
@@ -181,12 +178,24 @@ export default class {
   }
 
   @mutation
-  static deleteItem({site}, {id}) {
-    return Item.update({ _id: id, site: site.id }, { $set: { deleted: true }})
+  static async deleteItem({site}, {id}) {
+    const q = { _id: id, site: site.id }
+    const item = Item.findOne(q)
+    await Promise.all(
+      site.supportedLanguages.map(locale =>
+        SearchService.delete({
+          index: locale,
+          type: item.catalog + '-' + site.id,
+          id,
+        })
+      )
+    )
+    return Item.update(q, { $set: { deleted: true }})
   }
 
   @mutation
   static deleteFolder({site}, {id}) {
+    // TODO: Remove all nested items from search
     return Folder.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 

@@ -1,9 +1,8 @@
 import mongoose from 'mongoose'
-import {pickBy, omit} from 'lodash'
+import {pickBy, pick, mapValues} from 'lodash'
 import {itemSchema} from './schema'
 import {Site} from '../models'
 import {t} from '../common/utils'
-import SearchService from '../services/search'
 
 class ItemClass {
   async toContext({locale}) {
@@ -14,6 +13,11 @@ class ItemClass {
       object[field] = t(object[field], locale)
     })
     return object
+  }
+
+  toSearchableDocument(schema, locale) {
+    const fields = Object.keys(pickBy(schema.fields, field => ['string', 'html'].includes(field.type)))
+    return mapValues(pick(this.toObject(), fields), f => t(f, locale))
   }
 }
 
