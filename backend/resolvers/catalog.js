@@ -1,6 +1,8 @@
-import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean, pick, pickBy, mapValues} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
+import SearchService from '../services/search'
+import {t} from '../common/utils'
 
 export default class {
   @query
@@ -23,14 +25,15 @@ export default class {
   }
 
   @query
-  static async items({site}, {folder, search}) {
+  static async items({site}, {folder, search, catalog}) {
     const q = {site: site.id, deleted: false}
     if (folder) {
       q.folder = folder
     }
 
     if (search) {
-      q['$text'] = {$search: search}
+      const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, '*')
+      q['_id'] = {$in: ids}
     }
     return (await Item.where(q).sort('position')).map(item => ({
       id: item.id,
@@ -143,7 +146,17 @@ export default class {
         }
       }
     })
+
     await item.save()
+    await site.supportedLanguages.map(locale =>
+      SearchService.index({
+        index: locale,
+        type: `${catalogKey}-${site.id}`,
+        id: item.id,
+        body: item.toSearchableDocument(catalog, locale),
+      })
+    )
+
     return {
       id: item.id,
       position: item.position,
@@ -173,12 +186,24 @@ export default class {
   }
 
   @mutation
-  static deleteItem({site}, {id}) {
-    return Item.update({ _id: id, site: site.id }, { $set: { deleted: true }})
+  static async deleteItem({site}, {id}) {
+    const q = { _id: id, site: site.id }
+    const item = Item.findOne(q)
+    await Promise.all(
+      site.supportedLanguages.map(locale =>
+        SearchService.delete({
+          index: locale,
+          type: item.catalog + '-' + site.id,
+          id,
+        })
+      )
+    )
+    return Item.update(q, { $set: { deleted: true }})
   }
 
   @mutation
   static deleteFolder({site}, {id}) {
+    // TODO: Remove all nested items from search
     return Folder.update({ _id: id, site: site.id }, { $set: { deleted: true }})
   }
 

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {pickBy} from 'lodash'
+import {pickBy, pick, mapValues} from 'lodash'
 import {itemSchema} from './schema'
 import {Site} from '../models'
 import {t} from '../common/utils'
@@ -14,6 +14,12 @@ class ItemClass {
     })
     return object
   }
+
+  toSearchableDocument(schema, locale) {
+    const fields = Object.keys(pickBy(schema.fields, field => ['string', 'html'].includes(field.type)))
+    return mapValues(pick(this.toObject(), fields), f => t(f, locale))
+  }
 }
+
 itemSchema.loadClass(ItemClass)
 export default mongoose.model('Item', itemSchema)

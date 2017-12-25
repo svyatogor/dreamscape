@@ -10,6 +10,11 @@ frontend.use(cookieParser())
 frontend.use(flash())
 frontend.use(session({secret: process.env.SESSION_SECRET, name: 'session_id', saveUninitialized: true, resave: true}));
 
+frontend.use((req, res, next) => {
+  req.flash('referrer', req.get('Referrer'))
+  next()
+})
+
 frontend.use('/data', express.static(__dirname + '/../data'))
 forEach(require('./middlewares'), middleware => frontend.use(middleware))
 frontend.get('/*', (req, res, next) => {
@@ -48,7 +53,7 @@ async function resolvePath(path, req) {
     req.locale = path[0]
     path.shift()
   } else {
-    req.locale = 'en'
+    req.locale = req.site.supportedLanguages[0]
   }
 
   if (path.length === 0 || path[0] === '') {

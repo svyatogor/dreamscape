@@ -132,8 +132,8 @@ class ItemsList extends React.Component {
 }
 
 const items = gql`
-  query items($folder: ID, $search: String) {
-    items(folder: $folder, search: $search) {
+  query items($folder: ID, $search: String, $catalog: String) {
+    items(folder: $folder, search: $search, catalog: $catalog) {
       id
       folder
       data
@@ -164,7 +164,9 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const enhance = compose(
-  graphql(items),
+  graphql(items, {
+    options: ({folder, search, catalogKey}) => ({variables: {folder, search, catalog: catalogKey}})
+  }),
   graphql(deleteItem, {name: 'deleteItem'}),
   graphql(moveItem, {name: 'moveItem'}),
   connect(mapStateToProps, {push, showNotification}),

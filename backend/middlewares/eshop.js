@@ -32,6 +32,11 @@ const orderSchema = site => Joi.object().keys({
 
 export const eshop = express()
 eshop.use(bodyParser.urlencoded({extended: true}))
+eshop.use((req, res, next) => {
+  req.flash('referrer', req.get('Referrer'))
+  req.flash('info', req.get('Referrer'))
+  next()
+})
 
 eshop.get('/eshop/add_to_cart/:id', async (req, res, next) => {
   const cart = new Cart(req)
