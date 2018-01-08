@@ -10,6 +10,7 @@ import {
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
+import SearchBar from 'material-ui-search-bar'
 import {push} from 'react-router-redux'
 import {get} from 'lodash'
 import {t} from '../../common/utils'
@@ -73,36 +74,52 @@ class List extends React.Component {
 
   render() {
     const {catalogKey, catalog, site, folderData, match: {params: {folder}}} = this.props
+    const {search} = this.state
     if (folderData.loading) {
       return null
     }
     return (
-      <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
-        {this.deleteFolderConfirmationDialog}
-        <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
-          <ListConfigurationMenu {...this.props}>
-            <MenuItem
-              primaryText="Edit folder"
-              onTouchTap={() => this.showEditFolder()}
-              leftIcon={<i className="material-icons">edit</i>}
-            />
-            <MenuItem
-              primaryText="Delete folder"
-              style={{color: 'red'}}
-              onTouchTap={() => this.requestDeleteFolder()}
-              leftIcon={<i className="material-icons">delete</i>}
-            />
-            <Divider />
-          </ListConfigurationMenu>
-        </CardTitle>
-        <ItemsList folder={folder} site={site} catalog={catalog} catalogKey={catalogKey} />
+      <div>
+      <SearchBar
+        onChange={search => this.setState({search})}
+        onRequestSearch={() => {}}
+        style={{marginBottom: 10, marginTop: 15, marginLeft: '5%'}}
+        value={this.state.search}
+      />
+      {search && search.length >= 3 && <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
+        <CardTitle title={search} />
+        <ItemsList search={search} site={site} catalog={catalog} catalogKey={catalogKey} />
+      </Card>}
 
-        <FolderEditDialog
-          visible={this.state.showEditFolder}
-          folder={folderData.folder}
-          onClose={() => this.setState({showEditFolder: false})}
-        />
-      </Card>
+      {!search &&
+        <Card style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
+          {this.deleteFolderConfirmationDialog}
+          <CardTitle title={t(get(folderData, 'folder.name'))} style={{display: 'flex'}}>
+            <ListConfigurationMenu {...this.props}>
+              <MenuItem
+                primaryText="Edit folder"
+                onTouchTap={() => this.showEditFolder()}
+                leftIcon={<i className="material-icons">edit</i>}
+              />
+              <MenuItem
+                primaryText="Delete folder"
+                style={{color: 'red'}}
+                onTouchTap={() => this.requestDeleteFolder()}
+                leftIcon={<i className="material-icons">delete</i>}
+              />
+              <Divider />
+            </ListConfigurationMenu>
+          </CardTitle>
+          <ItemsList folder={folder} site={site} catalog={catalog} catalogKey={catalogKey} />}
+
+          <FolderEditDialog
+            visible={this.state.showEditFolder}
+            folder={folderData.folder}
+            onClose={() => this.setState({showEditFolder: false})}
+          />
+        </Card>
+      }
+      </div>
     );
   }
 }

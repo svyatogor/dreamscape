@@ -10,7 +10,7 @@ import {
   Dialog,
   FlatButton,
 } from 'material-ui'
-import {get, map, isDate} from 'lodash'
+import {get, map} from 'lodash'
 import {humanize} from 'inflection'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
@@ -20,7 +20,6 @@ import moment from 'moment'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
 import Row from './dragable_row'
-import { isBoolean } from 'util';
 
 class ItemsList extends React.Component {
   constructor(props) {
