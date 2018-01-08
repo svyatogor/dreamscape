@@ -17,7 +17,7 @@ class Search extends React.Component {
           style={{marginBottom: 40}}
           value={search}
         />
-        {search && search.length > 3 && <Card className="flexContainer">
+        {search && search.length >= 3 && <Card className="flexContainer">
           <ItemsList search={search} site={site} catalog={catalog} catalogKey={catalogKey} />
         </Card>}
       </div>
