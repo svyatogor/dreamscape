@@ -60,7 +60,7 @@ class PageEditorGeneral extends React.Component {
       <form onSubmit={handleSubmit((data) => this.onSubmit(data))}>
         <Field name="title" component={TextField} hintText="Page title" floatingLabelText="Title" validate={required} floatingLabelFixed
           fullWidth className={common.formControl} />
-        <Field name="linkText" component={TextField} hintText="How page appears in the menus" floatingLabelText="Link text"
+        <Field name="slug" component={TextField} hintText="Page URL" floatingLabelText="Slug"
           fullWidth floatingLabelFixed className={common.formControl} />
         <Field
           name="layout"
@@ -218,7 +218,6 @@ const mapStateToProps = ({app, ...state}, {page, siteData}) => {
     ...page,
     parent: get(page.parent, 'id'),
     title: t(page.title, app.locale),
-    linkText: t(page.linkText, app.locale),
     properties: {...page.properties} || {},
   }
 
