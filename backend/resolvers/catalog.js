@@ -188,7 +188,7 @@ export default class {
   @mutation
   static async deleteItem({site}, {id}) {
     const q = { _id: id, site: site.id }
-    const item = Item.findOne(q)
+    const item = await Item.findOne(q)
     await Promise.all(
       site.supportedLanguages.map(locale =>
         SearchService.delete({
