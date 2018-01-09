@@ -122,6 +122,10 @@ class List extends React.Component {
       </div>
     );
   }
+
+  componentWillReceiveProps(props, state) {
+    this.setState({search: ''})
+  }
 }
 
 const folder = gql`
