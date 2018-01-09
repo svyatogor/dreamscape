@@ -166,12 +166,13 @@ class TreeWrapper extends React.Component {
     })
     return (
       <div style={{display: 'flex', width: '100%'}}>
-        {this.state.addFolder &&
-          <NewFolder
-            parent={match.params.folder}
-            catalog={catalog}
-            onFolderSaved={() => this.setState({addFolder: false})} />
-        }
+        <NewFolder
+          parent={match.params.folder}
+          open={this.state.addFolder || false}
+          catalog={catalog}
+          onFolderSaved={() => this.setState({addFolder: false})}
+          onClose={() => this.setState({addFolder: false})}
+        />
         <div style={{flex: 3, minWidth: 300}}>
           <ConnectedTree activePage={match.params.folder} catalog={catalog} />
         </div>

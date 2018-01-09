@@ -25,18 +25,22 @@ class NewFolder extends React.Component {
   render() {
     const dialogActions = [
       <FlatButton
-        label="Save"
-        primary={true}
-        keyboardFocused={true}
-        onTouchTap={this.props.handleSubmit((data) => this.saveFolder(data))}
+        label="Cancel"
+        onTouchTap={this.props.onClose}
       />,
+      <FlatButton
+        label="Save"
+        primary
+        keyboardFocused
+        onTouchTap={this.props.handleSubmit((data) => this.saveFolder(data))}
+      />
     ]
 
     return (<Dialog
       title="New folder"
       actions={dialogActions}
       modal={false}
-      open
+      open={this.props.open}
       onRequestClose={this.props.onClose}
       autoDetectWindowHeight
     >
