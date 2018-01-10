@@ -19,16 +19,23 @@ const client = new ApolloClient({
 })
 const history = createHistory({basename: '/admin/'})
 const middleware = routerMiddleware(history)
+let persistor
+const storePurger = store => next => action => {
+  if (persistor && action.type === 'LOGOUT') {
+    persistor.purge()
+  }
+  return next(action)
+}
 const store = createStore(
   reducers(client),
   {},
   compose(
-    applyMiddleware(client.middleware(), thunk, middleware),
+    applyMiddleware(client.middleware(), thunk, middleware, storePurger),
     autoRehydrate(),
     (typeof window.__REDUX_DEVTOOLS_EXTENSION__ !== 'undefined') ? window.__REDUX_DEVTOOLS_EXTENSION__() : f => f,
   )
 )
-persistStore(store, {whitelist: ['app',]})
+persistor = persistStore(store, {whitelist: ['app',]})
 
 
 networkInterface.useAfter([{
