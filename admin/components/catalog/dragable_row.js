@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {DragSource, DropTarget} from 'react-dnd'
-import {TableRow} from 'material-ui'
+import common from '../../common.scss'
 import {compose} from 'recompose'
 
 
@@ -45,7 +45,7 @@ class Row extends Component {
     }
 
     return connectDragPreview(connectDropTarget(connectDragSource(
-      <tr style={style}>
+      <tr style={style} className={common.tableRow}>
         {props.children}
       </tr>
     )), {captureDraggingState: true})

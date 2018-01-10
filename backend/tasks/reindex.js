@@ -17,8 +17,9 @@ async function reindexCatalog(site, catalog) {
                 ]
             })
         }))
-
-        return SearchService.bulk({body})
+        return SearchService.bulk({body}).then((r) => {
+            console.log(r.items.map(i => i.index))
+        })
     }
 
     await cursor.eachAsync(item => {
@@ -38,7 +39,7 @@ async function reindexCatalog(site, catalog) {
 }
 
 export default async function() {
-    const sites = await Site.find({key: 'arbat'})
+    const sites = await Site.find({})
     const catalogs = sites.map(site =>
         Object.keys(get(site, 'documentTypes', {})).map(catalog => ({site, catalog}))
     )
