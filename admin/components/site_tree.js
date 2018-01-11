@@ -1,6 +1,6 @@
 import React from 'react'
 import {connect} from 'react-redux'
-import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex, reject} from 'lodash'
+import _, {isEmpty, isEqual, filter, map, find, sortBy, findIndex} from 'lodash'
 import {List} from 'material-ui'
 import {push} from 'react-router-redux'
 import {get} from 'lodash'

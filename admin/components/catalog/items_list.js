@@ -20,6 +20,7 @@ import moment from 'moment'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
 import Row from './dragable_row'
+import itemsQuery from '../../graphql/items.gql'
 
 class ItemsList extends React.Component {
   constructor(props) {
@@ -130,17 +131,6 @@ class ItemsList extends React.Component {
   }
 }
 
-const items = gql`
-  query items($folder: ID, $search: String, $catalog: String) {
-    items(folder: $folder, search: $search, catalog: $catalog) {
-      id
-      folder
-      data
-      position
-    }
-  }
-`
-
 const deleteItem = gql`
   mutation deleteItem($id: ID!) {
     deleteItem(id: $id)
@@ -163,7 +153,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 
 const enhance = compose(
-  graphql(items, {
+  graphql(itemsQuery, {
     options: ({folder, search, catalogKey}) => ({variables: {folder, search, catalog: catalogKey}})
   }),
   graphql(deleteItem, {name: 'deleteItem'}),
