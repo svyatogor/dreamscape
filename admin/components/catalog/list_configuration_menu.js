@@ -3,11 +3,10 @@ import {
   IconMenu,
   IconButton,
   MenuItem,
-  Divider,
 } from 'material-ui'
 import MoreVertIcon from 'material-ui/svg-icons/navigation/more-vert'
 import {grey500} from 'material-ui/styles/colors'
-import {omitBy, includes, get, map} from 'lodash'
+import {omitBy, includes, get} from 'lodash'
 import {humanize} from 'inflection'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'

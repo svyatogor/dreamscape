@@ -2,8 +2,7 @@ import React from 'react'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
-import {RaisedButton, List, Subheader, ListItem, IconButton, TextField, Dialog, FlatButton} from 'material-ui'
-import ActionDelete from 'material-ui/svg-icons/action/delete'
+import {RaisedButton, List, ListItem, IconButton, TextField, Dialog, FlatButton} from 'material-ui'
 import {isEqual, last, omit, isNil, remove} from 'lodash'
 import {t} from '../../common/utils'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
@@ -100,7 +99,6 @@ class FileList extends React.Component {
       return null
     }
     console.log(this.props.data);
-    const {locale} = this.props
     return (<div style={{paddingRight: 20}}>
       {this.editDialog()}
       <List>

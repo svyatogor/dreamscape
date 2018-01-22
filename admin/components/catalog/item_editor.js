@@ -15,31 +15,24 @@ import {
 import {push} from 'react-router-redux'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
 import {t} from '../../common/utils'
+import { isObject } from 'util'
 import {showNotification} from '../../actions'
 import {RedactorField as Redactor} from '../redactor'
 import common from '../../common.scss'
+import ITEMS from '../../graphql/items.gql'
 
 class ItemEditor extends Component {
   onSubmit(data) {
-    const {match: {params: {folder}}, locale} = this.props
-    const refetchQueries = data.id ? [] : [{
-      query: gql`
-        query items($folder: ID!) {
-          items(folder: $folder) {
-            id
-            data
-            position
-          }
-        }
-      `,
-      variables: {folder}
-    }]
-    return this.props.mutate({variables: {
-      id: data.id,
-      data,
-      locale,
-      folder,
-    }, refetchQueries})
+    const {match: {params: {folder}}, locale, catalogKey} = this.props
+    return this.props.mutate({
+      variables: {
+        id: data.id,
+        data,
+        locale,
+        folder,
+      },
+      refetchQueries: [{query: ITEMS, variables: {folder, catalog: catalogKey}}]
+    })
       .then(({data}) => {
         this.props.showNotification("Item saved")
         this.props.push(`..`)
@@ -50,7 +43,7 @@ class ItemEditor extends Component {
   }
 
   render() {
-    const {handleSubmit, pristine, submitting, locale, catalog} = this.props
+    const {handleSubmit, pristine, submitting, catalog} = this.props
     return (
       <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
         <div style={{flex: 1, paddingLeft: 70, marginBottom: 20}}>
@@ -118,7 +111,13 @@ class ItemEditor extends Component {
       <Field
         name={key}
         key={key}
-        component={DatePicker}
+        component={args => {
+            if (!isObject(args.input.value)) {
+              args.input.value = new Date()
+            }
+            return new DatePicker(args)
+          }
+        }
         autoOk
         floatingLabelText={humanize(key)}
         fullWidth floatingLabelFixed
@@ -190,7 +189,9 @@ const upsertItem = gql`
   mutation upsertItem($id: ID, $folder: ID!, $data: JSON!, $locale: String!) {
     upsertItem(id: $id, folder: $folder, data: $data, locale: $locale) {
       id
+      folder
       data
+      position
     }
   }
 `

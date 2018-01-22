@@ -1,8 +1,7 @@
-import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean, pick, pickBy, mapValues} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'lodash'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 import SearchService from '../services/search'
-import {t} from '../common/utils'
 
 export default class {
   @query
@@ -195,7 +194,7 @@ export default class {
           index: locale,
           type: item.catalog + '-' + site.id,
           id,
-        })
+        }).catch(() => null)
       )
     )
     return Item.update(q, { $set: { deleted: true }})
