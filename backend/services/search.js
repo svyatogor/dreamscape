@@ -12,7 +12,6 @@ class Search {
   }
 
   index(args) {
-    console.log(args)
     return this.client.index(args)
   }
 

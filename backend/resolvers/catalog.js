@@ -2,6 +2,7 @@ import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'loda
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 import SearchService from '../services/search'
+import Promise from 'bluebird'
 
 export default class {
   @query
@@ -96,24 +97,30 @@ export default class {
   }
 
   @mutation
-  static async upsertItem({site}, {id, folder, locale, data}) {
-    const {catalog: catalogKey} = await Folder.findOne({_id: folder})
-    const catalog = site.documentTypes[catalogKey]
+  static async upsertItem({site}, params) {
+    const {id, folder, locale, data = {}} = params
+    const folderObject = folder && await Folder.findOne({_id: folder, site: site.id})
+
+    let catalogKey = folderObject ? folderObject.catalog.catalogKey : params.catalog
+    let catalog = site.documentTypes[catalogKey]
 
     let item
     if (id) {
       item = await Item.findOne({_id: id}).populate('folder')
-      if (String(get(item, 'folder.site')) !== String(site.id)) {
+      catalogKey = item.catalog
+      catalog = site.documentTypes[catalogKey]
+      if (String(get(item, 'site')) !== String(site.id)) {
         throw new Error("Item doesn't exist or you don't have access to it")
       }
     } else {
-      const folderObject = await Folder.findOne({_id: folder, site: site.id})
-      if (!folderObject) {
+      let position = 0
+      if (folder && !folderObject) {
         throw new Error("Folder doesn't exist or you don't have access to it")
       }
-      locale = 'en'
-      let position = 0
-      const lastItem = await Item.findOne({folder}).sort('-position').select('position')
+
+      const lastItemQuery = {catalog: catalogKey}
+      if (folder) { lastItemQuery.folder = folder }
+      const lastItem = await Item.findOne(lastItemQuery).sort('-position').select('position')
       if (lastItem) {
         position = lastItem.position || 0
       }
@@ -147,14 +154,18 @@ export default class {
     })
 
     await item.save()
-    await site.supportedLanguages.map(locale =>
-      SearchService.index({
-        index: locale,
-        type: `${catalogKey}-${site.id}`,
-        id: item.id,
-        body: item.toSearchableDocument(catalog, locale),
-      })
-    )
+    try {
+      await Promise.map(site.supportedLanguages, locale =>
+        SearchService.index({
+          index: locale,
+          type: `${catalogKey}-${site.id}`,
+          id: item.id,
+          body: item.toSearchableDocument(catalog, locale),
+        })
+      )
+    } catch (e) {
+      console.error(e)
+    }
 
     return {
       id: item.id,

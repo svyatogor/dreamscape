@@ -1,4 +1,6 @@
 import {underscore} from 'inflection'
+import fs from 'fs'
+import {Item} from '../../models'
 
 export class section {
   constructor(renderContext) {
@@ -29,16 +31,31 @@ export class section {
 
 
   static render(sectionName, context) {
-    const {page} = context
+    const {req, page, env, site} = context
     if (!page.sections || !page.sections[sectionName]) {
       return Promise.resolve()
     }
 
     return Promise.all(page.sections[sectionName].map(block => {
       try {
-        return require('./index')[underscore(block._type)].render(block, context)
+        if (fs.existsSync(`./data/${site.key}/layouts/${page.layout}/${block._type}.html`)) {
+          return new Promise(async (resolve, reject) => {
+            const item = await Item.findOne({site: site.id, catalog: block._type, _id: block.ref})
+            const itemAsContext = await item.toContext({locale: req.locale})
+            const nestedContext = {...context, ...itemAsContext}
+            env.render(`${page.layout}/${block._type}.html`, nestedContext, (error, result) => {
+              if (error) {
+                reject(error)
+              } else {
+                resolve(result)
+              }
+            })
+          })
+        } else {
+          return require('./index')[underscore(block._type)].render(block, context)
+        }
       } catch (e) {
-        console.log(`Cannot render block:`, block, e);
+        return Promise.reject(`Cannot render block: ${JSON.stringify(block)}, ${e}`)
       }
     })).then(results => results.join(''))
   }

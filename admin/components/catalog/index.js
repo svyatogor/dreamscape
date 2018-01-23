@@ -4,6 +4,7 @@ import {connect} from 'react-redux'
 import {graphql} from 'react-apollo'
 import List from './list'
 import ItemEditor from './item_editor'
+import ItemEditorPage from './item_editor_page'
 import Search from './search'
 // import SiteTree from './site_tree'
 // import SiteEditorWelcome from './site_editor_welcome'
@@ -36,8 +37,8 @@ class Catalog extends React.Component {
       return (
         <Switch>
           <Route path={`${url}/search/:search`} render={this.renderComponent(Search)} />
-          <Route path={`${url}/folder/:folder/item/new`} render={this.renderComponent(ItemEditor)} />
-          <Route path={`${url}/folder/:folder/item/:itemId`} render={this.renderComponent(ItemEditor)} />
+          <Route path={`${url}/folder/:folder/item/new`} render={this.renderComponent(ItemEditorPage)} />
+          <Route path={`${url}/folder/:folder/item/:itemId`} render={this.renderComponent(ItemEditorPage)} />
           <Route path={`${url}/item/:itemId`} render={this.renderComponent(ItemEditor)} />
           <Route path={`${url}/folder/:folder`} render={this.renderComponent(List)} />
           <Route path={`${url}`} render={this.renderComponent(Search)} />

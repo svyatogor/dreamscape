@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Chrome",
+      "url": "http://arbat.dreamscape.localhost:4000/admin",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
       "type": "node",
       "request": "attach",
       "protocol": "inspector",

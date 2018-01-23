@@ -5,7 +5,7 @@ import {reduxForm, Field, SubmissionError, getFormValues} from 'redux-form'
 import {graphql, gql} from 'react-apollo'
 import {compose, branch} from 'recompose'
 import {connect} from 'react-redux'
-import {Paper, RaisedButton, MenuItem} from 'material-ui'
+import {RaisedButton, MenuItem} from 'material-ui'
 import {
   TextField,
   Toggle,
@@ -23,7 +23,8 @@ import ITEMS from '../../graphql/items.gql'
 
 class ItemEditor extends Component {
   onSubmit(data) {
-    const {match: {params: {folder}}, locale, catalogKey} = this.props
+    const {locale, catalogKey} = this.props
+    const folder = get(this.props, 'match.params.folder')
     return this.props.mutate({
       variables: {
         id: data.id,
@@ -45,22 +46,17 @@ class ItemEditor extends Component {
   render() {
     const {handleSubmit, pristine, submitting, catalog} = this.props
     return (
-      <Paper style={{minHeight: '50%', marginLeft: '5%', paddingBottom: 20, marginTop: 15, marginBottom: 20}} className="flexContainer">
-        <div style={{flex: 1, paddingLeft: 70, marginBottom: 20}}>
-          <h1 style={{marginBottom: 20}}>Title</h1>
-          <form onSubmit={handleSubmit((data) => this.onSubmit(data))} className="wide-form">
-            {map(sortBy(mapValues(catalog.fields, (v, key) => ({...v, key})), 'position'), field => {
-              const renderer = `${field.type}Render`
-              if (this[renderer]) {
-                return this[renderer](field.key, field)
-              }
-            })}
-            <div className={common.formActions}>
-              <RaisedButton label="Save" primary={true} disabled={pristine || submitting} type="submit" />
-            </div>
-          </form>
+      <form onSubmit={handleSubmit((data) => this.onSubmit(data))} className="wide-form">
+        {map(sortBy(mapValues(catalog.fields, (v, key) => ({...v, key})), 'position'), field => {
+          const renderer = `${field.type}Render`
+          if (this[renderer]) {
+            return this[renderer](field.key, field)
+          }
+        })}
+        <div className={common.formActions}>
+          <RaisedButton label="Save" primary={true} disabled={pristine || submitting} type="submit" />
         </div>
-      </Paper>
+      </form>
     )
   }
 
@@ -186,7 +182,7 @@ class ItemEditor extends Component {
 }
 
 const upsertItem = gql`
-  mutation upsertItem($id: ID, $folder: ID!, $data: JSON!, $locale: String!) {
+  mutation upsertItem($id: ID, $folder: ID, $data: JSON!, $locale: String!) {
     upsertItem(id: $id, folder: $folder, data: $data, locale: $locale) {
       id
       folder
@@ -229,9 +225,9 @@ const itemGql = gql`
 
 const enhance = compose(
   branch(
-    props => !!props.match.params.itemId,
+    props => !!(props.id || props.match.params.itemId),
     graphql(itemGql, {
-      options: props => ({variables: {id: props.match.params.itemId}})
+      options: props => ({variables: {id: (props.id || props.match.params.itemId)}})
     }),
   ),
   graphql(upsertItem),

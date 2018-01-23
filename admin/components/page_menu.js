@@ -13,7 +13,7 @@ import {
   IconButton,
   makeSelectable,
 } from 'material-ui'
-import {map, get} from 'lodash'
+import {map, get, pickBy} from 'lodash'
 import {humanize, underscore} from 'inflection'
 import {graphql} from 'react-apollo'
 import {push} from 'react-router-redux'
@@ -33,9 +33,9 @@ class PageMenu extends React.Component {
     const {page} = this.props
     const block = {page: page.id, section, _type: type}
     this.props.addBlock({variables: {block}})
-    .then(({data: {addBlock}}) => {
-      this.props.push(`/site/page/${this.props.page.id}/block/${addBlock}`)
-    })
+      .then(({data: {addBlock}}) => {
+        this.props.push(`/site/page/${this.props.page.id}/block/${addBlock}`)
+      })
   }
 
   removeBlock(ref) {
@@ -82,7 +82,7 @@ class PageMenu extends React.Component {
       right: 5,
       top: 10,
     }
-    const {page: {sections, id: pageId}} = this.props
+    const {page: {sections, id: pageId}, documentTypes} = this.props
     const blocks = get(sections, section, [])
     return (
       <div key={section}>
@@ -93,7 +93,7 @@ class PageMenu extends React.Component {
               iconButtonElement={<IconButton><i className="material-icons">add</i></IconButton>}
               style={{float: 'right'}}
             >
-              {map(modules, (_, type) => <MenuItem primaryText={humanize(underscore(type))} key={type} onTouchTap={() => this.addBlock(section, type)} />)}
+              {map([...Object.keys(modules), ...documentTypes], type => <MenuItem primaryText={humanize(underscore(type))} key={type} onTouchTap={() => this.addBlock(section, type)} />)}
             </IconMenu>
           </Subheader>
 
@@ -129,6 +129,7 @@ const mapStateToProps = ({app}, {data: {site}, page}) => {
   return {
     locale: app.locale,
     layout: get(site, ['layouts', page.layout]),
+    documentTypes: Object.keys(pickBy(site.documentTypes, type => type.embedable)),
   }
 }
 

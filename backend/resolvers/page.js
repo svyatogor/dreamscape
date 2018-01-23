@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import {omit, isNil, forEach, has, map, reject, get, pickBy, reduce} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
+import CatalogResolver from './catalog'
 
 export default class {
   @query
@@ -81,13 +82,21 @@ export default class {
     let page = await Page.findById(id)
     page.sections = page.sections || {}
     page.sections[section] = page.sections[section] || []
-    const klass = require('../models')[_type]
-    const blockObj = new klass({site})
-    await blockObj.save()
-    page.sections[section].push({ref: mongoose.Types.ObjectId(blockObj.id), _type})
+    let objectId
+    if (Object.keys(site.documentTypes).includes(_type)) {
+      const object = await CatalogResolver.upsertItem({site}, {catalog: _type})
+      objectId = object.id
+    } else {
+      const klass = require('../models')[_type]
+      const blockObj = new klass({site})
+      await blockObj.save()
+      objectId = blockObj.id
+    }
+
+    page.sections[section].push({ref: mongoose.Types.ObjectId(objectId), _type})
     page.markModified('sections')
     await page.save()
-    return blockObj.id
+    return objectId
   }
 
   @mutation

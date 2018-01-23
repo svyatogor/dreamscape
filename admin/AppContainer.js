@@ -8,6 +8,8 @@ import {map, get, includes} from 'lodash'
 import {pluralize, humanize} from 'inflection'
 import {DragDropContext} from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
+import PropTypes from 'prop-types'
+import _ from 'lodash'
 import siteQuery from './graphql/site.gql'
 import {getSession} from './actions'
 import Notification from './components/notification'
@@ -29,9 +31,13 @@ class MainContainer extends React.Component {
     }
   }
 
+  getChildContext() {
+    return {site: this.props.data.site}
+  }
+
   render() {
     const {history, data: {site}} = this.props
-
+    const documentTypes = _(get(site, 'documentTypes', {})).pickBy(type => !type.hidden)
     return (<ConnectedRouter history={history}>
       <div className={styles.appContainer}>
         <Header onMenu={() => this.setState({open: true})} />
@@ -43,7 +49,7 @@ class MainContainer extends React.Component {
           <NavLink to="/site">
             <MenuItem leftIcon={<div className="menuIcon"><i className="mdi mdi-sitemap" /></div>}>Site</MenuItem>
           </NavLink>
-          {map(get(site, 'documentTypes'), (docType, key) =>
+          {documentTypes.map((docType, key) =>
             <NavLink to={`/catalog/${key}`} key={key}>
               <MenuItem
                 leftIcon={<div className="menuIcon"><i className={`mdi mdi-${docType.icon}`} /></div>}
@@ -51,7 +57,7 @@ class MainContainer extends React.Component {
                 {humanize(pluralize(key))}
               </MenuItem>
             </NavLink>
-          )}
+          ).value()}
           {includes(get(site, 'features'), 'members') && (
             <NavLink to="/members">
               <MenuItem
@@ -93,6 +99,9 @@ class MainContainer extends React.Component {
   }
 }
 
+MainContainer.childContextTypes = {
+  site: PropTypes.object,
+}
 const ConnectedMainContainer = graphql(siteQuery)(MainContainer)
 
 
