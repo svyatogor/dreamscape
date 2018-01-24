@@ -1,6 +1,8 @@
-import {defaults, map} from 'lodash'
+import {defaults, get} from 'lodash'
 import {Item, Folder} from '../../models'
 import Promise from 'bluebird'
+import {t} from '../../common/utils'
+const s = require('sugar')
 
 export class catalogfolder {
   constructor(renderContext) {
@@ -28,16 +30,24 @@ export class catalogfolder {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
       const key = opts.as
       const originalValue = ctx[key]
-
-      let folder = await Folder.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
-      if (!folder) {
-        callback(null, '')
-        return
+      let folder
+      let q
+      const scope = get(ctx.site.documentTypes, [catalog, 'scopes', ctx.page.params])
+      if (scope) {
+        folder = {name: t(scope.label, ctx.req.locale)}
+        q = eval(`(${scope.filter})`)
+        console.log('>>>', scope.filter, q)
+      } else {
+        folder = await Folder.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
+        if (!folder) {
+          callback(null, '')
+          return
+        }
+        folder = await folder.toContext({locale: ctx.req.locale})
+        q = {catalog, site: ctx.site._id, folder: ctx.page.params, deleted: false}
       }
 
-      folder = await folder.toContext({locale: ctx.req.locale})
-      const q = {catalog, site: ctx.site._id, folder: ctx.page.params, deleted: false}
-      let items = Item.find(q)
+      let items = Item.find(q).sort(opts.sort)
       folder.count = await Item.count(q)
       if (opts.pageSize) {
         let page = ctx.req.query.page
@@ -46,7 +56,7 @@ export class catalogfolder {
         }
         folder.pageNumber = page
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
-        items = items.sort(opts.sort).skip((page - 1) * opts.pageSize).limit(opts.pageSize)
+        items = items.skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }
       folder.items = await Promise.map(await items, item => item.toContext({locale: ctx.req.locale}))
       ctx[key] = folder
@@ -54,8 +64,9 @@ export class catalogfolder {
       ctx[key] = originalValue
 
       callback(null, result)
+
     } catch (e) {
-      console.log(e);
+      console.error(e);
       callback(e)
     }
   }
