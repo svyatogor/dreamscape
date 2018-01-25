@@ -33,6 +33,7 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
   resolvePath(requestPath, req).then(page => {
     if (!page) {
       res.sendStatus(404)
+      return
     }
     return renderPage({req, res}, page, context)
       .then(() => res.end())

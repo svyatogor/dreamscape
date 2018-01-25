@@ -101,7 +101,7 @@ export default class {
     const {id, folder, locale, data = {}} = params
     const folderObject = folder && await Folder.findOne({_id: folder, site: site.id})
 
-    let catalogKey = folderObject ? folderObject.catalog.catalogKey : params.catalog
+    let catalogKey = folderObject ? folderObject.catalog : params.catalog
     let catalog = site.documentTypes[catalogKey]
 
     let item
