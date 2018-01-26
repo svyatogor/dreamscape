@@ -230,7 +230,7 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
           items: order.lines.map(line => ({
             name: line.name,
             quantity: line.count,
-            price: numeral(line.total).format('0.00'),
+            price: numeral(line.subtotal).format('0.00'),
             currency: 'EUR',
           })),
           shipping_address: {
