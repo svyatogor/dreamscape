@@ -12,6 +12,7 @@ const renderPage = async ({req, res}, page, context) => {
   const flash = req.flash()
   const referrer = get(flash, 'referrer.0')
 
+  require('moment').locale(req.locale)
   reduce(
     breadcrumbs,
     (path, page) => {
@@ -57,6 +58,7 @@ const renderPage = async ({req, res}, page, context) => {
       const val = parseFloat(str).toLocaleString(locale, {style: 'currency', currency})
       return isNaN(val) ? defaultValue : val
     })
+    env.addFilter('date', require('nunjucks-date-filter'))
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {
         if (err) {
