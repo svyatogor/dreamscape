@@ -110,7 +110,7 @@ class Order extends React.Component {
               icon={<i className="mdi mdi-receipt" />}
               style={{float: 'right'}}
               label="View receipt"
-              onClick={() => window.open(`https://www.sandbox.paypal.com/activity/payment/${get(order.receipt, 'id')}`, get(order.receipt, 'id'), {toolbar: false})} />
+              onClick={() => window.open(`https://www.paypal.com/activity/payment/${get(order.receipt, 'id')}`, get(order.receipt, 'id'), {toolbar: false})} />
           }
         </CardActions>
       </Card>
