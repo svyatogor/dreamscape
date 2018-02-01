@@ -292,12 +292,12 @@ const sendOrderNotificatin = async (req, order) => {
     })
   })
 
-  // await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
-  //   mailTransporter.sendMail({
-  //     from: get(site, 'fromEmail', process.env.FROM_EMAIL),
-  //     to: site.notificationEmail,
-  //     subject,
-  //     html: body,
-  //   })
-  // })
+  await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
+    mailTransporter.sendMail({
+      from: get(site, 'fromEmail', process.env.FROM_EMAIL),
+      to: site.notificationEmail,
+      subject,
+      html: body,
+    })
+  })
 }
