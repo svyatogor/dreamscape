@@ -39,6 +39,7 @@ const renderPage = async ({req, res}, page, context) => {
         parents: page.parents,
       },
       breadcrumbs,
+      res,
       req: {
         ...req,
         localeName: langs.where('1', req.locale).local,

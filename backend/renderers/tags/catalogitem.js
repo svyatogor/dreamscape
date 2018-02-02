@@ -1,5 +1,6 @@
 import {defaults, map} from 'lodash'
 import {Item} from '../../models'
+import mongoose from 'mongoose'
 
 export class catalogitem {
   constructor(renderContext) {
@@ -28,14 +29,21 @@ export class catalogitem {
       const key = opts.as
       const originalValue = ctx[key]
 
+      if (!mongoose.Types.ObjectId.isValid(ctx.page.params)) {
+        ctx.res.sendStatus(404)
+        return
+      }
       const item = await Item.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
+      if (!item) {
+        ctx.res.sendStatus(404)
+        return
+      }
       ctx[key] = await item.toContext({locale: ctx.req.locale})
       body((error, data) => {
         ctx[key] = originalValue
         callback(error, data)
       })
     } catch (e) {
-      console.log(e);
       callback(e)
     }
   }
