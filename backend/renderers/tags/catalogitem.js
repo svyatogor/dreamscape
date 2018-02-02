@@ -30,12 +30,12 @@ export class catalogitem {
       const originalValue = ctx[key]
 
       if (!mongoose.Types.ObjectId.isValid(ctx.page.params)) {
-        ctx.res.sendStatus(404)
+        ctx.res.redirect('/')
         return
       }
       const item = await Item.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
       if (!item) {
-        ctx.res.sendStatus(404)
+        ctx.res.redirect('/')
         return
       }
       ctx[key] = await item.toContext({locale: ctx.req.locale})
