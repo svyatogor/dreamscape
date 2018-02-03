@@ -4406,6 +4406,12 @@ joi-errors-for-forms@^0.2.5:
   version "0.2.5"
   resolved "https://registry.yarnpkg.com/joi-errors-for-forms/-/joi-errors-for-forms-0.2.5.tgz#6098a1a6fe224f4c635c1b8815dc85cccae05029"
 
+joi-json@^2.0.1:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/joi-json/-/joi-json-2.0.1.tgz#b849d7c55648ef9d2b8e0a8313ccf7296fa42eda"
+  dependencies:
+    vandium-utils "^1.1.0"
+
 joi-phone-number-extensions@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/joi-phone-number-extensions/-/joi-phone-number-extensions-1.0.1.tgz#d3c17fbca5bf5381dbf5bd3da376c98e3ac29602"
@@ -7823,6 +7829,10 @@ validate-npm-package-license@^3.0.1:
 value-equal@^0.2.0:
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/value-equal/-/value-equal-0.2.1.tgz#c220a304361fce6994dbbedaa3c7e1a1b895871d"
+
+vandium-utils@^1.1.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/vandium-utils/-/vandium-utils-1.2.0.tgz#44735de4b7641a05de59ebe945f174e582db4f59"
 
 vary@^1, vary@~1.1.1:
   version "1.1.1"

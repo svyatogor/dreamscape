@@ -63,6 +63,7 @@
     "jest": "20.0.4",
     "joi": "^10.6.0",
     "joi-errors-for-forms": "^0.2.5",
+    "joi-json": "^2.0.1",
     "joi-phone-number-extensions": "^1.0.1",
     "jquery": "1.11.3",
     "jsonic": "^0.3.0",
