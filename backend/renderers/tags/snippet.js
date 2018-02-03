@@ -32,7 +32,10 @@ export class snippet {
     return StaticText.findOne(props)
       .then(text => {
         if (text) {
-          const localText = t(text.content, ctx.req.locale)
+          var localText = t(text.content, ctx.req.locale)
+          if (text.type === 'text') {
+            localText = localText.replace(/^\s+/mg, '').replace(/\r?\n/g, '<br />')
+          }
           callback(null, localText)
           return localText
         } else {

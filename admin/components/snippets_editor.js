@@ -40,6 +40,7 @@ class SnippetForm extends React.Component {
           fullWidth
         />)
         break
+      case "raw":
       case "text":
         field = (<Field
           name="content"
@@ -87,7 +88,7 @@ const Snippet = ({snippet, locale, onTouchTap}) =>
         {snippet.type === 'html' &&
           <div dangerouslySetInnerHTML={{__html: t(snippet.content, locale)}}></div>
         }
-        {snippet.type === 'text' &&
+        {(snippet.type === 'text' || snippet.type === 'raw') &&
           <pre>{t(snippet.content, locale).replace(/^\s+/gm, '')}</pre>
         }
       </CardText>
