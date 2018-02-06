@@ -55,7 +55,12 @@ export class menu {
             ...contextPage,
             active,
           }
-          return body()
+          return new Promise((resolve, reject) => {
+            body((error, data) => {
+              if (error) { reject(error) }
+              else { resolve(data) }
+            })
+          })
         })).then(data => {
           ctx[key] = originalValue
           callback(null, data.join(''))
