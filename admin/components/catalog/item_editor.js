@@ -197,6 +197,7 @@ class ItemEditor extends Component {
         upload={{
           signingUrl: '/admin/api/s3/sign',
           signingUrlWithCredentials: true,
+          contentDisposition: field.inline ? 'inline' : 'auto',
         }}
         passChildrenProps={false}
       >
