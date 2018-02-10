@@ -48,7 +48,7 @@ export function renderRequest(requestPath, {req, res, next}, context = {}) {
 }
 
 async function resolvePath(path, req) {
-  path = path.split('/')
+  path = path.replace(/\.html?$/, '').split('/')
   path.shift()
   if (req.site.supportedLanguages.includes(path[0])) {
     req.locale = path[0]
