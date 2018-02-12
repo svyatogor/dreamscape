@@ -16,8 +16,8 @@ import * as colors from 'material-ui/styles/colors'
 
 const muiTheme = getMuiTheme({
   palette: {
-    primary1Color: colors.blue500,
-    accent1Color: colors.red500,
+    primary1Color: '#4285f4',
+    accent1Color: '#d23f31',
     // accent1Color: colors.blue500,
     // textColor: colors.cyan500,
   },
