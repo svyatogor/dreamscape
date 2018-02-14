@@ -36,6 +36,9 @@ export class catalogfolder {
       if (scope) {
         folder = {name: t(scope.label, ctx.req.locale)}
         q = eval(`(${scope.filter})`)
+        if (scope.sort) {
+          opts.sort = scope.sort
+        }
       } else {
         folder = await Folder.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
         if (!folder) {
