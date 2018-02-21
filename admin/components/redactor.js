@@ -49,6 +49,7 @@ class Redactor extends React.Component {
       minHeight: this.props.minHeight || 300,
       maxHeight: this.props.maxHeight || 300,
       plugins: ['source', 'table', 'fullscreen', 'fontsize', 'fontcolor', 'fontfamily', 'imagemanager'],
+      buttons: ['format', 'bold', 'italic', 'deleted', 'underline', 'lists', 'image', 'file', 'link', 'horizontalrule'],
       codemirror: {
           lineNumbers: true,
           mode: 'htmlmixed',
