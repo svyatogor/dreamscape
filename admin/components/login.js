@@ -27,6 +27,10 @@ const Login = (props) =>
           <FontAwesome name='windows' /> Sign in with windows
         </div>
       </Paper>
+
+      <div style={{marginTop: 40, fontSize: 12, position: 'absolute', bottom: 50}}>
+        <a href="/admin/static/privacypolicy.htm">Privacy policy</a>
+      </div>
     </div>
   </div>
 

@@ -106,6 +106,7 @@ export default () => {
 		}
 	})
 
+	app.use('/admin/static', express.static('./admin/static'))
 	app.use('/admin', admin)
 	app.use('/', frontend)
 	app.get('/', (req, res) => {
