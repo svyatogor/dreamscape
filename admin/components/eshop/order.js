@@ -16,10 +16,9 @@ import numeral from 'numeral'
 import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
-import {get, map} from 'lodash'
+import {get, map, isEmpty} from 'lodash'
 import {humanize} from 'inflection'
 import moment from 'moment'
-import {get, isEmpty} from 'lodash'
 import {showNotification} from '../../actions'
 
 const Colors = {
