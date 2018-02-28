@@ -8,6 +8,13 @@ const annotate = site => order => {
   return {
     ...object,
     id: order._id,
+    lines: order.lines.map(line => {
+      return {...line.toObject(), product: {
+        id: line.product.id,
+        folder: line.product.folder,
+        data: line.product.toContext({})
+      }}
+    }),
     receipt: {
       id: get(object, 'receipt.transactions.0.related_resources.0.sale.id')
     },
@@ -21,8 +28,7 @@ const annotate = site => order => {
 export default class {
   @query
   static async eshopOrders({site}, {search, limit, offset}) {
-    console.log(search)
-    let orders = Order.find({site: site._id})
+    let orders = Order.find({site: site._id}).populate({path: 'lines.product', model: 'Item'})
     // if (status) {
     //   orders = orders.where({status})
     // }

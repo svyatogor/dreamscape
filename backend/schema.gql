@@ -81,6 +81,7 @@ type FileList {
 
 type Item {
   id: ID!
+  _name: String
   position: Int
   folder: ID
   data: JSON
@@ -132,8 +133,8 @@ input FileInput {
 }
 
 type OrderLine {
-  product: ID!
-  name: String!
+  product: Item
+  name: String
   count: Int!
   price: Float
   total: Float

@@ -19,6 +19,7 @@ import {connect} from 'react-redux'
 import {get, map} from 'lodash'
 import {humanize} from 'inflection'
 import moment from 'moment'
+import {get, isEmpty} from 'lodash'
 import {showNotification} from '../../actions'
 
 const Colors = {
@@ -76,8 +77,8 @@ class Order extends React.Component {
               </TableRow>
             </TableHeader>
             <TableBody displayRowCheckbox={false}>
-              {map(order.lines, item => (<TableRow key={item.product} hoverable>
-                <TableRowColumn>{item.name}</TableRowColumn>
+              {map(order.lines, item => (<TableRow key={item.product.id} hoverable>
+                <TableRowColumn>{isEmpty(item.name) ? get(item, 'product.data.name', 'DELETED') : item.name}</TableRowColumn>
                 <TableRowColumn>{item.count}</TableRowColumn>
                 <TableRowColumn>{numeral(item.price).format('0.00')}</TableRowColumn>
                 <TableRowColumn style={{textAlign: 'right'}}>{numeral(item.price * item.count).format('0.00')}</TableRowColumn>

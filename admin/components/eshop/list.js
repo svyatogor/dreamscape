@@ -23,7 +23,10 @@ const ordersQuery = gql`
         name
         price
         count
-        product
+        product {
+          id
+          data
+        }
       }
       billingAddress {
         name
