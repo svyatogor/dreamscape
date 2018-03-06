@@ -35,7 +35,7 @@ class PageClass {
       ...omit(this.toObject({virtuals: true}), ['properties', 'title']),
       title: t(this.title, locale),
       path: await this.path,
-      url: await this.url,
+      url: await this.url(),
       target: this.slug.startsWith('http') ? '_blank' : '_self',
       params: this.params,
       ...mapValues(this.properties, (prop, key) => {
