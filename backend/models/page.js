@@ -6,9 +6,6 @@ import {pageSchema} from './schema'
 let Page
 class PageClass {
   get path() {
-    if (this.slug.startsWith('http')) {
-      return this.slug
-    }
     return Page.find({site: this.site}).select(['_id', 'parent', 'slug']).cache(1).then(allPages => {
       const fullPath = [this.slug]
       let self = this
@@ -22,6 +19,15 @@ class PageClass {
     })
   }
 
+  async url({locale, site}) {
+    if (this.slug.startsWith('http')) {
+      return this.slug
+    }
+
+    let path = await this.path //TODO: Optimize
+    return `/${locale}/${path}`
+  }
+
   async toContext({locale, site}) {
     const layout = site.layouts[this.layout]
     const localizedProperies = map(pickBy(layout.properties, 'localized'), 'key')
@@ -29,6 +35,7 @@ class PageClass {
       ...omit(this.toObject({virtuals: true}), ['properties', 'title']),
       title: t(this.title, locale),
       path: await this.path,
+      url: await this.url,
       target: this.slug.startsWith('http') ? '_blank' : '_self',
       params: this.params,
       ...mapValues(this.properties, (prop, key) => {
