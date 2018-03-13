@@ -33,11 +33,10 @@ contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({ext
 
   const {site, body: {contact_form, form}} = req
   const formObject = get(site, ['forms', form])
-  const hasSchema = formObject && formObject.fields
-  const {value, error} = hasSchema ?
+  const schemaLess = formObject && !formObject.fields
+  const {value, error} = !schemaLess ?
     Joi.validate(contact_form, schema(site, form), {abortEarly: false, stripUnknown: true})
     : {value: req.body}
-
   const errorPath = req.body.callback_error || path
   const successPath = req.body.callback_success || path
   if (error) {
