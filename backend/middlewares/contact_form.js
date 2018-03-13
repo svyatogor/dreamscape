@@ -22,7 +22,7 @@ const schema = (site, type = 'contact') => {
   return Joi.object().keys(joiBuilder().build(schema))
 }
 
-contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req, res, next) => {
+contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({extended: true}), (req, res, next) => {
   const ref = req.get('Referrer')
   let path
   if (!isEmpty(ref)) {
@@ -32,7 +32,12 @@ contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req
   }
 
   const {site, body: {contact_form, form}} = req
-  const {value, error} = Joi.validate(contact_form, schema(site, form), {abortEarly: false, stripUnknown: true})
+  const formObject = get(site, ['forms', form])
+  const hasSchema = formObject && formObject.fields
+  const {value, error} = hasSchema ?
+    Joi.validate(contact_form, schema(site, form), {abortEarly: false, stripUnknown: true})
+    : {value: req.body}
+
   const errorPath = req.body.callback_error || path
   const successPath = req.body.callback_success || path
   if (error) {
