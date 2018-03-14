@@ -55,6 +55,7 @@ contact_form.post('/contact_form', bodyParser.urlencoded({extended: true}), (req
         // },
         to: site.notificationEmail,
         subject,
+        textEncoding: 'base64',
         html: body,
       }, (err, info) => {
         if (err) {
