@@ -52,7 +52,8 @@ export class section {
             })
           })
         } else {
-          return require('./index')[underscore(block._type)].render(block, context)
+          const module = require('./index')[underscore(block._type)]
+          return module ? module.render(block, context) : ""
         }
       } catch (e) {
         return Promise.reject(`Cannot render block: ${JSON.stringify(block)}, ${e}`)
