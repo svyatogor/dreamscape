@@ -3,8 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "~> 9.0",
-    "npm": "~> 6.0"
+    "node": ">= 9.0"
   },
   "dependencies": {
     "async-lock": "^1.1.0",
@@ -138,7 +137,7 @@
     "seed": "babel-node scripts/seed.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
-    "heroku-postbuild": "npm run build"
+    "heroku-postbuild": "yarn build"
   },
   "jest": {
     "collectCoverageFrom": [
