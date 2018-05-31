@@ -83,7 +83,7 @@ export default class {
     page.sections = page.sections || {}
     page.sections[section] = page.sections[section] || []
     let objectId
-    if (Object.keys(site.documentTypes).includes(_type)) {
+    if (site.documentTypes && Object.keys(site.documentTypes).includes(_type)) {
       const object = await CatalogResolver.upsertItem({site}, {catalog: _type})
       objectId = object.id
     } else {
