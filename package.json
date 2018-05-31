@@ -138,7 +138,7 @@
     "seed": "babel-node scripts/seed.js",
     "build": "node scripts/build.js",
     "test": "node scripts/test.js --env=jsdom",
-    "heroku-postbuild": "yarn build"
+    "heroku-postbuild": "npm run build"
   },
   "jest": {
     "collectCoverageFrom": [
