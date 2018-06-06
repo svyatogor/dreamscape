@@ -53,7 +53,7 @@ export class catalog {
         ...rawFilter,
       }
 
-      if (isString(opts.search) && opts.search.length > 3) {
+      if (isString(opts.search) && opts.search.length > 2) {
         console.log(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
         const ids = await SearchService.simple_search(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
 
