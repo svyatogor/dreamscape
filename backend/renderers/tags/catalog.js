@@ -58,7 +58,7 @@ export class catalog {
           opts.search,
           `${catalog}-${ctx.site._id}`,
           ctx.req.locale,
-          opts.fields ? opts.fields.split(',') : null,
+          opts.search_fields ? opts.search_fields.split(',') : null,
         )
 
         criteria['_id'] = {$in: ids}
