@@ -54,8 +54,12 @@ export class catalog {
       }
 
       if (isString(opts.search) && opts.search.length > 2) {
-        console.log(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
-        const ids = await SearchService.simple_search(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
+        const ids = await SearchService.simple_search(
+          opts.search,
+          `${catalog}-${ctx.site._id}`,
+          ctx.req.locale,
+          opts.fields ? opts.fields.split(',') : null,
+        )
 
         criteria['_id'] = {$in: ids}
       }

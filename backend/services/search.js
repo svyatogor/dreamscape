@@ -23,14 +23,19 @@ class Search {
     return this.client.delete(args)
   }
 
-  simple_search(q, type, locale) {
-    return this.search({
+  simple_search(q, type, locale, fields) {
+    const params = {
       index: locale,
       type,
       size: 10000,
       default_operator: 'AND',
       q,
-    }).then(r =>
+    }
+
+    if (fields) {
+      params.fields = fields
+    }
+    return this.search(params).then(r =>
       r.hits.hits.map((r) => r._id)
     )
   }
