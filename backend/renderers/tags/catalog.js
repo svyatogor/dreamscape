@@ -65,9 +65,9 @@ export class catalog {
       }
 
       if (opts.random) {
-        const ids = (await Item.aggregate({
-          $match: criteria
-        }).project({_id: 1}).sample(opts.limit)).map(e => e._id)
+        console.log('criteria', criteria)
+        const sampleRecords = await Item.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
+        const ids = sampleRecords.map(e => e._id)
         criteria = {_id: {$in: ids}}
       }
       let itemsQuery = Item.find(criteria)
