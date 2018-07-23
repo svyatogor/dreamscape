@@ -6,7 +6,7 @@ import '../backend/models'
 
 const data = JSON.parse(readFileSync('./seed-data.json'))
 mongoose.Promise = require('bluebird')
-mongoose.connect(process.env.MONGODB_URI, {useMongoClient: true}).then(() => {
+mongoose.connect(process.env.MONGODB_URI).then(() => {
   seeder.seed(data, {dropCollections: true}).then(function(dbData) {
       console.log('Seed completed');
   }).catch(function(err) {
