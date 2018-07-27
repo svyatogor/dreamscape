@@ -62,7 +62,12 @@ export class catalogfolder {
       }
       folder.items = await Promise.map(await items, item => item.toContext({locale: ctx.req.locale}))
       ctx[key] = folder
-      const result = body()
+      const result = await new Promise((resolve, reject) => {
+        body((error, html) => {
+          if (error) { reject(error) }
+          else { resolve(html) }
+        })
+      })
       ctx[key] = originalValue
 
       callback(null, result)

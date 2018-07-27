@@ -1,4 +1,5 @@
 import {defaults, map, isString} from 'lodash'
+import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
@@ -32,6 +33,8 @@ export class catalog {
     if (ctx.inspect) {
       return callback(null, '')
     }
+
+    const asyncBody = Promise.promisify(body)
 
     try {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
@@ -98,11 +101,11 @@ export class catalog {
         callback(null, elseBody ? elseBody() : '')
         return
       }
-      const data = await Promise.all(map(items, async item => {
+      const data = await Promise.map(items, async item => {
         const currentItem = await item.toContext({locale: ctx.req.locale})
         ctx[key] = currentItem
-        return body()
-      }))
+        return asyncBody()
+      }, {concurrency: 1}) // concurrency is crucial here as body() call reads current context
 
       ctx[key] = originalValue
       callback(null, data.join(''))

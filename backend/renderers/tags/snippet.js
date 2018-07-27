@@ -41,7 +41,7 @@ export class snippet {
         } else {
           text = new StaticText({...props, content: {en: body()}, type: options.type})
           return text.save().catch(e => console.log(e)).then(() => {
-            callback(null, body())
+            return callback(null, body())
           })
         }
       })
