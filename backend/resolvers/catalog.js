@@ -131,7 +131,7 @@ export default class {
     forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type}, field) => {
       if (localized) {
         item.set(field, {
-          ...get(item, field, {}),
+          ...(item.get(field) || {}),
           [locale]: data[field],
         })
       } else {
