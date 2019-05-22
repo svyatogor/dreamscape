@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean, filter} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean, mapValues} from 'lodash'
 import crypto from 'crypto'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
@@ -33,26 +33,53 @@ export default class {
   @query
   static async items({site}, {folder, search, catalog}) {
     const q = {site: site.id, deleted: false}
+    let schema
     if (folder) {
       q.folder = folder
+      if (catalog) {
+        schema = site.documentTypes[catalog]
+      } else {
+        const folderObject = await Folder.findById(folder)
+        if (!folderObject) return []
+        schema = site.documentTypes[folderObject.catalog]
+      }
     } else if (catalog) {
       q.catalog = catalog
+      schema = site.documentTypes[catalog]
     }
 
     if (search) {
       const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, '*')
       q['_id'] = {$in: ids}
     }
-    return (await Item.where(q).sort('position')).map(item => {
-      const schema = site.documentTypes[item.catalog]
-      const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
+    const referenceFields = Object.keys(schema.fields).filter(f =>
+      schema.fields[f].type === 'select' && schema.fields[f].documentType
+    )
+    const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
+    const result = await referenceFields.reduce((acc, field) =>
+      acc.populate({
+        path: field,
+        match: {site: site._id},
+        select: site.documentTypes[schema.fields[field].documentType].labelField,
+        model: 'Item'
+      }), Item.where(q).sort('position'))
+    return result.map(item => {
       const label = item.get(schema.labelField)
       return {
         id: item.id,
         folder: item.folder,
         position: item.position,
         label,
-        data: omit(item.toObject(), hiddenFields)
+        data: mapValues(item.toObject(), (value, key) => {
+          if (hiddenFields.includes(key)) {
+            return null
+          }
+          if (referenceFields.includes(key)) {
+            const labelField = site.documentTypes[schema.fields[key].documentType].labelField
+            return value[labelField]
+          }
+          return value
+        }),
       }
     })
   }
