@@ -20,6 +20,7 @@ import {showNotification} from '../../actions'
 import {RedactorField as Redactor} from '../redactor'
 import common from '../../common.scss'
 import ITEMS from '../../graphql/items.gql'
+import ReferenceField from './reference_field';
 
 class ItemEditor extends Component {
   onSubmit(data) {
@@ -31,6 +32,7 @@ class ItemEditor extends Component {
         data,
         locale,
         folder,
+        catalog: catalogKey
       },
       refetchQueries: [{query: ITEMS, variables: {folder, catalog: catalogKey}}]
     })
@@ -69,6 +71,20 @@ class ItemEditor extends Component {
         floatingLabelText={humanize(key)}
         fullWidth floatingLabelFixed
         required={key === this.props.catalog.labelField}
+        className={common.formControl}
+      />
+    )
+  }
+
+  passwordRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={TextField}
+        type='password'
+        floatingLabelText={humanize(key)}
+        fullWidth floatingLabelFixed
         className={common.formControl}
       />
     )
@@ -124,19 +140,31 @@ class ItemEditor extends Component {
   }
 
   selectRender(key, field) {
-    return (
-      <Field
-        name={key}
-        key={key}
-        component={SelectField}
-        floatingLabelText={humanize(key)}
-        fullWidth floatingLabelFixed
-        required={key === this.props.catalog.labelField}
-        className={common.formControl}
-      >
-        {map(field.options, (value, key) => <MenuItem value={key} primaryText={value} key={key} />)}
-      </Field>
-    )
+    if (field.documentType) {
+      return (
+        <Field
+          name={key}
+          key={key}
+          component={args => <ReferenceField {...args} field={field} />}
+          floatingLabelText={humanize(key)}
+          required={key === this.props.catalog.labelField}
+        />
+      )
+    } else {
+      return (
+        <Field
+          name={key}
+          key={key}
+          component={SelectField}
+          floatingLabelText={humanize(key)}
+          fullWidth floatingLabelFixed
+          required={key === this.props.catalog.labelField}
+          className={common.formControl}
+        >
+          {map(field.options, (value, key) => <MenuItem value={key} primaryText={value} key={key} />)}
+        </Field>
+      )
+    }
   }
 
   booleanRender(key, field) {
@@ -221,8 +249,8 @@ class ItemEditor extends Component {
 }
 
 const upsertItem = gql`
-  mutation upsertItem($id: ID, $folder: ID, $data: JSON!, $locale: String!) {
-    upsertItem(id: $id, folder: $folder, data: $data, locale: $locale) {
+  mutation upsertItem($id: ID, $folder: ID, $catalog: String, $data: JSON!, $locale: String!) {
+    upsertItem(id: $id, folder: $folder, data: $data, locale: $locale, catalog: $catalog) {
       id
       folder
       data

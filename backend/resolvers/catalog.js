@@ -1,4 +1,5 @@
 import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'lodash'
+import crypto from 'crypto'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
 import SearchService from '../services/search'
@@ -29,6 +30,8 @@ export default class {
     const q = {site: site.id, deleted: false}
     if (folder) {
       q.folder = folder
+    } else if (catalog) {
+      q.catalog = catalog
     }
 
     if (search) {
@@ -39,6 +42,7 @@ export default class {
       id: item.id,
       folder: item.folder,
       position: item.position,
+      label: item.get(get(site.documentTypes, [item.catalog, 'labelField'])),
       data: item.toObject()
     }))
   }
@@ -145,6 +149,12 @@ export default class {
           item.set(field, data[field])
         } else if (type === 'date') {
           item.set(field, new Date(data[field]))
+        } else if (type === 'password' && !isEmpty(data[field])) {
+          const hash = crypto
+            .createHash('sha256')
+            .update(data[field], 'utf8')
+            .digest().toString('hex')
+          item.set(field, hash)
         } else if (isEmpty(data[field])) {
           item.set(field, null)
         } else {
