@@ -1,4 +1,5 @@
-import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean} from 'lodash'
+import mongoose from 'mongoose'
+import {isEmpty, isNil, get, forEach, omit, map, isString, isBoolean, filter} from 'lodash'
 import crypto from 'crypto'
 import {query, mutation} from './utils'
 import {Folder, Item} from '../models'
@@ -19,9 +20,13 @@ export default class {
   @query
   static async item({site}, {id}) {
     const item = await Item.findOne({site: site.id, _id: id})
+    const schema = site.documentTypes[item.catalog]
+    const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
+    const label = item.get(schema.labelField)
     return {
       id: item.id,
-      data: item.toObject(),
+      label,
+      data: omit(item.toObject(), hiddenFields)
     }
   }
 
@@ -38,13 +43,18 @@ export default class {
       const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, '*')
       q['_id'] = {$in: ids}
     }
-    return (await Item.where(q).sort('position')).map(item => ({
-      id: item.id,
-      folder: item.folder,
-      position: item.position,
-      label: item.get(get(site.documentTypes, [item.catalog, 'labelField'])),
-      data: item.toObject()
-    }))
+    return (await Item.where(q).sort('position')).map(item => {
+      const schema = site.documentTypes[item.catalog]
+      const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
+      const label = item.get(schema.labelField)
+      return {
+        id: item.id,
+        folder: item.folder,
+        position: item.position,
+        label,
+        data: omit(item.toObject(), hiddenFields)
+      }
+    })
   }
 
   @mutation
@@ -132,7 +142,8 @@ export default class {
       item = new Item({site: site.id, folder, position, deleted: false, catalog: catalogKey})
     }
 
-    forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type}, field) => {
+    forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type, ...fieldSchema}, field) => {
+      console.log({type, t: fieldSchema.documentType, v: data[field]})
       if (localized) {
         item.set(field, {
           ...get(item, field, {}),
@@ -149,12 +160,16 @@ export default class {
           item.set(field, data[field])
         } else if (type === 'date') {
           item.set(field, new Date(data[field]))
-        } else if (type === 'password' && !isEmpty(data[field])) {
-          const hash = crypto
-            .createHash('sha256')
-            .update(data[field], 'utf8')
-            .digest().toString('hex')
-          item.set(field, hash)
+        } else if (type === 'password') {
+          if (!isEmpty(data[field])) {
+            const hash = crypto
+              .createHash('sha256')
+              .update(data[field], 'utf8')
+              .digest().toString('hex')
+            item.set(field, hash)
+          }
+        } else if (type === 'select' && fieldSchema.documentType && !isEmpty(data[field])) {
+          item.set(field, mongoose.Types.ObjectId(data[field]))
         } else if (isEmpty(data[field])) {
           item.set(field, null)
         } else {

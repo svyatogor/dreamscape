@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {omit, isNil, forEach, has, map, reject, get, pickBy, reduce} from 'lodash'
+import {omit, isNil, forEach, has, map, reject, get, pickBy} from 'lodash'
 import {query, mutation} from './utils'
 import {Page} from '../models'
 import CatalogResolver from './catalog'
