@@ -3,8 +3,7 @@ import jwt from 'jsonwebtoken'
 import {omit, some, includes, map} from 'lodash'
 import bodyParser from 'body-parser'
 import Joi from 'joi'
-import Item from '../models/item'
-import crypto from 'crypto'
+import User from '../models/auth/user'
 export const auth = express()
 
 const loginSchema = usernameField => Joi.object().keys({
@@ -21,7 +20,6 @@ auth.use('/*', (req, res, next) => {
     const regexps = map(config.secureUrls, r => new RegExp(r))
     if (req.path !== config.loginUrl && !req.originalUrl.startsWith('/auth/') && some(regexps, r => req.path.match(r))) {
       const token = req.cookies[`${req.site.key}-authtoken`]
-      console.log(req.cookies)
       if (!token) {
         res.redirect(config.loginUrl)
         return
@@ -44,18 +42,16 @@ auth.post('/auth/login', (req, res) => {
   const {site: {auth: config, key}} = req
   const {usernameField = 'email'} = req.site.auth
   const {value, error} = Joi.validate(req.body, loginSchema(usernameField), {abortEarly: false, stripUnknown: true})
-  const passwordHash = crypto
-      .createHash('sha256')
-      .update(value.password, 'utf8')
-      .digest().toString('hex')
+
   if (error) {
     res.redirect(config.loginUrl)
     return
   }
-  Item.findOne({site: req.site._id, catalog: req.site.auth.userModel, [usernameField]: value[usernameField]}).then(user => {
-    if (!user || user.password !== passwordHash) {
+  User.findOne({site: req.site._id, catalog: req.site.auth.userModel, [usernameField]: value[usernameField]}).then(user => {
+    if (!user || user.authenticate(value.password)) {
       req.flash('error', `Invalid ${usernameField} or password`)
       res.redirect(config.loginUrl)
+      return
     }
     const viewer = omit(user.toObject(), 'password')
     res.cookie(`${key}-authtoken`, jwt.sign(viewer, process.env.JWT_SECRET), {

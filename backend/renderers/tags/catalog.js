@@ -3,6 +3,7 @@ import {Item} from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
 const s = require('sugar')
+const _ = require('lodash')
 
 export class catalog {
   constructor(renderContext) {
@@ -95,7 +96,8 @@ export class catalog {
         return
       }
       const data = await Promise.all(map(items, async item => {
-        const currentItem = await item.toContext({locale: ctx.req.locale})
+        console.log(item)
+        const currentItem = await item.toContext(ctx.req)
         ctx[key] = currentItem
         return body()
       }))
