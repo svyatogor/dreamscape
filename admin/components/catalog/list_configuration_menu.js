@@ -28,7 +28,7 @@ class ListConfigurationMenu extends React.Component {
       children,
     } = this.props
     const controllableFields = omitBy(fields, ({type}) =>
-      type === 'html' || type === 'image'
+      type === 'html' || type === 'image' || type === 'password'
     )
     return (
       <IconMenu

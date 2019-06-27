@@ -45,7 +45,7 @@ export class catalogfolder {
           callback(null, '')
           return
         }
-        folder = await folder.toContext({locale: ctx.req.locale})
+        folder = await folder.toContext(ctx.req)
         q = {catalog, site: ctx.site._id, folder: ctx.page.params, deleted: false}
       }
 
@@ -60,7 +60,7 @@ export class catalogfolder {
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
         items = items.skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }
-      folder.items = await Promise.map(await items, item => item.toContext({locale: ctx.req.locale}))
+      folder.items = await Promise.map(await items, item => item.toContext(ctx.req))
       ctx[key] = folder
       const result = await new Promise((resolve, reject) => {
         body((error, html) => {

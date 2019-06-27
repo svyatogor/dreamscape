@@ -41,7 +41,7 @@ export class section {
         if (fs.existsSync(`./data/${site.key}/layouts/${page.layout}/${block._type}.html`)) {
           return new Promise(async (resolve, reject) => {
             const item = await Item.findOne({site: site.id, catalog: block._type, _id: block.ref})
-            const itemAsContext = await item.toContext({locale: req.locale})
+            const itemAsContext = await item.toContext(req)
             const nestedContext = {...context, ...itemAsContext}
             env.render(`${page.layout}/${block._type}.html`, nestedContext, (error, result) => {
               if (error) {

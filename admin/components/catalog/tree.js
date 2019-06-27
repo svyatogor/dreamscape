@@ -182,17 +182,23 @@ class TreeWrapper extends React.Component {
         <div style={{flex: '1 4 5%', minWidth: 100}}></div>
 
         <div style={{position: 'fixed', bottom: 20, right: 20}}>
-          <FloatingActionButton secondary
+          {catalog.hasFolders && <FloatingActionButton secondary
             onTouchTap={() => this.setState({addFolder: true})}
           >
             <i className="mdi mdi-folder-plus" style={{fontSize: '24px'}} />
-          </FloatingActionButton>
-          <FloatingActionButton secondary
+          </FloatingActionButton>}
+          {catalog.hasFolders && <FloatingActionButton secondary
             onTouchTap={() => history.push(`/catalog/${catalog}/folder/${match.params.folder}/item/new`)}
             style={{marginLeft: 10}}
           >
             <ContentAdd />
-          </FloatingActionButton>
+          </FloatingActionButton>}
+          {!catalog.hasFolders && <FloatingActionButton secondary
+            onTouchTap={() => history.push(`/catalog/${catalog}/item/new`)}
+            style={{marginLeft: 10}}
+          >
+            <ContentAdd />
+          </FloatingActionButton>}
         </div>
       </div>
     )

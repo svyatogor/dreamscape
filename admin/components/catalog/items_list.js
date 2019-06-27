@@ -94,8 +94,17 @@ class ItemsList extends React.Component {
     return t(data)
   }
 
+  editUrl(item) {
+    const {catalogKey} = this.props
+    if (item.folder) {
+      return `/catalog/${catalogKey}/folder/${item.folder}/item/${item.id}`
+    } else {
+      return `/catalog/${catalogKey}/item/${item.id}`
+    }
+  }
+
   render() {
-    const {visibleFields, data, catalogKey, push, catalog} = this.props
+    const {visibleFields, data, push, catalog} = this.props
     return (
       <Table selectable={false}>
         <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -116,7 +125,7 @@ class ItemsList extends React.Component {
             )}
             <TableRowColumn style={{textAlign: 'right'}}>
               <IconButton
-                onTouchTap={() => push(`/catalog/${catalogKey}/folder/${item.folder}/item/${item.id}`)}
+                onTouchTap={() => push(this.editUrl(item))}
               >
                 <i className="material-icons">edit</i>
               </IconButton>

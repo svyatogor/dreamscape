@@ -4,6 +4,7 @@ import {Item} from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
 const s = require('sugar')
+const _ = require('lodash')
 
 export class catalog {
   constructor(renderContext) {
@@ -101,11 +102,12 @@ export class catalog {
         callback(null, elseBody ? elseBody() : '')
         return
       }
-      const data = await Promise.map(items, async item => {
-        const currentItem = await item.toContext({locale: ctx.req.locale})
+
+      const data = await Promise.all(map(items, async item => {
+        const currentItem = await item.toContext(ctx.req)
         ctx[key] = currentItem
         return asyncBody()
-      }, {concurrency: 1}) // concurrency is crucial here as body() call reads current context
+      }, {concurrency: 1})) // concurrency is crucial here as body() call reads current context
 
       ctx[key] = originalValue
       callback(null, data.join(''))

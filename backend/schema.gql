@@ -85,6 +85,7 @@ type Item {
   position: Int
   folder: ID
   data: JSON
+  label: String
 }
 
 input PageInput {
@@ -193,7 +194,7 @@ type Mutation {
   saveStaticText(input: StaticTextInput!): StaticText
   upsertFileList(input: FileListInput!, locale: String!): FileList
   attachImage(type: String!, id: ID!, url: String!): Boolean
-  upsertItem(id: ID, folder: ID, data: JSON!, locale: String): Item
+  upsertItem(id: ID, folder: ID, catalog: String, data: JSON!, locale: String): Item
   moveItem(id: ID!, newPosition: Int!): Boolean
   deleteItem(id: ID!): Boolean
   upsertFolder(folder: FolderInput!): Folder

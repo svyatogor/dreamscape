@@ -17,6 +17,7 @@ frontend.use((req, res, next) => {
 
 frontend.use('/data', express.static(__dirname + '/../data'))
 forEach(require('./middlewares'), middleware => frontend.use(middleware))
+
 frontend.get('/*', (req, res, next) => {
   renderRequest(req.path, {req, res, next})
 })
