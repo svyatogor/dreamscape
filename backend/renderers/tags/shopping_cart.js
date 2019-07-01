@@ -48,7 +48,7 @@ export class shopping_cart {
     const items = await Promise.map(cart.items, async item => {
       return {
         ...item,
-        product: await item.product.toContext({locale: ctx.req.locale})
+        product: await item.product.toContext(ctx.req)
       }
     })
     ctx.cart = {

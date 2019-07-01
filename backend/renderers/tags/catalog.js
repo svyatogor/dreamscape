@@ -1,4 +1,4 @@
-import {defaults, map, isString} from 'lodash'
+import {defaults, map, isEmpty} from 'lodash'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
@@ -54,9 +54,8 @@ export class catalog {
         ...rawFilter,
       }
 
-      if (isString(opts.search) && opts.search.length > 3) {
-        console.log(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
-        const ids = await SearchService.simple_search(opts.search, `${catalog}-${ctx.site._id}`, ctx.req.locale)
+      if (!isEmpty(opts.search) && opts.search.toString().length > 3) {
+        const ids = await SearchService.simple_search(opts.search.toString(), `${catalog}-${ctx.site._id}`, ctx.req.locale)
 
         criteria['_id'] = {$in: ids}
       }
@@ -96,7 +95,6 @@ export class catalog {
         return
       }
       const data = await Promise.all(map(items, async item => {
-        console.log(item)
         const currentItem = await item.toContext(ctx.req)
         ctx[key] = currentItem
         return body()

@@ -3,7 +3,7 @@ import BaseJoi from 'joi'
 import JoiPhoneNumberExtensions from 'joi-phone-number-extensions'
 import {form as  joiToForms} from 'joi-errors-for-forms'
 import bodyParser from 'body-parser'
-import {get, includes} from 'lodash'
+import {get, includes, isEmpty} from 'lodash'
 import fetch from 'node-fetch'
 import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
@@ -11,6 +11,7 @@ import Order from '../models/eshop/order'
 import {mailTransporter} from '../../common/mailer'
 import {renderEmail} from '../renderers'
 import {t} from '../common/utils'
+import {auth} from './auth'
 
 const Joi = BaseJoi.extend(JoiPhoneNumberExtensions)
 
@@ -32,6 +33,7 @@ const orderSchema = site => Joi.object().keys({
 
 export const eshop = express()
 eshop.use(bodyParser.urlencoded({extended: true}))
+eshop.use(auth)
 eshop.use((req, res, next) => {
   req.flash('referrer', req.get('Referrer'))
   req.flash('info', req.get('Referrer'))
@@ -55,6 +57,7 @@ eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
 })
 
 eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
+  console.log('inc_cart_count', req.originalUrl)
   const cart = new Cart(req)
   if (req.params.action_cart_count === 'inc_cart_count') {
     cart.inc(req.params.id, 1)
@@ -68,28 +71,61 @@ eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
 
 eshop.post('/eshop/checkout', async (req, res, next) => {
   const cart = new Cart(req)
-
+  console.log(cart.count)
   if (cart.count < 1) {
     res.redirect(req.site.eshop.rootPage || '/')
     return
   }
-
-  const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
-  if (error) {
-    req.flash('validation', joiToForms()(error))
-    res.redirect(get(req.site, 'eshop.cartPage') || req.get('Referrer'))
+console.log(req.viewer)
+  if (req.site.eshop.requireValidUser && !req.viewer) {
+    res.redirect(get(req.site, 'auth.loginUrl', '/'))
     return
   }
 
   const order = new Order({site: req.site._id, status: 'draft'})
-  order.billingAddress = value.billingAddress
-  order.shippingAddress = value.shippingAddress || value.billingAddress
+  if (req.viewer) {
+    order.user = req.viewer._id
+  }
+  console.log(1)
+  if (req.site.eshop.requireValidUser && req.viewer && get(req.site.eshop, 'copyDetailsFromUser', true) === true) {
+    // TODO:
+    console.log(2)
+  } else {
+    console.log(3)
+    const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
+    if (error) {
+      console.log(error)
+      req.flash('validation', joiToForms()(error))
+      res.redirect(get(req.site, 'eshop.cartPage') || req.get('Referrer'))
+      return
+    }
+
+    order.billingAddress = value.billingAddress
+    order.shippingAddress = value.shippingAddress || value.billingAddress
+  }
+  console.log(4)
   await order.addItemsFromCart(cart)
   await order.setDefaultDeliveryMethod()
 
   try {
     await order.save()
-    res.redirect(get(req.site, 'eshop.cartPage') + '/complete/' + order._id)
+    // TODO:
+    if (isEmpty(req.site.eshop.allowedMethods)) {
+      console.log('isEmpty')
+      try {
+        await order.finilize(() => true)
+        await order.save()
+        // await sendOrderNotificatin(req, order)
+        res.cookie('cart', [])
+        res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
+      } catch (e) {
+        console.log(e)
+        req.flash('error', 'eshop.errors.generic_checkout_error')
+        res.redirect(req.get('Referrer'))
+      }
+    } else {
+      res.redirect(get(req.site, 'eshop.cartPage') + '/complete/' + order._id)
+    }
   } catch (e) {
     console.log(e)
     req.flash('error', 'eshop.errors.generic_checkout_error')

@@ -98,10 +98,11 @@ class OrderClass {
   }
 
   get availableDeliveryMethods() {
+    const country = get(this.shippingAddress, 'country')
     return Site.findOne({_id: this.site}).then(site => {
       return pickBy(site.get('eshop').deliveryMethods, method =>
-        (!method.countries || includes(method.countries, this.shippingAddress.country)) &&
-        (!method.excludedCountries  || !includes(method.excludedCountries, this.shippingAddress.country))
+        (!method.countries || includes(method.countries, country)) &&
+        (!method.excludedCountries  || !includes(method.excludedCountries, country))
       )
     })
   }
@@ -120,7 +121,7 @@ orderSchema.pre('save', function(next) {
     return
   }
   Order.findOne({site: this.site}).sort('-number').select('number').then(lastOrder => {
-    this.number = lastOrder.number || 10000
+    this.number = get(lastOrder, 'number', 10000)
     this.number++
     next()
   })

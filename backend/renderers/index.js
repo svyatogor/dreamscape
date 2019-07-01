@@ -1,5 +1,6 @@
 import nunjucks from 'nunjucks'
-import {zipObject, map, reduce, forEach, isNil, isEmpty, isNaN, get} from 'lodash'
+import {filter, zipObject, map, reduce, forEach, isNil, isEmpty, isNaN, get} from 'lodash'
+import qs from 'querystring'
 import langs from 'langs'
 import Promise from 'bluebird'
 import cheerio from 'cheerio'
@@ -59,6 +60,12 @@ const renderPage = async ({req, res}, page, context) => {
       const val = parseFloat(str).toLocaleString(locale, {style: 'currency', currency})
       return isNaN(val) ? defaultValue : val
     })
+    env.addFilter('initials', (str) =>
+      str.split(' ').slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('')
+    )
+    env.addFilter('setQS', (query, ...params) =>
+      qs.stringify({...query, ...zipObject(filter(params, (_, i) => i % 2 === 0), filter(params, (_, i) => i % 2 === 1))})
+    )
     env.addFilter('date', require('nunjucks-date-filter'))
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {

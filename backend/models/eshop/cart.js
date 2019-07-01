@@ -1,8 +1,9 @@
 import Product from './product'
-import {isNil, isEmpty, findIndex, map, find, sumBy, reject} from 'lodash'
+import {isNil, isEmpty, findIndex, map, find, sumBy, reject, get} from 'lodash'
 
 export default class {
   constructor(req) {
+    this.req = req
     this.site = req.site
     if (isNil(req.cookies.cart) || isEmpty(req.cookies.cart)) {
       this._items = []
@@ -37,7 +38,11 @@ export default class {
 
   get items() {
     if (!this.__items)  {
-      return Product.find({_id: {$in: map(this._items, 'product')}}).then(objects => {
+      const pricingPolicy = this.pricingPolicy
+      console.log('x')
+      return pricingPolicy.bind().then(async () => {
+        const objects = await Product.find({_id: {$in: map(this._items, 'product')}})
+        objects.forEach(o => o.pricingPolicy = pricingPolicy)
         this.__items = map(this._items, i => ({
           ...i,
           product: find(objects, o => String(o._id) === i.product)
@@ -54,5 +59,19 @@ export default class {
 
   serialize() {
     return JSON.stringify(this._items)
+  }
+
+  get pricingPolicy() {
+    const pricingPolicyName = get(this.req, 'site.eshop.discountPolicy')
+    const siteKey = get(this.req, 'site.key')
+    const pricingPolicyFile = `../../../data/${siteKey}/modules/${pricingPolicyName}`
+    try {
+      const PricingPolicy = require(pricingPolicyFile).default
+      if (PricingPolicy) {
+        return new PricingPolicy(this.req)
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
 }

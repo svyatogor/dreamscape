@@ -111,6 +111,7 @@ const orderSchema = new Schema({
   deliveryDiscount: Number,
   total: Number,
   taxTotal: Number,
+  user: {type: Schema.Types.ObjectId, ref: 'Item'},
   // createdAt: Date,
   // updatedAt: Date,
 }, {strict: false, timestamps: true})

@@ -38,8 +38,10 @@ class SiteClass {
   layoutInfo(layout) {
     if (!this.env) {
       this.env = nunjucks.configure(`./data/${this.key}/layouts`)
-      this.env.addFilter('currency', (str, currency, defaultValue = '-') => null)
-      this.env.addFilter('date', (str, currency, defaultValue = '-') => null)
+      this.env.addFilter('currency', () => null)
+      this.env.addFilter('initials', () => null)
+      this.env.addFilter('setQS', () => null)
+      this.env.addFilter('date', () => null)
       forEach(tags, (tag, name) => {
         this.env.addExtension(name, new tag())
       })

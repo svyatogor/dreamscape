@@ -1,6 +1,4 @@
-import mongoose from 'mongoose'
-import {get, pickBy, isEmpty, isNil} from 'lodash'
-import {itemSchema} from '../schema'
+import {get, pickBy} from 'lodash'
 import jsonic from 'jsonic'
 import {Site} from '../index'
 import Item from '../item'
@@ -20,8 +18,20 @@ export default class Product extends Item {
     return object
   }
 
+  bind(req) {
+    this.req = req
+  }
+
   get finalPrice() {
-    return !isNil(this.get('discountedPrice')) && this.get('discountedPrice') > 0 ? this.get('discountedPrice') : this.get('price')
+    try {
+      if (this.pricingPolicy) {
+        return this.pricingPolicy.price(this)
+      }
+    } catch (e) {
+      console.log(e)
+    }
+    const discountedPrice = this.get('discountedPrice') || 0
+    return discountedPrice > 0 ? this.get('discountedPrice') : this.get('price')
   }
 
   get priceWithoutTaxes() {
