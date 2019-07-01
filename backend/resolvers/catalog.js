@@ -173,7 +173,7 @@ export default class {
       console.log({type, t: fieldSchema.documentType, v: data[field]})
       if (localized) {
         item.set(field, {
-          ...get(item, field, {}),
+          ...(item.get(field) || {}),
           [locale]: data[field],
         })
       } else {

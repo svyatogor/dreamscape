@@ -1,4 +1,5 @@
-import {defaults, map, isEmpty} from 'lodash'
+import {defaults, map, isString} from 'lodash'
+import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
@@ -34,6 +35,8 @@ export class catalog {
       return callback(null, '')
     }
 
+    const asyncBody = Promise.promisify(body)
+
     try {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
       if (opts.sort === 'random') {
@@ -54,16 +57,26 @@ export class catalog {
         ...rawFilter,
       }
 
+<<<<<<< HEAD
       if (!isEmpty(opts.search) && opts.search.toString().length > 3) {
         const ids = await SearchService.simple_search(opts.search.toString(), `${catalog}-${ctx.site._id}`, ctx.req.locale)
+=======
+      if (isString(opts.search) && opts.search.length > 2) {
+        const ids = await SearchService.simple_search(
+          opts.search,
+          `${catalog}-${ctx.site._id}`,
+          ctx.req.locale,
+          opts.search_fields ? opts.search_fields.split(',') : null,
+        )
+>>>>>>> production
 
         criteria['_id'] = {$in: ids}
       }
 
       if (opts.random) {
-        const ids = (await Item.aggregate({
-          $match: criteria
-        }).project({_id: 1}).sample(opts.limit)).map(e => e._id)
+        console.log('criteria', criteria)
+        const sampleRecords = await Item.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
+        const ids = sampleRecords.map(e => e._id)
         criteria = {_id: {$in: ids}}
       }
       let itemsQuery = Item.find(criteria)
@@ -94,11 +107,12 @@ export class catalog {
         callback(null, elseBody ? elseBody() : '')
         return
       }
+
       const data = await Promise.all(map(items, async item => {
         const currentItem = await item.toContext(ctx.req)
         ctx[key] = currentItem
-        return body()
-      }))
+        return asyncBody()
+      }, {concurrency: 1})) // concurrency is crucial here as body() call reads current context
 
       ctx[key] = originalValue
       callback(null, data.join(''))
