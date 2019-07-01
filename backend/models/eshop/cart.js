@@ -1,6 +1,14 @@
 import Product from './product'
 import {isNil, isEmpty, findIndex, map, find, sumBy, reject, get} from 'lodash'
 
+class DefaultPricingPolicy {
+  constructor() {}
+  bind() {}
+  price(product) {
+    return product.get('price')
+  }
+}
+
 export default class {
   constructor(req) {
     this.req = req
@@ -64,6 +72,9 @@ export default class {
   get pricingPolicy() {
     const pricingPolicyName = get(this.req, 'site.eshop.discountPolicy')
     const siteKey = get(this.req, 'site.key')
+    if (!pricingPolicyName) {
+      return new DefaultPricingPolicy(this.req)
+    }
     const pricingPolicyFile = `../../../data/${siteKey}/modules/${pricingPolicyName}`
     try {
       const PricingPolicy = require(pricingPolicyFile).default
