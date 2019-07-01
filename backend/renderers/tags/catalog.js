@@ -1,4 +1,4 @@
-import {defaults, map, isString} from 'lodash'
+import {defaults, map, isEmpty} from 'lodash'
 import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
@@ -57,19 +57,13 @@ export class catalog {
         ...rawFilter,
       }
 
-<<<<<<< HEAD
-      if (!isEmpty(opts.search) && opts.search.toString().length > 3) {
-        const ids = await SearchService.simple_search(opts.search.toString(), `${catalog}-${ctx.site._id}`, ctx.req.locale)
-=======
-      if (isString(opts.search) && opts.search.length > 2) {
+      if (!isEmpty(opts.search) && opts.search.toString().length > 2) {
         const ids = await SearchService.simple_search(
-          opts.search,
+          opts.search.toString(),
           `${catalog}-${ctx.site._id}`,
           ctx.req.locale,
           opts.search_fields ? opts.search_fields.split(',') : null,
         )
->>>>>>> production
-
         criteria['_id'] = {$in: ids}
       }
 
