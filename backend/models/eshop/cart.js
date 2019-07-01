@@ -2,8 +2,7 @@ import Product from './product'
 import {isNil, isEmpty, findIndex, map, find, sumBy, reject, get} from 'lodash'
 
 class DefaultPricingPolicy {
-  constructor() {}
-  bind() {}
+  bind() { return new Promise(resolve => resolve())}
   price(product) {
     return product.get('price')
   }
