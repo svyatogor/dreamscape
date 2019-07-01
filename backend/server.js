@@ -31,10 +31,10 @@ const syncS3 = () => {
 		sites.forEach(site => {
 			console.log(`Syncing layout for ${site.key}`)
 			const downloader = client.downloadDir({
-				localDir: `./data/${site.key}/layouts`,
+				localDir: `./data/${site.key}`,
 				s3Params: {
 					Bucket: process.env.S3_BUCKET,
-					Prefix: `${site.key}/layouts`
+					Prefix: `${site.key}`
 				}
 			})
 			downloader.on('error', err => {
