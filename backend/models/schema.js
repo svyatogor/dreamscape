@@ -83,6 +83,7 @@ const addressSchema = new Schema({
 
 const orderLineSchema = new Schema({
   product: {type: Schema.Types.ObjectId, ref: 'Item'},
+  productData: Object,
   name: String,
   image: String,
   count: Number,
@@ -111,6 +112,7 @@ const orderSchema = new Schema({
   deliveryDiscount: Number,
   total: Number,
   taxTotal: Number,
+  comments: String,
   user: {type: Schema.Types.ObjectId, ref: 'Item'},
   // createdAt: Date,
   // updatedAt: Date,

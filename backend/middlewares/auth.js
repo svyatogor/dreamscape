@@ -12,7 +12,6 @@ const loginSchema = usernameField => Joi.object().keys({
 })
 auth.use(bodyParser.urlencoded({extended: true}))
 auth.use((req, res, next) => {
-  console.log('AUTH LOAD 0', req.originalUrl, req.site.auth)
   if (includes(req.site.features, 'auth')) {
     const config = req.site.auth
     if (!config) {

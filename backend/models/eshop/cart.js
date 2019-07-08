@@ -46,7 +46,6 @@ export default class {
   get items() {
     if (!this.__items)  {
       const pricingPolicy = this.pricingPolicy
-      console.log('x')
       return pricingPolicy.bind().then(async () => {
         const objects = await Product.find({_id: {$in: map(this._items, 'product')}})
         objects.forEach(o => o.pricingPolicy = pricingPolicy)

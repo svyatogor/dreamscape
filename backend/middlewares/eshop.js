@@ -23,6 +23,7 @@ const addressSchema = site => Joi.object().keys({
   city: Joi.string().optional(),
   postalCode: Joi.string().optional(),
   streetAddress: Joi.string().optional(),
+  comments: Joi.string().optional().allow(''),
 })
 
 const orderSchema = site => Joi.object().keys({
@@ -76,7 +77,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     res.redirect(req.site.eshop.rootPage || '/')
     return
   }
-console.log(req.viewer)
+
   if (req.site.eshop.requireValidUser && !req.viewer) {
     res.redirect(get(req.site, 'auth.loginUrl', '/'))
     return
@@ -86,12 +87,16 @@ console.log(req.viewer)
   if (req.viewer) {
     order.user = req.viewer._id
   }
-  console.log(1)
+
   if (req.site.eshop.requireValidUser && req.viewer && get(req.site.eshop, 'copyDetailsFromUser', true) === true) {
-    // TODO:
-    console.log(2)
+    order.comments = req.body.comments
+    order.billingAddress = {
+      email: req.viewer.email
+    }
+    order.shippingAddress = {
+      email: req.viewer.email
+    }
   } else {
-    console.log(3)
     const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
     if (error) {
       console.log(error)
@@ -100,10 +105,10 @@ console.log(req.viewer)
       return
     }
 
+    order.comments = value.comments
     order.billingAddress = value.billingAddress
     order.shippingAddress = value.shippingAddress || value.billingAddress
   }
-  console.log(4)
   await order.addItemsFromCart(cart)
   await order.setDefaultDeliveryMethod()
 
@@ -111,11 +116,10 @@ console.log(req.viewer)
     await order.save()
     // TODO:
     if (isEmpty(req.site.eshop.allowedMethods)) {
-      console.log('isEmpty')
       try {
-        await order.finilize(() => true)
+        await order.finalize(() => true)
         await order.save()
-        // await sendOrderNotificatin(req, order)
+        await sendOrderNotificatin(req, order)
         res.cookie('cart', [])
         res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
       } catch (e) {
@@ -164,7 +168,7 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
   }
 
   order.set({paymentMethod: 'cash_on_delivery', paymentStatus: 'pending'})
-  order.finilize(() => Promise.resolve())
+  order.finalize(() => Promise.resolve())
     .then(async () => {
       await order.save()
       await sendOrderNotificatin(req, order)
@@ -202,7 +206,7 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
 
   let receipt
   try {
-    await order.finilize(() => {
+    await order.finalize(() => {
       return fetch(`${process.env.PAYPAL_API_URL}/payments/payment/${order.get('paypalPaymentRequest').id}/execute`, {
         method: 'POST',
         headers: {

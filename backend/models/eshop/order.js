@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {sumBy, some, isNil, get, includes, pickBy, mapValues} from 'lodash'
+import {sumBy, some, isNil, get, includes, pickBy, pick, mapValues} from 'lodash'
 import Promise from 'bluebird'
 import {orderSchema} from '../schema'
 import Product from './product'
@@ -30,8 +30,10 @@ class OrderClass {
         count,
         product: {priceWithoutTaxes, taxAmount, finalPrice, tax, productName, productImage}
       } = item
+      const fieldsToCopy = get(cart.req.site.eshop, 'copyToOrder', [])
       return {
         product: item.product,
+        productData: pick(item.product.toObject(), fieldsToCopy),
         name: await productName,
         image: await productImage,
         count: count,
@@ -64,7 +66,7 @@ class OrderClass {
     })
   }
 
-  finilize(completePayment) {
+  finalize(completePayment) {
     return lock.acquire('eshop-stock-reduce', async () => {
       const products = await Promise.map(this.lines, async line => {
         return Product.findOne({_id: line.product, site: this.site, $where: `this.stock >= ${line.count}`})
@@ -78,6 +80,15 @@ class OrderClass {
       )
     }).then(async () => {
       this.set({status: 'new'})
+      const site = (await Site.findById(this.get('site'))).toObject()
+      const afterCreateHookFile = get(site, 'eshop.afterCreateOrderHook')
+      if (afterCreateHookFile) {
+        const afterCreateHookFilePath = `../../../data/${site.key}/modules/${afterCreateHookFile}`
+        const afterCreateHook = require(afterCreateHookFilePath).default
+        if (afterCreateHook) {
+          await afterCreateHook(site, this)
+        }
+      }
       await this.save()
     })
 

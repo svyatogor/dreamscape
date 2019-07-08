@@ -15,6 +15,8 @@ export default class Product extends Item {
       object[field] = t(object[field], locale)
     })
     object.finalPrice = this.finalPrice
+    object.priceWithoutTaxes = this.priceWithoutTaxes
+    object.taxAmount = this.taxAmount
     return object
   }
 
