@@ -1,7 +1,6 @@
-import {defaults, map, isEmpty} from 'lodash'
+import {defaults} from 'lodash'
 import Promise from 'bluebird'
 import {Item} from '../../models'
-import jsonic from 'jsonic'
 
 export class load {
   constructor(renderContext) {
