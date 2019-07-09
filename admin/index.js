@@ -12,7 +12,6 @@ import App from './App'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import getMuiTheme from 'material-ui/styles/getMuiTheme'
-import * as colors from 'material-ui/styles/colors'
 
 const muiTheme = getMuiTheme({
   palette: {

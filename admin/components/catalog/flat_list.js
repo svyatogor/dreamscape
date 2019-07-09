@@ -4,7 +4,6 @@ import {
   CardTitle,
 } from 'material-ui'
 import {pluralize, humanize} from 'inflection'
-import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import SearchBar from 'material-ui-search-bar'

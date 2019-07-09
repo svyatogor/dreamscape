@@ -172,7 +172,7 @@ module.exports = {
         },
       },
       {
-        test: /\.scss$/,
+        test: /\.(scss)$/,
         use: [{
           loader: "style-loader", // creates style nodes from JS strings
         },
@@ -230,12 +230,9 @@ module.exports = {
                       require('postcss-flexbugs-fixes'),
                       autoprefixer({
                         browsers: [
-                          '>1%',
-                          'last 4 versions',
-                          'Firefox ESR',
-                          'not ie < 9', // React doesn't support IE8 anyway
+                          'last 2 Chrome versions',
                         ],
-                        flexbox: 'no-2009',
+                        flexbox: false,
                       }),
                     ],
                   },
