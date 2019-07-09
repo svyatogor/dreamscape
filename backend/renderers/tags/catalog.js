@@ -67,7 +67,8 @@ export class catalog {
           criteria['_id'] = {$in: ids}
         } else if (opts.search_fields) {
           const searchFields = opts.search_fields.split(',')
-          const safeRegex = opts.search.match(/\w+|"[^"]+"/g).map(t => t.trim().replace(/"/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          const safeRegex = opts.search.match(/[^\s]+|"[^"]+"/g).map(t => t.trim().replace(/"/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+          console.log(safeRegex)
           const searchExpressions = map(searchFields, field => (
             {$or: safeRegex.map(t => ({[field]: {$regex: new RegExp(t), $options: 'i'}}))}
           ))
@@ -85,6 +86,7 @@ export class catalog {
         const ids = sampleRecords.map(e => e._id)
         criteria = {_id: {$in: ids}}
       }
+      console.log(JSON.stringify(criteria))
       let itemsQuery = Item.find(criteria)
 
       if (!opts.random) {
