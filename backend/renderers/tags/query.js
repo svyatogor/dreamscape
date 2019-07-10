@@ -60,7 +60,7 @@ export class query {
 
       if (opts.pageSize) {
         const countResult = await Item.collection.aggregate([...aggregate, {$count: 'count'}]).toArray()
-        ctx.itemsCount = countResult[0].count
+        ctx.itemsCount = _.get(countResult, [0, 'count'], 0)
         let page = ctx.req.query.page
         if (!page || isNaN(page)) {
           page = 1
