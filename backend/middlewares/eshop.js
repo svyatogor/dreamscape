@@ -114,8 +114,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
 
   try {
     await order.save()
-    // TODO:
-    if (isEmpty(req.site.eshop.allowedMethods)) {
+    if (isEmpty(req.site.eshop.allowedPaymentMethods)) {
       try {
         await order.finalize(() => true)
         await order.save()

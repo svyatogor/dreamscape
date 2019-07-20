@@ -68,7 +68,6 @@ export class catalog {
         } else if (opts.search_fields) {
           const searchFields = opts.search_fields.split(',')
           const safeRegex = opts.search.match(/[^\s]+|"[^"]+"/g).map(t => t.trim().replace(/"/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
-          console.log(safeRegex)
           const searchExpressions = map(searchFields, field => (
             {$or: safeRegex.map(t => ({[field]: {$regex: new RegExp(t), $options: 'i'}}))}
           ))
@@ -80,7 +79,7 @@ export class catalog {
           }
         }
       }
-
+console.log(JSON.stringify(criteria, null, 2))
       if (opts.random) {
         const sampleRecords = await Item.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
         const ids = sampleRecords.map(e => e._id)
