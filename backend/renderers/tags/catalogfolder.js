@@ -56,7 +56,7 @@ export class catalogfolder {
         if (!page || isNaN(page)) {
           page = 1
         }
-        folder.pageNumber = page
+        folder.pageNumber = Number(page)
         folder.pagesCount = Math.ceil(folder.count / opts.pageSize)
         items = items.skip((page - 1) * opts.pageSize).limit(opts.pageSize)
       }

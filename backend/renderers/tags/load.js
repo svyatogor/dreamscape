@@ -29,7 +29,9 @@ export class load {
 
     try {
       const object = await Item.findOne({site: ctx.req.site._id, _id: id})
-      ctx[opts.as] = object.toObject()
+      if (object) {
+        ctx[opts.as] = object.toObject()
+      }
       const data = await asyncBody()
       callback(null, data)
     } catch (e) {

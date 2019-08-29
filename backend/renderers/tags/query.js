@@ -65,7 +65,7 @@ export class query {
         if (!page || isNaN(page)) {
           page = 1
         }
-        ctx.pageNumber = page
+        ctx.pageNumber = Number(page)
         ctx.pagesCount = Math.ceil(ctx.itemsCount / opts.pageSize)
         aggregate = [...aggregate, {$skip: (page - 1) * opts.pageSize}, {$limit: opts.pageSize}]
       }
