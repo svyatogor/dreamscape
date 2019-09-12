@@ -1,4 +1,4 @@
-import {defaults, map, isEmpty, flatMap, forEach} from 'lodash'
+import {defaults, map, isEmpty, sortBy} from 'lodash'
 import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
@@ -79,7 +79,7 @@ export class catalog {
           }
         }
       }
-console.log(JSON.stringify(criteria, null, 2))
+
       if (opts.random) {
         const sampleRecords = await Item.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
         const ids = sampleRecords.map(e => e._id)
@@ -117,11 +117,11 @@ console.log(JSON.stringify(criteria, null, 2))
         return
       }
 
-      const data = await Promise.all(map(items, async item => {
+      const data = await Promise.mapSeries(items, async (item, idx) => {
         const currentItem = await item.toContext(ctx.req)
         ctx[key] = currentItem
         return asyncBody()
-      }, {concurrency: 1})) // concurrency is crucial here as body() call reads current context
+      })
 
       ctx[key] = originalValue
       callback(null, data.join(''))
