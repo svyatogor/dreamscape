@@ -207,14 +207,15 @@ export default class {
 
     await item.save()
     try {
-      await Promise.map(site.supportedLanguages, locale =>
-        SearchService.index({
+      await Promise.map(site.supportedLanguages, async locale => {
+        const body = await item.toSearchableDocument(catalog, site, locale)
+        await SearchService.index({
           index: locale,
           type: `${catalogKey}-${site.id}`,
           id: item.id,
-          body: item.toSearchableDocument(catalog, locale),
+          body,
         })
-      )
+      })
     } catch (e) {
       console.error(e)
     }

@@ -7,13 +7,13 @@ async function reindexCatalog(site, catalog) {
     const cursor = Item.find({ site: site.id, catalog, deleted: false }).batchSize(100).cursor()
     const schema = site.documentTypes[catalog]
     var batch = [] // declared as var on purpose
-
+    console.error('This cose does not function anymore as toSearchbaleDocument is not asycn')
     const index = batch => {
         const body = flattenDeep(batch.map(item => {
             return site.supportedLanguages.map(l => {
                 return [
                     {index: {_index: l, _type: `${catalog}-${site.id}`, _id: item.id}},
-                    item.toSearchableDocument(schema, l)
+                    item.toSearchableDocument(schema, site, l)
                 ]
             })
         }))
