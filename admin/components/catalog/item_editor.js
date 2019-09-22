@@ -292,7 +292,10 @@ const itemGql = gql`
 
 const enhance = compose(
   branch(
-    props => !!(props.id || props.match.params.itemId),
+    props => {
+      const matchId = get(props, 'match.params.itemId')
+      return !!(props.id || matchId) && matchId !== 'new'
+    },
     graphql(itemGql, {
       options: props => ({variables: {id: (props.id || props.match.params.itemId)}})
     }),

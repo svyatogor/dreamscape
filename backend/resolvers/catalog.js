@@ -87,7 +87,6 @@ export default class {
   @mutation
   static async upsertFolder({site}, {folder}) {
     let {id, name, parent, locale, catalog, hidden} = folder
-    console.log(folder)
     if (id) {
       const folder = await Folder.findOne({_id: id, site: site.id})
       if (!folder) {
@@ -101,7 +100,6 @@ export default class {
         folder.parent = parent
       }
       if (name) {
-        console.log(">>>", folder.name)
         folder.set('name', {
           ...folder.name,
           [locale]: name
@@ -170,7 +168,6 @@ export default class {
     }
 
     forEach(omit(catalog.fields, (_, f) => isNil(data[f])), ({localized, type, ...fieldSchema}, field) => {
-      console.log({type, t: fieldSchema.documentType, v: data[field]})
       if (localized) {
         item.set(field, {
           ...(item.get(field) || {}),
