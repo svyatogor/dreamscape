@@ -50,11 +50,11 @@ export class query {
         if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
         else return value
       }))
-      let where = jsonic(options.where).map(step => mapValuesDeep(step, value => {
+      let where = jsonic(options.where || '[]').map(step => mapValuesDeep(step, value => {
         if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
         else return value
       }))
-      let sort = jsonic(options.sort).map(step => mapValuesDeep(step, value => {
+      let sort = jsonic(options.sort || '[]').map(step => mapValuesDeep(step, value => {
         if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
         else return value
       }))
