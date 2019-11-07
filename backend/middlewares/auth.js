@@ -60,7 +60,7 @@ auth.post('/auth/login', async (req, res) => {
         model: 'Item'
       }), User.findOne({site: req.site._id, catalog: req.site.auth.userModel, [usernameField]: value[usernameField]}))
 
-  if (!user || user.authenticate(value.password)) {
+  if (!user || !user.authenticate(value.password)) {
     req.flash('error', `Invalid ${usernameField} or password`)
     res.redirect(config.loginUrl)
     return
