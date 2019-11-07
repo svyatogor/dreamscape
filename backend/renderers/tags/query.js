@@ -3,6 +3,7 @@ import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
 import _ from 'lodash'
+import {filter} from 'graphql-anywhere'
 const {ObjectID} = require('mongodb')
 
 const mapValuesDeep = (obj, iteree) =>
@@ -34,7 +35,7 @@ export class query {
     return new nodes.CallExtensionAsync(this, 'run', catalog, [body, elseBody]);
   }
 
-  async run({ctx}, collection, options, body, elseBody, callback) {
+  async run({ctx}, catalog, options, body, elseBody, callback) {
     if (ctx.inspect) {
       return callback(null, '')
     }
@@ -49,17 +50,26 @@ export class query {
         if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
         else return value
       }))
-      aggregate = [
+      let where = jsonic(options.where).map(step => mapValuesDeep(step, value => {
+        if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
+        else return value
+      }))
+      let sort = jsonic(options.sort).map(step => mapValuesDeep(step, value => {
+        if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
+        else return value
+      }))
+      let filter = [
         {
           $match: {
-            site: ObjectID(ctx.req.site._id)
+            $and: [
+              {site: ObjectID(ctx.req.site._id)}, {catalog}, ...where
+            ]
           }
         },
-        ...aggregate
       ]
-
+      let paginate = []
       if (opts.pageSize) {
-        const countResult = await Item.collection.aggregate([...aggregate, {$count: 'count'}]).toArray()
+        const countResult = await Item.collection.aggregate([...filter, {$count: 'count'}]).toArray()
         ctx.itemsCount = _.get(countResult, [0, 'count'], 0)
         let page = ctx.req.query.page
         if (!page || isNaN(page)) {
@@ -67,10 +77,15 @@ export class query {
         }
         ctx.pageNumber = Number(page)
         ctx.pagesCount = Math.ceil(ctx.itemsCount / opts.pageSize)
-        aggregate = [...aggregate, {$skip: (page - 1) * opts.pageSize}, {$limit: opts.pageSize}]
+        paginate = [{$skip: (page - 1) * opts.pageSize}, {$limit: opts.pageSize}]
       }
 
-      const items = await Item.collection.aggregate(aggregate).toArray()
+      const items = await Item.collection.aggregate([
+        ...filter,
+        ...sort,
+        ...paginate,
+        ...aggregate
+      ]).toArray()
 
       if (items.length === 0) {
         callback(null, elseBody ? elseBody() : '')
