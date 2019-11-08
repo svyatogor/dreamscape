@@ -58,7 +58,6 @@ eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
 })
 
 eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
-  console.log('inc_cart_count', req.originalUrl)
   const cart = new Cart(req)
   if (req.params.action_cart_count === 'inc_cart_count') {
     cart.inc(req.params.id, 1)
@@ -72,7 +71,6 @@ eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
 
 eshop.post('/eshop/checkout', async (req, res, next) => {
   const cart = new Cart(req)
-  console.log(cart.count)
   if (cart.count < 1) {
     res.redirect(req.site.eshop.rootPage || '/')
     return
@@ -91,10 +89,10 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
   if (req.site.eshop.requireValidUser && req.viewer && get(req.site.eshop, 'copyDetailsFromUser', true) === true) {
     order.comments = req.body.comments
     order.billingAddress = {
-      email: req.viewer.email
+      email: req.viewer.email,
     }
     order.shippingAddress = {
-      email: req.viewer.email
+      email: req.viewer.email,
     }
   } else {
     const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
@@ -316,11 +314,12 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
 })
 
 const sendOrderNotificatin = async (req, order) => {
-  const {site, locale} = req
+  const {site, locale, viewer} = req
   const orderData = {
     ...order.toObject(),
     id: order._id,
     deliveryMethodLabel: t(get(site.eshop.deliveryMethods, [order.deliveryMethod, 'label'], order.deliveryMethod), locale),
+    user: viewer,
   }
   await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
     mailTransporter.sendMail({
