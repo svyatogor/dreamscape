@@ -177,7 +177,7 @@ auth.use('/admin/api/logout', requireUser, (req, res) => {
 })
 
 auth.use('/admin/check-country', (req, res) => {
-  res.text(req.headers['cf-ipcountry'])
+  res.json(req.headers)
 })
 
 
