@@ -176,5 +176,9 @@ auth.use('/admin/api/logout', requireUser, (req, res) => {
   res.sendStatus(200)
 })
 
+auth.use('/admin/check-country', (req, res) => {
+  res.text(req.headers['cf-ipcountry'])
+})
+
 
 export {auth as default, requireUser}
