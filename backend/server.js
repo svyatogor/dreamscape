@@ -98,10 +98,11 @@ export default () => {
     		domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
   		})//.cache(1)
 		}
-		req.site = req.site.toObject({virtuals: true})
+		req.site = req.site && req.site.toObject({virtuals: true})
 		if (req.site) {
 			next()
 		} else {
+			console.error(`Site for ${req.hostname} not found`)
 			res.sendStatus(404)
 		}
 	})
