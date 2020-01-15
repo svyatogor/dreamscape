@@ -3,7 +3,6 @@ import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
 import _ from 'lodash'
-import {filter} from 'graphql-anywhere'
 const {ObjectID} = require('mongodb')
 
 const mapValuesDeep = (obj, iteree) =>
@@ -44,7 +43,6 @@ export class query {
     const key = opts.as
     const originalValue = ctx[key]
     const asyncBody = Promise.promisify(body)
-
     try {
       let aggregate = jsonic(options.query).map(step => mapValuesDeep(step, value => {
         if (value && value.toString().startsWith('ID/')) return ObjectID(value.replace('ID/', ''))
@@ -92,11 +90,10 @@ export class query {
         return
       }
 
-      const data = await Promise.all(_.map(items, async item => {
-        const currentItem = await item
-        ctx[key] = currentItem
+      const data = await Promise.map(items, item => {
+        ctx[key] = item
         return asyncBody()
-      }, {concurrency: 1})) // concurrency is crucial here as body() call reads current context
+      }, {concurrency: 1}) // concurrency is crucial here as body() call reads current context
 
       ctx[key] = originalValue
       callback(null, data.join(''))
