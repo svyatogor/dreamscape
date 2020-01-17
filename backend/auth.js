@@ -12,7 +12,6 @@ import {User} from './models'
 const auth = express()
 
 const findOrCreateFromProfile = (profile, done) => {
-  console.log(findOrCreateFromProfile, profile)
   const email = profile.email || get(profile, 'emails.preferred') || get(profile, 'emails.0.value')
   User.findOne({email}).then(user => {
     const opts = {
@@ -21,10 +20,8 @@ const findOrCreateFromProfile = (profile, done) => {
       avatar: profile.photos ? profile.photos[0].value : null
     }
     if (user) {
-      console.log('Update user', email)
       user.set(opts)
     } else {
-      console.log('Create new user', email)
       user = new User(opts)
     }
     user.save().then((_user) => {
