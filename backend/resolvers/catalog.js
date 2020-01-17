@@ -76,7 +76,7 @@ export default class {
           }
           if (referenceFields.includes(key)) {
             const labelField = site.documentTypes[schema.fields[key].documentType].labelField
-            return value[labelField]
+            return get(value, labelField)
           }
           return value
         }),
