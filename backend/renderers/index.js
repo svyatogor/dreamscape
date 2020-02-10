@@ -40,6 +40,7 @@ const renderPage = async ({req, res}, page, context) => {
         parents: page.parents,
       },
       breadcrumbs,
+      currentYear: (new Date()).getFullYear(),
       res,
       req: {
         ...req,
