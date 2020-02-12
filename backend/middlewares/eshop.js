@@ -3,7 +3,7 @@ import BaseJoi from 'joi'
 import JoiPhoneNumberExtensions from 'joi-phone-number-extensions'
 import {form as  joiToForms} from 'joi-errors-for-forms'
 import bodyParser from 'body-parser'
-import {get, includes, isEmpty} from 'lodash'
+import {get, includes, isEmpty, isNumber} from 'lodash'
 import fetch from 'node-fetch'
 import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
@@ -64,6 +64,20 @@ eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
   } else if (req.params.action_cart_count === 'dec_cart_count') {
     cart.inc(req.params.id, -1)
   }
+  res.cookie('cart', cart.serialize())
+  req.flash('info', 'eshop.info.product_added')
+  res.redirect(get(req.site, 'eshop.cartPage'))
+})
+
+eshop.post('/eshop/set_cart_count/:id', async (req, res, next) => {
+  const cart = new Cart(req)
+  console.log(req.body)
+  const count = Number(get(req.body, 'count'))
+  if (!isNumber(count)) {
+    res.sendStatus(400).end()
+    return
+  }
+  await cart.set(req.params.id, count)
   res.cookie('cart', cart.serialize())
   req.flash('info', 'eshop.info.product_added')
   res.redirect(get(req.site, 'eshop.cartPage'))

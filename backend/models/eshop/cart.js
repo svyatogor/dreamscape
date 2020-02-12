@@ -39,6 +39,13 @@ export default class {
     }
   }
 
+  async set(product, count) {
+    const idx = findIndex(this._items, {product})
+    if (idx >= 0) {
+      this._items[idx].count = Math.min((await this.items)[idx].product.stock, count)
+    }
+  }
+
   get count() {
     return this._items.length;
   }
