@@ -40,6 +40,12 @@ contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({ext
   const errorPath = req.body.callback_error || path
   const successPath = req.body.callback_success || path
   if (error) {
+    console.log({
+      ...contact_form,
+      errors: joiToForms()(error),
+      success: false,
+      error,
+    })
     renderRequest(errorPath, {req, res, next}, {
       contact_form: {
         ...contact_form,
