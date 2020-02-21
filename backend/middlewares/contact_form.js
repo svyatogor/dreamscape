@@ -63,7 +63,7 @@ contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({ext
         //   name: value.name,
         //   address: value.email,
         // },
-        to: site.notificationEmail,
+        to: get(formObject, 'notificationEmail', site.notificationEmail),
         subject,
         textEncoding: 'base64',
         html: body,
