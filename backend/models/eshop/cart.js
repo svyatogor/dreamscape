@@ -4,7 +4,8 @@ import {isNil, isEmpty, findIndex, map, find, sumBy, reject, get} from 'lodash'
 class DefaultPricingPolicy {
   bind() { return new Promise(resolve => resolve())}
   price(product) {
-    return product.get('price')
+    const discountedPrice = product.get('discountedPrice') || 0
+    return discountedPrice > 0 ? product.get('discountedPrice') : this.get('price')
   }
 }
 
