@@ -166,6 +166,7 @@ type Order {
   paymentMethod: String
   paymentStatus: String
   total: Float
+  processingFee: Float
   createdAt: Date
   receipt: JSON
   delivery: DeliveryDescription

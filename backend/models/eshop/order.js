@@ -62,7 +62,21 @@ class OrderClass {
     this.set({
       deliveryMethod: key,
       deliveryCost,
-      total: this.subtotal + this.taxTotal + deliveryCost
+      total: this.subtotal + this.taxTotal + this.processingFee + deliveryCost
+    })
+  }
+
+  async setPaymentMethod(method) {
+    const site = await Site.findOne({_id: this.site})
+    const paymentMethod = site.eshop.paymentMethods[method]
+    if (!paymentMethod) {
+      throw new Error('Unsupported payment method')
+    }
+    const {processingFee = 0} = paymentMethod
+    this.set({
+      paymentMethod: method,
+      processingFee,
+      total: this.subtotal + this.taxTotal + this.deliveryCost + processingFee
     })
   }
 

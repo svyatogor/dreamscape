@@ -43,6 +43,7 @@ const ordersQuery = gql`
       status
       paymentMethod
       paymentStatus
+      processingFee
       total
       receipt
     }

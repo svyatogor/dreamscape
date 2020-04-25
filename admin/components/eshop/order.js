@@ -87,6 +87,13 @@ class Order extends React.Component {
                   Delivery - {order.delivery.label}: {numeral(order.delivery.cost).format('0.00')}
                 </TableRowColumn>
               </TableRow>
+              {order.processingFee &&
+                <TableRow>
+                  <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
+                    Processing fee: {numeral(order.processingFee).format('0.00')}
+                  </TableRowColumn>
+                </TableRow>
+              }
               <TableRow>
                 <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
                   Order total: {numeral(order.total).format('0.00')}

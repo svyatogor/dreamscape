@@ -126,7 +126,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
 
   try {
     await order.save()
-    if (isEmpty(req.site.eshop.allowedPaymentMethods)) {
+    if (isEmpty(req.site.eshop.paymentMethods)) {
       try {
         await order.finalize(() => true)
         await order.save()
@@ -167,8 +167,26 @@ eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res, next) => {
   res.redirect(req.get('Referrer'))
 })
 
+eshop.post('/eshop/order/:order/setPaymentMethod', async (req, res, next) => {
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+  const allowedMethods = await req.site.eshop.paymentMethods
+  const {payment_method} = req.body
+  if (!(payment_method in allowedMethods)) {
+    res.sendStatus(404)
+    return
+  }
+
+  await order.setPaymentMethod(payment_method)
+  await order.save()
+  res.redirect(req.get('Referrer'))
+})
+
 eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, next) => {
-  if (!includes(req.site.eshop.allowedPaymentMethods, 'cash_on_delivery')) {
+  if (!('cash_on_delivery' in req.site.eshop.paymentMethods)) {
     res.sendStatus(404)
     return
   }
@@ -194,7 +212,7 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
 })
 
 eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
-  if (!includes(req.site.eshop.allowedPaymentMethods, 'paypal')) {
+  if (!('paypal' in req.site.eshop.paymentMethods)) {
     res.sendStatus(404)
     return
   }
