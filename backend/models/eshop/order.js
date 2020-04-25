@@ -62,7 +62,7 @@ class OrderClass {
     this.set({
       deliveryMethod: key,
       deliveryCost,
-      total: this.subtotal + this.taxTotal + this.processingFee + deliveryCost
+      total: this.subtotal + this.taxTotal + (this.processingFee || 0) + deliveryCost
     })
   }
 
@@ -76,7 +76,7 @@ class OrderClass {
     this.set({
       paymentMethod: method,
       processingFee,
-      total: this.subtotal + this.taxTotal + this.deliveryCost + processingFee
+      total: this.subtotal + this.taxTotal + (this.deliveryCost || 0) + processingFee
     })
   }
 

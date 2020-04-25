@@ -133,7 +133,7 @@
   "scripts": {
     "start": "node scripts/server.js",
     "dev:webpack": "node scripts/webpack.js",
-    "dev:server": "babel-watch -d 5858 -I scripts/server.js",
+    "dev:server": "babel-watch -I scripts/server.js",
     "dev": "npm-run-all --parallel dev:*",
     "seed": "babel-node scripts/seed.js",
     "build": "node scripts/build.js",
