@@ -211,6 +211,32 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
     })
 })
 
+eshop.get('/eshop/order/:order/completeWithQuickPay', async (req, res, next) => {
+  if (!('quickpay' in req.site.eshop.paymentMethods)) {
+    res.sendStatus(404)
+    return
+  }
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+
+  order.set({paymentMethod: 'quickpay', paymentStatus: 'pending'})
+  order.finalize(() => Promise.resolve())
+    .then(async () => {
+      await order.save()
+      await sendOrderNotificatin(req, order)
+      res.cookie('cart', [])
+      res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
+    })
+    .catch(e => {
+      console.log(e)
+      req.flash('error', 'eshop.errors.generic_checkout_error')
+      res.redirect(req.get('Referrer'))
+    })
+})
+
 eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
   if (!('paypal' in req.site.eshop.paymentMethods)) {
     res.sendStatus(404)
