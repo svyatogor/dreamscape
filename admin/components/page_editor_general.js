@@ -179,6 +179,7 @@ class PageEditorGeneral extends React.Component {
           upload={{
             signingUrl: '/admin/api/s3/sign',
             signingUrlWithCredentials: true,
+            contentDisposition: prop.disposition || 'auto',
           }}
           passChildrenProps={false}
         >
