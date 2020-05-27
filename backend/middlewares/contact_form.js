@@ -22,7 +22,7 @@ const schema = (site, type = 'contact') => {
   return Joi.object().keys(joiBuilder().build(schema))
 }
 
-contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({extended: true}), (req, res, next) => {
+contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({extended: true}), async (req, res, next) => {
   const ref = req.get('Referrer')
   let path
   if (!isEmpty(ref)) {
@@ -56,33 +56,55 @@ contact_form.post('/contact_form', bodyParser.json(), bodyParser.urlencoded({ext
     })
   } else {
     const template = get(site, ['forms', form, 'template'], 'email')
-    renderEmail(req, template, value).then(({body, subject}) => {
-      mailTransporter.sendMail({
-        from: "noreply@dreamscape.tech",
-        // replyTo: {
-        //   name: value.name,
-        //   address: value.email,
-        // },
-        to: get(formObject, 'notificationEmail', site.notificationEmail),
-        subject,
-        textEncoding: 'base64',
-        html: body,
-      }, (err, info) => {
-        if (err) {
-          renderRequest(errorPath, {req, res, next}, {
-            contact_form: {
-              ...contact_form,
-              success: false,
-              error: err,
-            }
+    const responseTemplate = get(site, ['forms', form, 'responseTemplate'])
+    try {
+      const {body, subject} = await renderEmail(req, template, value)
+      await new Promise((resolve, reject) => {
+        mailTransporter.sendMail({
+          from: "noreply@dreamscape.tech",
+          // replyTo: {
+          //   name: value.name,
+          //   address: value.email,
+          // },
+          to: get(formObject, 'notificationEmail', site.notificationEmail),
+          subject,
+          textEncoding: 'base64',
+          html: body,
+        }, (err) => {
+            if (err) reject(err)
+            else resolve()
+        })
+      })
+      console.log({responseTemplate, emai: value.email})
+      if (responseTemplate && value.email) {
+        const {body, subject} = await renderEmail(req, responseTemplate, value)
+        console.log({subject})
+        await new Promise((resolve, reject) => {
+          mailTransporter.sendMail({
+            from: "noreply@dreamscape.tech",
+            to: value.email,
+            subject,
+            textEncoding: 'base64',
+            html: body,
+          }, (err) => {
+              if (err) reject(err)
+              else resolve()
           })
-          console.error(err)
-        } else {
-          renderRequest(successPath, {req, res, next}, {
-            contact_form: {success: true}
-          })
+        })
+      }
+
+      renderRequest(successPath, {req, res, next}, {
+        contact_form: {success: true}
+      })
+    } catch (err) {
+      renderRequest(errorPath, {req, res, next}, {
+        contact_form: {
+          ...contact_form,
+          success: false,
+          error: err,
         }
       })
-    })
+      console.error(err)
+    }
   }
 })

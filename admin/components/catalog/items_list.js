@@ -105,6 +105,7 @@ class ItemsList extends React.Component {
 
   render() {
     const {visibleFields, data, push, catalog} = this.props
+    const RowClass = (catalog.disableManualSorting || catalog.sortBy) ? TableRow : Row
     return (
       <Table selectable={false}>
         <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -117,7 +118,7 @@ class ItemsList extends React.Component {
           </TableRow>
         </TableHeader>
         <TableBody displayRowCheckbox={false}>
-          {map(data.items, item => (<Row key={item.id} id={item.id} position={item.position} onMove={(newPosition) => this.move(item.id, newPosition)}>
+          {map(data.items, item => (<RowClass key={item.id} id={item.id} position={item.position} onMove={(newPosition) => this.move(item.id, newPosition)}>
             {map(visibleFields, f =>
               <TableRowColumn key={f}>
                 {this.formatColumn(item.data[f], catalog.fields[f])}
@@ -133,7 +134,7 @@ class ItemsList extends React.Component {
                 <i className="material-icons">delete</i>
               </IconButton>
             </TableRowColumn>
-          </Row>))}
+          </RowClass>))}
         </TableBody>
       </Table>
     );

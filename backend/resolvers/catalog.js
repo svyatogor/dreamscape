@@ -62,7 +62,7 @@ export default class {
         match: {site: site._id},
         select: site.documentTypes[schema.fields[field].documentType].labelField,
         model: 'Item'
-      }), Item.where(q).sort('position'))
+      }), Item.where(q).sort(schema.sortBy || 'position'))
     return result.map(item => {
       const label = item.get(schema.labelField)
       return {
