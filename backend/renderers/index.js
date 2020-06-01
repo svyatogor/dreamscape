@@ -37,6 +37,7 @@ const renderPage = async ({req, res}, page, context) => {
       },
       page: {
         ...(await page.toContext({locale, site})),
+        fullPath: req.originalUrl.replace(new RegExp(`^/${req.locale}`), ''),
         parents: page.parents,
       },
       breadcrumbs,
@@ -49,6 +50,7 @@ const renderPage = async ({req, res}, page, context) => {
       flash,
       referrer,
     }
+    console.log(context.page.fullPath)
     const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())
