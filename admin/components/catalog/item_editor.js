@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
-import {map, get, isEmpty, mapValues, sortBy} from 'lodash'
+import {map, get, isEmpty, mapValues, sortBy, isString, reject, isNil} from 'lodash'
 import {humanize} from 'inflection'
+import moment from 'moment-timezone'
 import {reduxForm, Field, SubmissionError, getFormValues} from 'redux-form'
 import {graphql, gql} from 'react-apollo'
 import {compose, branch} from 'recompose'
@@ -262,14 +263,21 @@ const upsertItem = gql`
 const mapStateToProps = ({app, ...state}, ownProps) => {
   const item = get(ownProps, 'data.item.data')
   const {catalog} = ownProps
-  const initialValues = mapValues(item, (value, field) =>
+  const defaultValues = mapValues(catalog.fields, field => {
+    if (field.type === 'date') return moment().startOf('day').toISOString()
+
+    return undefined
+  })
+
+  const initialValues = reject({...defaultValues, ...mapValues(item, (value, field) =>
     get(catalog.fields, [field, 'localized']) ? t(value, app.locale) : value
-  )
+  )}, isNil)
+
   initialValues.id = get(ownProps, 'data.item.id')
   const castTypes = data =>
     mapValues(data, (value, field) => {
       if (get(catalog.fields, [field, 'type']) === 'date') {
-        return new Date(value)
+        return isString(value) ? new Date(value) : new Date()
       }
 
       return value
@@ -282,7 +290,7 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
 }
 
 const itemGql = gql`
-  query item($id: ID!) {
+  query item($id: ID!) {    
     item(id: $id) {
       id
       data

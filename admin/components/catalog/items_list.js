@@ -91,7 +91,7 @@ class ItemsList extends React.Component {
       return data ? moment(data).format('ll') : '-'
     }
 
-    return t(data)
+    return t(data, this.props.locale)
   }
 
   editUrl(item) {
@@ -106,6 +106,9 @@ class ItemsList extends React.Component {
   render() {
     const {visibleFields, data, push, catalog} = this.props
     const RowClass = (catalog.disableManualSorting || catalog.sortBy) ? TableRow : Row
+    const rowProps = (catalog.disableManualSorting || catalog.sortBy) ?
+        () => {} :
+        item => ({position: item.position, onMove: (newPosition) => this.move(item.id, newPosition)})
     return (
       <Table selectable={false}>
         <TableHeader displaySelectAll={false} adjustForCheckbox={false}>
@@ -118,7 +121,7 @@ class ItemsList extends React.Component {
           </TableRow>
         </TableHeader>
         <TableBody displayRowCheckbox={false}>
-          {map(data.items, item => (<RowClass key={item.id} id={item.id} position={item.position} onMove={(newPosition) => this.move(item.id, newPosition)}>
+          {map(data.items, item => (<RowClass key={item.id} id={item.id} {...rowProps(item)}>
             {map(visibleFields, f =>
               <TableRowColumn key={f}>
                 {this.formatColumn(item.data[f], catalog.fields[f])}
@@ -155,6 +158,7 @@ const moveItem = gql`
 
 const mapStateToProps = (state, ownProps) => {
   return {
+    locale: state.app.locale,
     visibleFields: [
       get(ownProps, 'catalog.labelField'),
       ...get(state.app.visibleFields, [ownProps.site.key, ownProps.catalogKey], []),
