@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {map, get, isEmpty, mapValues, sortBy, isString, reject, isNil} from 'lodash'
+import {map, get, isEmpty, mapValues, sortBy, isString, omitBy, isNil} from 'lodash'
 import {humanize} from 'inflection'
 import moment from 'moment-timezone'
 import {reduxForm, Field, SubmissionError, getFormValues} from 'redux-form'
@@ -269,7 +269,7 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
     return undefined
   })
 
-  const initialValues = reject({...defaultValues, ...mapValues(item, (value, field) =>
+  const initialValues = omitBy({...defaultValues, ...mapValues(item, (value, field) =>
     get(catalog.fields, [field, 'localized']) ? t(value, app.locale) : value
   )}, isNil)
 
@@ -290,7 +290,7 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
 }
 
 const itemGql = gql`
-  query item($id: ID!) {    
+  query item($id: ID!) {
     item(id: $id) {
       id
       data
