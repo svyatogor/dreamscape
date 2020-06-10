@@ -39,7 +39,7 @@ export class snippet {
           callback(null, localText)
           return localText
         } else {
-          text = new StaticText({...props, content: {en: body()}, type: options.type})
+          text = new StaticText({...props, content: {en: body()}, type: (options.type || 'text')})
           return text.save().catch(e => console.log(e)).then(() => {
             return callback(null, body())
           })
