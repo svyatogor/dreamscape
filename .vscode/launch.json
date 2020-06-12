@@ -7,8 +7,8 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Chrome",
-      "url": "http://arbat.dreamscape.localhost:4000/admin",
+      "name": "Debug admin",
+      "url": "http://mpfashion.dreamscape.localhost:4000/admin",
       "webRoot": "${workspaceFolder}"
     },
     {
@@ -19,6 +19,6 @@
       "port": 9229,
       "sourceMaps": true,
       "restart": true
-    }
+    },
   ]
 }

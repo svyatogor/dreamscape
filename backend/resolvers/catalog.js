@@ -22,7 +22,7 @@ export default class {
     const item = await Item.findOne({site: site.id, _id: id})
     const schema = site.documentTypes[item.catalog]
     const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
-    const label = item.get(schema.labelField)
+    const label = schema.labelField ? item.get(schema.labelField) : ''
     return {
       id: item.id,
       label,
@@ -64,7 +64,7 @@ export default class {
         model: 'Item'
       }), Item.where(q).sort(schema.sortBy || 'position'))
     return result.map(item => {
-      const label = item.get(schema.labelField)
+      const label = schema.labelField ? item.get(schema.labelField) : ''
       return {
         id: item.id,
         folder: item.folder,

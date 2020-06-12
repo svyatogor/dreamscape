@@ -22,7 +22,7 @@ export class snippet {
     if (typeof options === 'function') {
       callback = body
       body = options
-      options = {type: 'html'}
+      options = {type: 'string'}
     }
     if (ctx.inspect) {
       return callback(null, null)
