@@ -35,7 +35,10 @@ const Header = ({session, logout, onMenu, locale, setLocale, data: {site}}) => {
     onLeftIconButtonTouchTap={onMenu}
     iconElementRight={(
       <div className={styles.whoami}>
-        <SelectField value={locale} className={styles.languagePicker} onChange={(e, key, value) => setLocale(value)}>
+        <SelectField
+          value={locale}
+          className={styles.languagePicker}
+          onChange={(e, key, value) => setLocale(value)}>
           {map(get(site, 'supportedLanguages'), l => <MenuItem value={l} key={l} primaryText={l} />)}
         </SelectField>
         <IconMenu
