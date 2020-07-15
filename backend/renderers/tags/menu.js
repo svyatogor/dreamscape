@@ -46,7 +46,7 @@ export class menu {
         return
       }
 
-      return pagesQuery.sort('position').then(async pages => {
+      return pagesQuery.sort('position').cache().then(async pages => {
         return Promise.all(map(pages, async page => {
           const active = String(page._id) === String(ctx.page._id) ||
             includes(map(ctx.page.parents, p => String(p._id)), String(page._id))

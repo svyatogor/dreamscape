@@ -8,7 +8,7 @@ import {t} from '../common/utils'
 let Item
 class ItemClass {
   async toContext({locale}) {
-    const site = await Site.findOne({_id: this.site})
+    const site = await Site.findOne({_id: this.site}).cache()
     const object = this.toObject({virtuals: true})
     const fields = site.documentTypes[this.catalog].fields
     Object.keys(pickBy(fields, {localized: true})).forEach(field => {

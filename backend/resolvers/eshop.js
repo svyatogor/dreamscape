@@ -5,6 +5,24 @@ import {t} from '../common/utils'
 
 const annotate = site => order => {
   const object = order.toObject()
+  let receipt
+  if (order.paymentMethod === 'paypal') {
+    const id = get(object, 'receipt.transactions.0.related_resources.0.sale.id')
+    receipt = {
+      id,
+      url: `https://www.paypal.com/activity/payment/${id}`
+    }
+  }
+  if (order.paymentMethod === 'braintree') {
+    const id = get(object, 'receipt.transaction.id')
+    const merchantId = site.eshop.paymentMethods.braintree.merchantId
+    const environment = site.eshop.paymentMethods.braintree.environment === 'Sandbox' ?
+      'sandbox.' : ''
+    receipt = {
+      id,
+      url: `https://${environment}braintreegateway.com/merchants/${merchantId}/transactions/${id}`
+    }
+  }
   return {
     ...object,
     id: order._id,
@@ -15,9 +33,7 @@ const annotate = site => order => {
         data: line.product.toContext({})
       }}
     }),
-    receipt: {
-      id: get(object, 'receipt.transactions.0.related_resources.0.sale.id')
-    },
+    receipt,
     delivery: {
       label: t(get(site.eshop.deliveryMethods, [order.deliveryMethod, 'label'], order.deliveryMethod)),
       cost: order.deliveryCost,

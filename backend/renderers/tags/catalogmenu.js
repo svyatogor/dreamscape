@@ -52,7 +52,7 @@ export class catalogmenu {
       //   return
       // }
 
-      return foldersQuery.sort('position').then(async folders => {
+      return foldersQuery.sort('position').cache().then(async folders => {
         return Promise.all(map(folders, async folder => {
           const contentFolder = await folder.toContext({locale: ctx.req.locale})
           ctx[key] = {

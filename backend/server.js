@@ -92,11 +92,11 @@ export default () => {
 		const match = req.hostname.match(regex)
 		if (match) {
 			const key = match[1].toLowerCase()
-			req.site = await Site.findOne({key})//.cache(1)
+			req.site = await Site.findOne({key})//.cache()
 		} else {
 			req.site = await Site.findOne({
     		domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
-  		})//.cache(1)
+  		})//.cache()
 		}
 		req.site = req.site && req.site.toObject({virtuals: true})
 		if (req.site) {

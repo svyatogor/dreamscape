@@ -3,11 +3,12 @@ import BaseJoi from 'joi'
 import JoiPhoneNumberExtensions from 'joi-phone-number-extensions'
 import {form as  joiToForms} from 'joi-errors-for-forms'
 import bodyParser from 'body-parser'
-import {get, includes, isEmpty, isNumber} from 'lodash'
+import {get, isEmpty, isNumber} from 'lodash'
 import fetch from 'node-fetch'
 import numeral from 'numeral'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
+import braintree from 'braintree'
 import {mailTransporter} from '../../common/mailer'
 import {renderEmail} from '../renderers'
 import {t} from '../common/utils'
@@ -123,6 +124,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
   }
   await order.addItemsFromCart(cart)
   await order.setDefaultDeliveryMethod()
+  await order.setDefaultPaymentMethod()
 
   try {
     await order.save()
@@ -167,14 +169,13 @@ eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res, next) => {
   res.redirect(req.get('Referrer'))
 })
 
-eshop.post('/eshop/order/:order/setPaymentMethod', async (req, res, next) => {
+const setPaymentMethod = async (req, res, payment_method) => {
   const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
   if (!order) {
     res.sendStatus(404)
     return
   }
   const allowedMethods = await req.site.eshop.paymentMethods
-  const {payment_method} = req.body
   if (!(payment_method in allowedMethods)) {
     res.sendStatus(404)
     return
@@ -183,6 +184,16 @@ eshop.post('/eshop/order/:order/setPaymentMethod', async (req, res, next) => {
   await order.setPaymentMethod(payment_method)
   await order.save()
   res.redirect(req.get('Referrer'))
+}
+
+eshop.post('/eshop/order/:order/setPaymentMethod', async (req, res, next) => {
+  const {payment_method} = req.body
+  await setPaymentMethod(req, res, payment_method)
+})
+
+eshop.get('/eshop/order/:order/setPaymentMethod/:payment_method', async (req, res, next) => {
+  const {payment_method} = req.params
+  await setPaymentMethod(req, res, payment_method)
 })
 
 eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, next) => {
@@ -209,6 +220,78 @@ eshop.get('/eshop/order/:order/completeWithCashOnDelivery', async (req, res, nex
       req.flash('error', 'eshop.errors.generic_checkout_error')
       res.redirect(req.get('Referrer'))
     })
+})
+
+eshop.post('/eshop/order/:order/completeWithBraintree', async (req, res, next) => {
+  if (!('braintree' in req.site.eshop.paymentMethods)) {
+    res.sendStatus(404)
+    return
+  }
+  const order = await Order.findOne({_id: req.params.order, site: req.site._id})
+  if (!order) {
+    res.sendStatus(404)
+    return
+  }
+
+  const {braintree: {merchantId, publicKey, privateKey, environment}} = req.site.eshop.paymentMethods
+  const gateway = braintree.connect({
+    environment: braintree.Environment[environment],
+    merchantId,
+    publicKey,
+    privateKey
+  })
+  const billingFirstName = order.billingAddress.name.split(' ')[0]
+  const billingLastName = order.billingAddress.name.split(' ').slice(1).join(' ')
+  const shippingFirstName = order.shippingAddress.name.split(' ')[0]
+  const shippingLastName = order.shippingAddress.name.split(' ').slice(1).join(' ')
+
+  const payload = {
+    amount: numeral(order.total).format('0.00'),
+    shippingAmount: numeral(order.deliveryCost).format('0.00'),
+    taxAmount: numeral(order.taxTotal).format('0.00'),
+    orderId: order.number,
+    paymentMethodNonce: req.body.nonce,
+    customer: {
+      email: order.billingAddress.email,
+      firstName: billingFirstName,
+      lastName: billingLastName,
+    },
+    billing: {
+      firstName: billingFirstName,
+      lastName: billingLastName,
+    },
+    shipping: {
+      firstName: shippingFirstName,
+      lastName: shippingLastName,
+    },
+    options: {
+      submitForSettlement: true
+    }
+  }
+
+  try {
+    await order.finalize(async () => {
+      console.log(payload)
+      const receipt = await gateway.transaction.sale(payload)
+      console.log(receipt)
+      if (!receipt.success) {
+        throw new Error(result.message)
+      }
+
+      order.set({
+        receipt,
+        paymentStatus: 'paid',
+      })
+      await order.save()
+    })
+    // await sendOrderNotificatin(req, order)
+    res.cookie('cart', [])
+    res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
+  } catch (e) {
+    console.log(e)
+    req.flash('error', e.message || 'eshop.errors.generic_checkout_error')
+    res.redirect(req.get('Referrer'))
+  }
 })
 
 eshop.get('/eshop/order/:order/completeWithQuickPay', async (req, res, next) => {

@@ -47,14 +47,14 @@ export default class Product extends Item {
   }
 
   get productName() {
-    return Site.findOne({_id: this.get('site')}).then(site => {
+    return Site.findOne({_id: this.get('site')}).cache().then(site => {
       const {labelField, defaultLocale = 'en'} = site.documentTypes[this.catalog]
       return this.get(labelField)[defaultLocale]
     })
   }
 
   get productImage() {
-    return Site.findOne({_id: this.get('site')}).then(site => {
+    return Site.findOne({_id: this.get('site')}).cache().then(site => {
       const {imageField} = site.documentTypes[this.catalog]
       if (imageField) {
         return this.get(imageField)

@@ -7,7 +7,7 @@ class FolderClass {
     return {
       ...this.toObject({virtuals: true}),
       name: t(this.name, locale),
-      leaf: (await Folder.count({parent: this._id, deleted: false})) === 0
+      leaf: (await Folder.count({parent: this._id, deleted: false}).cache()) === 0
     }
   }
 }

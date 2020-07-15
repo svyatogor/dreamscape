@@ -6,7 +6,7 @@ import {pageSchema} from './schema'
 let Page
 class PageClass {
   get path() {
-    return Page.find({site: this.site}).select(['_id', 'parent', 'slug']).cache(1).then(allPages => {
+    return Page.find({site: this.site}).select(['_id', 'parent', 'slug']).cache().then(allPages => {
       const fullPath = [this.slug]
       let self = this
       while(self.parent) {

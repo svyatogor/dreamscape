@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {sumBy, some, isNil, get, includes, pickBy, pick, mapValues} from 'lodash'
+import {sumBy, some, isNil, get, includes, pickBy, pick, mapValues, find} from 'lodash'
 import Promise from 'bluebird'
 import {orderSchema} from '../schema'
 import Product from './product'
@@ -67,7 +67,7 @@ class OrderClass {
   }
 
   async setPaymentMethod(method) {
-    const site = await Site.findOne({_id: this.site})
+    const site = await Site.findOne({_id: this.site}).cache()
     const paymentMethod = site.eshop.paymentMethods[method]
     if (!paymentMethod) {
       throw new Error('Unsupported payment method')
@@ -124,7 +124,7 @@ class OrderClass {
 
   get availableDeliveryMethods() {
     const country = get(this.shippingAddress, 'country')
-    return Site.findOne({_id: this.site}).then(site => {
+    return Site.findOne({_id: this.site}).cache().then(site => {
       return pickBy(site.get('eshop').deliveryMethods, method =>
         (!method.countries || includes(method.countries, country)) &&
         (!method.excludedCountries  || !includes(method.excludedCountries, country))
@@ -137,6 +137,14 @@ class OrderClass {
     const method = Object.keys(pickBy(methods, 'default'))[0]
     if (method) {
       await this.setDeliveryMethod(method, methods[method])
+    }
+  }
+
+  async setDefaultPaymentMethod() {
+    const site = await Site.findOne({_id: this.site}).cache()
+    const method = Object.keys(pickBy(site.eshop.paymentMethods, 'default'))[0]
+    if (method) {
+      await this.setPaymentMethod(method)
     }
   }
 }

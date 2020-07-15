@@ -1,7 +1,7 @@
 import React from 'react'
 import {createStore, applyMiddleware, compose} from 'redux'
 import thunk from 'redux-thunk'
-import createHistory from 'history/createBrowserHistory'
+import {createBrowserHistory} from 'history'
 import {routerMiddleware} from 'react-router-redux'
 import {ApolloProvider, ApolloClient, createNetworkInterface} from 'react-apollo'
 import {persistStore, autoRehydrate} from 'redux-persist'
@@ -17,7 +17,7 @@ const networkInterface = createNetworkInterface({
 const client = new ApolloClient({
   networkInterface: networkInterface
 })
-const history = createHistory({basename: '/admin/'})
+const history = createBrowserHistory({basename: '/admin/'})
 const middleware = routerMiddleware(history)
 let persistor
 const storePurger = store => next => action => {
