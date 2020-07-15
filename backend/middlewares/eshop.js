@@ -271,11 +271,9 @@ eshop.post('/eshop/order/:order/completeWithBraintree', async (req, res, next) =
 
   try {
     await order.finalize(async () => {
-      console.log(payload)
       const receipt = await gateway.transaction.sale(payload)
-      console.log(receipt)
       if (!receipt.success) {
-        throw new Error(result.message)
+        throw new Error("Transaction declined")
       }
 
       order.set({
@@ -284,7 +282,7 @@ eshop.post('/eshop/order/:order/completeWithBraintree', async (req, res, next) =
       })
       await order.save()
     })
-    // await sendOrderNotificatin(req, order)
+    await sendOrderNotificatin(req, order)
     res.cookie('cart', [])
     res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
   } catch (e) {
