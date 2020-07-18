@@ -340,7 +340,6 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
   })
   const accessToken = (await credentials.json()).access_token
 
-  let receipt
   try {
     await order.finalize(() => {
       return fetch(`${process.env.PAYPAL_API_URL}/payments/payment/${order.get('paypalPaymentRequest').id}/execute`, {
@@ -359,14 +358,16 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
               paymentStatus: 'paid',
             })
             await sendOrderNotificatin(req, order)
+            await order.save()
+            res.cookie('cart', [])
+            console.log(receipt)
+            res.json(receipt)
+
           } else {
             return Promise.reject()
           }
         })
     })
-    await order.save()
-    res.cookie('cart', [])
-    res.json(receipt)
   } catch (e) {
     console.log(e)
     req.flash('error', 'eshop.errors.generic_checkout_error')
@@ -406,7 +407,7 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
           items: order.lines.map(line => ({
             name: line.name,
             quantity: line.count,
-            price: numeral(line.subtotal).format('0.00'),
+            price: numeral(0.01).format('0.00'),
             currency: 'EUR',
           })),
           shipping_address: {
