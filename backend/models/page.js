@@ -48,6 +48,7 @@ class PageClass {
     }
   }
 }
+
 pageSchema.loadClass(PageClass)
-Page = mongoose.model('Page', pageSchema)
+Page = mongoose.connection.useDb(process.env.ROOT_DB).model('Page', pageSchema)
 export default Page

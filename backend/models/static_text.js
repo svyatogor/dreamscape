@@ -11,4 +11,4 @@ class StaticTextClass {
 }
 
 staticTextSchema.loadClass(StaticTextClass)
-export default mongoose.model('StaticText', staticTextSchema)
+export default mongoose.connection.useDb(process.env.ROOT_DB).model('StaticText', staticTextSchema)

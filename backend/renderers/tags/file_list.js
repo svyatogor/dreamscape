@@ -1,7 +1,5 @@
-import nunjucks from 'nunjucks'
 import {find, isNil, isEmpty} from 'lodash'
 import {FileList} from '../../models'
-import {t} from '../../common/utils'
 import fs from 'fs'
 
 export class file_list {

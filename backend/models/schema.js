@@ -6,17 +6,6 @@ const userSchema = new Schema({
   avatar: {type: String},
 })
 
-const siteSchema = new Schema({
-  key: {type: String, required: true},
-  domains: [String],
-  allowedModules: [String],
-  supportedLanguages: [String],
-  users: [String],
-  features: [String],
-  documentTypes: JSON,
-  eshop: JSON,
-})
-
 const itemSchema = new Schema({
   catalog: String,
   deleted: Boolean,
@@ -130,7 +119,6 @@ const orderSchema = new Schema({
 export {
   userSchema,
   pageSchema,
-  siteSchema,
   staticTextSchema,
   itemSchema,
   folderSchema,

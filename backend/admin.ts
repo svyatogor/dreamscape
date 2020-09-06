@@ -10,8 +10,7 @@ import {readFileSync} from 'fs'
 import resolvers from './resolvers'
 import {requireUser} from './auth'
 
-
-const typeDefs = readFileSync('./backend/schema.gql').toString()
+const typeDefs = readFileSync('./schema.gql').toString()
 const schema = makeExecutableSchema({typeDefs, resolvers})
 addResolveFunctionsToSchema(schema, {});
 
@@ -83,10 +82,13 @@ admin.get('/api/images', requireUser, async (req, res) => {
 })
 
 if (process.env.NODE_ENV === 'production') {
-  admin.use(express.static(path.resolve(__dirname, '../build-admin')))
+  admin.use(express.static(path.resolve(__dirname, '../build/admin')))
   admin.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../build-admin/index.html'))
+    res.sendFile(path.resolve(__dirname, '../build/admin/index.html'))
   })
+} else if (process.env.NODE_ENV === 'development') {
+  const { createProxyMiddleware } = require('http-proxy-middleware');
+  admin.use(createProxyMiddleware({ target: 'http://localhost:1234'}))
 }
 
 export default admin

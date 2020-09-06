@@ -4,4 +4,4 @@ class UserClass {
 }
 
 userSchema.loadClass(UserClass)
-export default mongoose.model('User', userSchema)
+export default mongoose.connection.useDb(process.env.ROOT_DB).model('User', userSchema)

@@ -161,5 +161,5 @@ orderSchema.pre('save', function(next) {
 })
 
 orderSchema.loadClass(OrderClass)
-const Order = mongoose.model('Order', orderSchema)
+const Order = mongoose.connection.useDb(process.env.ROOT_DB).model('Order', orderSchema)
 export default Order
