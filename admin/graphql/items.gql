@@ -1,4 +1,4 @@
-query items($folder: ID, $search: String, $catalog: String) {
+query items($folder: ID, $search: String, $catalog: String!) {
     items(folder: $folder, search: $search, catalog: $catalog) {
         id
         folder

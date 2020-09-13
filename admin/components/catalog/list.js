@@ -53,9 +53,8 @@ class List extends React.Component {
 
   deleteFolder() {
     const {showNotification, push, deleteFolder, folderData, catalogKey} = this.props
-    console.log(folderData);
     deleteFolder({
-      variables: {id: folderData.folder.id},
+      variables: {id: folderData.folder.id, catalog: catalogKey},
       refetchQueries: ['folders'],
     }).then(() => {
       this.setState({requestDeleteFolder: null})
@@ -115,6 +114,7 @@ class List extends React.Component {
           <FolderEditDialog
             visible={this.state.showEditFolder}
             folder={folderData.folder}
+            catalog={catalogKey}
             onClose={() => this.setState({showEditFolder: false})}
           />
         </Card>
@@ -129,20 +129,20 @@ class List extends React.Component {
 }
 
 const folder = gql`
-  query folder($id: ID!) {
-    folder(id: $id) { id name hidden }
+  query folder($id: ID!, $catalog: String!) {
+    folder(id: $id, catalog: $catalog) { id name hidden }
   }
 `
 
 const deleteFolder = gql`
-  mutation deleteFolder($id: ID!) {
-    deleteFolder(id: $id)
+  mutation deleteFolder($id: ID!, $catalog: String!) {
+    deleteFolder(id: $id, catalog: $catalog)
   }
 `
 
 const enhance = compose(
   graphql(folder, {
-    options: ({match}) => ({ variables: { id: match.params.folder } }),
+    options: ({match, catalogKey}) => ({ variables: { id: match.params.folder, catalog: catalogKey } }),
     name: 'folderData'
   }),
   graphql(deleteFolder, {name: 'deleteFolder'}),

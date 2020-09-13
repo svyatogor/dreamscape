@@ -10,6 +10,7 @@ import auth from './auth'
 import admin from './admin'
 import frontend from './frontend'
 import './models'
+import Context from './context'
 
 mongoose.connect(process.env.MONGODB_URI, {
 	useNewUrlParser: true,
@@ -56,7 +57,8 @@ const setSnsBodyType = (req, res, next) => {
 	next()
 }
 
-export default () => {
+export default async () => {
+	await Context.prepareAll()
 	app.use(auth)
 	app.post(
 		'/sns/assets_modified',

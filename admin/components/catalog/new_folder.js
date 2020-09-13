@@ -14,8 +14,7 @@ class NewFolder extends React.Component {
       locale: this.props.locale,
       id: this.props.id,
       parent: this.props.parent,
-      catalog: this.props.catalog,
-    }}
+    }, catalog: this.props.catalog}
     this.props.upsert({variables, refetchQueries: ['folders']}).then(() => {
       this.props.showNotification("Folder saved")
       this.props.onFolderSaved()
@@ -59,8 +58,8 @@ class NewFolder extends React.Component {
 }
 
 const upsertMutation = gql`
-  mutation upsertFolder($folder: FolderInput!) {
-    upsertFolder(folder: $folder) { id }
+  mutation upsertFolder($folder: FolderInput!, $catalog: String!) {
+    upsertFolder(folder: $folder, catalog: $catalog) { id }
   }
 `
 

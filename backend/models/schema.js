@@ -1,11 +1,5 @@
 import {Schema} from 'mongoose'
 
-const userSchema = new Schema({
-  email: {type: String, required: true, lowercase: true, trim: true, index: true, unique: true},
-  name: {type: String},
-  avatar: {type: String},
-})
-
 const itemSchema = new Schema({
   catalog: String,
   deleted: Boolean,
@@ -117,7 +111,6 @@ const orderSchema = new Schema({
 // })
 
 export {
-  userSchema,
   pageSchema,
   staticTextSchema,
   itemSchema,

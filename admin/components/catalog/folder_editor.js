@@ -10,11 +10,10 @@ import {t} from '../../common/utils'
 
 class FolderForm extends React.Component {
   onSaveFolder(data) {
-    const {locale, showNotification, mutate, onClose} =  this.props
+    const {locale, showNotification, mutate, onClose, catalog} =  this.props
     const {name, hidden, id} = data
     const folder = {name, hidden, id, locale}
-    console.log(folder)
-    mutate({variables: {folder}}).then(() => {
+    mutate({variables: {folder, catalog}}).then(() => {
       showNotification("Folder updated")
       onClose()
     })
@@ -52,8 +51,8 @@ class FolderForm extends React.Component {
 }
 
 const upsertMutation = gql`
-  mutation upsertFolder($folder: FolderInput!) {
-    upsertFolder(folder: $folder) { id name hidden }
+  mutation upsertFolder($folder: FolderInput!, $catalog: String!) {
+    upsertFolder(folder: $folder, catalog: $catalog) { id name hidden }
   }
 `
 

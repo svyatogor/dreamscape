@@ -180,9 +180,9 @@ type Query {
   site: Site
   snippets: [StaticText]
   folders(catalog: String!): [Folder!]
-  folder(id: ID!): Folder
-  items(folder: ID, search: String, catalog: String): [Item!]!
-  item(id: ID!): Item
+  folder(id: ID!, catalog: String!): Folder
+  items(folder: ID, search: String, catalog: String!): [Item!]!
+  item(id: ID!, catalog: String!): Item
   eshopOrders(search: String, limit: Int, offset: Int): [Order]
 }
 
@@ -196,10 +196,10 @@ type Mutation {
   upsertFileList(input: FileListInput!, locale: String!): FileList
   attachImage(type: String!, id: ID!, url: String!): Boolean
   upsertItem(id: ID, folder: ID, catalog: String, data: JSON!, locale: String): Item
-  moveItem(id: ID!, newPosition: Int!): Boolean
-  deleteItem(id: ID!): Boolean
-  upsertFolder(folder: FolderInput!): Folder
-  deleteFolder(id: ID!): Boolean
-  orderFolders(folders: [ID!]!, parent: ID): [Folder]
+  moveItem(id: ID!, newPosition: Int!, catalog: String!): Boolean
+  deleteItem(id: ID!, catalog: String!): Boolean
+  upsertFolder(folder: FolderInput!, catalog: String!): Folder
+  deleteFolder(id: ID!, catalog: String!): Boolean
+  orderFolders(folders: [ID!]!, parent: ID, catalog: String!): [Folder]
   updateOrderStatus(order: ID!, status: OrderStatus!): Order
 }

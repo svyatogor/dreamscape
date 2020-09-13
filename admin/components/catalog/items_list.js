@@ -59,7 +59,7 @@ class ItemsList extends React.Component {
 
   deleteItem() {
     this.props.deleteItem({
-      variables: {id: this.state.requestDeleteItem.id},
+      variables: {id: this.state.requestDeleteItem.id, catalog: this.props.catalogKey},
       refetchQueries: ['items'],
     }).then(() => {
       this.setState({requestDeleteItem: null})
@@ -72,8 +72,9 @@ class ItemsList extends React.Component {
   }
 
   move(id, newPosition) {
+    const {catalogKey} = this.props
     this.props.moveItem({
-      variables: {id, newPosition},
+      variables: {id, newPosition, catalog: catalogKey},
       refetchQueries: ['items'],
     })
   }
@@ -145,14 +146,14 @@ class ItemsList extends React.Component {
 }
 
 const deleteItem = gql`
-  mutation deleteItem($id: ID!) {
-    deleteItem(id: $id)
+  mutation deleteItem($id: ID!, $catalog: String!) {
+    deleteItem(id: $id, catalog: $catalog)
   }
 `
 
 const moveItem = gql`
-  mutation moveItem($id: ID!, $newPosition: Int!) {
-    moveItem(id: $id, newPosition: $newPosition)
+  mutation moveItem($id: ID!, $newPosition: Int!, $catalog: String!) {
+    moveItem(id: $id, newPosition: $newPosition, catalog: $catalog)
   }
 `
 

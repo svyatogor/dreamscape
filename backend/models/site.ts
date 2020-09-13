@@ -1,13 +1,16 @@
-import {prop, DocumentType, getModelForClass} from '@typegoose/typegoose'
-import mongoose from 'mongoose'
+import { getModelForClass, modelOptions, prop } from '@typegoose/typegoose'
+import { Base } from '@typegoose/typegoose/lib/defaultClasses'
 import fs from 'fs'
-import {humanize} from 'inflection'
-import {zipObject, forEach} from 'lodash'
+import { humanize } from 'inflection'
+import { forEach, zipObject } from 'lodash'
 import nunjucks from 'nunjucks'
 import * as tags from '../renderers/tags'
-import {ModelType} from '@typegoose/typegoose/lib/types'
-import {Base} from '@typegoose/typegoose/lib/defaultClasses'
 
+@modelOptions({
+	schemaOptions: {
+		collection: 'sites'
+	}
+})
 export class SiteClass extends Base {
 	private env: nunjucks.Environment | undefined
 
@@ -109,7 +112,4 @@ export class SiteClass extends Base {
 	}
 }
 
-const model = getModelForClass(SiteClass)
-export default mongoose.connection
-	.useDb('dreamscape')
-	.model('Site', model.schema) as ModelType<SiteClass>
+export default getModelForClass(SiteClass)

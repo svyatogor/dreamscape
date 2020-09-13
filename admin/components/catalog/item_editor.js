@@ -290,8 +290,8 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
 }
 
 const itemGql = gql`
-  query item($id: ID!) {
-    item(id: $id) {
+  query item($id: ID!, $catalog: String!) {
+    item(id: $id, catalog: $catalog) {
       id
       data
     }
@@ -305,7 +305,7 @@ const enhance = compose(
       return !!(props.id || matchId) && matchId !== 'new'
     },
     graphql(itemGql, {
-      options: props => ({variables: {id: (props.id || props.match.params.itemId)}})
+      options: props => ({variables: {id: (props.id || props.match.params.itemId), catalog: props.catalogKey}})
     }),
   ),
   graphql(upsertItem),
