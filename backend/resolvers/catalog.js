@@ -144,9 +144,6 @@ export default class {
     let item
     if (id) {
       item = await Item.findById(id).populate('folder')
-      if (String(get(item, 'site')) !== String(site.id)) {
-        throw new Error("Item doesn't exist or you don't have access to it")
-      }
     } else {
       let position = 0
       if (folder && !folderObject) {
@@ -204,19 +201,19 @@ export default class {
     })
 
     await item.save()
-    // try {
-    //   await Promise.map(site.supportedLanguages, async locale => {
-    //     const body = await item.toSearchableDocument(documentSchema, site, locale)
-    //     await SearchService.index({
-    //       index: locale,
-    //       type: `${catalog}-${site.id}`,
-    //       id: item.id,
-    //       body,
-    //     })
-    //   })
-    // } catch (e) {
-    //   console.error(e)
-    // }
+    try {
+      await Promise.map(site.supportedLanguages, async locale => {
+        const body = await item.toSearchableDocument(documentSchema, site, locale)
+        await SearchService.index({
+          index: locale,
+          type: `${catalog}-${site.id}`,
+          id: item.id,
+          body,
+        })
+      })
+    } catch (e) {
+      console.error(e)
+    }
 
     return {
       id: item.id,
