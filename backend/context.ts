@@ -3,19 +3,17 @@ import { ModelType } from '@typegoose/typegoose/lib/types'
 import { classify, tableize } from 'inflection'
 import { Dictionary, map, mapValues, pickBy, toPairs, zipObject } from 'lodash'
 import mongoose, { Schema, SchemaType, SchemaTypeOpts } from 'mongoose'
-import FolderClass from './models/folder_class'
-import ItemClass from './models/item'
-import Site, { SiteClass } from './models/site'
+import { Folder, Item, Site } from './models'
 
 export default class Context {
 	static all: Dictionary<Context> = {}
 	models: {[model: string]: mongoose.Model<mongoose.Document>}
-	folders: {[model: string]: ModelType<FolderClass>}
+	folders: {[model: string]: ModelType<Folder>}
 	db: mongoose.Connection
-	site: SiteClass
+	site: Site
 
 	static async prepareAll() {
-		const sites = await Site.find()
+		const sites = await Site.model().find()
 		for (let site of sites) {
 			this.all[String(site._id)] = new Context(site)
 		}
@@ -63,14 +61,14 @@ export default class Context {
 	}
 
 
-	private constructor(site: SiteClass) {
+	private constructor(site: Site) {
 		this.db = mongoose.connection.useDb(site.key)
 		this.site = site
 
 		this.models = mapValues(
 			site.documentTypes,
 			(documentDefinition, documentType) => {
-				let model: ModelType<FolderClass>
+				let model: ModelType<Folder>
 				const schema = this.buildDocumentSchema(
 					site,
 					documentDefinition,
@@ -98,11 +96,11 @@ export default class Context {
 		this.folders = mapValues(
 			catalogsWithFolders,
 			(documentDefinition, documentType) => {
-				let model: ModelType<FolderClass>
+				let model: ModelType<Folder>
 				const modelName = `${classify(site.key)}::${classify(
 					documentType
 				)}Folder`
-				const schema = buildSchema(FolderClass)
+				const schema = buildSchema(Folder)
 					.path('parent', {type: Schema.Types.ObjectId, ref: modelName})
 					.method('context', () => this)
 					.method('model', () => model)
@@ -125,7 +123,7 @@ export default class Context {
 	}
 
 	buildDocumentSchema(
-		site: SiteClass,
+		site: Site,
 		documentDefinition: any,
 		documentType: string
 	) {
@@ -134,12 +132,14 @@ export default class Context {
 			.reduce(
 				(schema, [field, fieldSchema]) =>
 					schema.path(field, this.fieldToMongooseField(fieldSchema)),
-				buildSchema(ItemClass)
+				buildSchema(Item, {
+
+				})
 			)
 			.path('folder', { type: Schema.Types.ObjectId, ref: folderRef })
 	}
 
-	static get(site: SiteClass) {
+	static get(site: Site) {
 		return this.all[String(site._id)]
 	}
 }

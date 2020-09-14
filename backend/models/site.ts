@@ -4,14 +4,13 @@ import fs from 'fs'
 import { humanize } from 'inflection'
 import { forEach, zipObject } from 'lodash'
 import nunjucks from 'nunjucks'
-import * as tags from '../renderers/tags'
 
 @modelOptions({
 	schemaOptions: {
 		collection: 'sites'
 	}
 })
-export class SiteClass extends Base {
+export default class Site extends Base {
 	private env: nunjucks.Environment | undefined
 
 	@prop({required: true})
@@ -54,7 +53,7 @@ export class SiteClass extends Base {
 		return zipObject(layoutNames, layoutValues)
 	}
 
-  layoutInfo(this: SiteClass, layout: string) {
+	layoutInfo(this: Site, layout: string) {
 		if (!this.env) {
 			this.env = nunjucks.configure(`./data/${this.key}/layouts`)
 			this.env.addFilter('currency', () => null)
@@ -64,11 +63,11 @@ export class SiteClass extends Base {
 			forEach(tags, (tag, name) => {
 				this.env.addExtension(name, new tag() as any) //TODO: [TS] Convert tags and remove any cast
 			})
-    }
+		}
 
 		if (!fs.existsSync(`./data/${this.key}/layouts/${layout}/index.html`)) {
 			return {}
-    }
+		}
 		try {
 			const context = {inspect: true, sections: [], properties: {}}
 			this.env.render(`${layout}/index.html`, context)
@@ -85,8 +84,8 @@ export class SiteClass extends Base {
 		}
 	}
 
-  syncFile(file: string) {
-    // TODO:
+	syncFile(file: string) {
+		// TODO:
 		// if (file.indexOf('layouts') !== 0) {
 		// 	return Promise.resolve()
 		// }
@@ -110,6 +109,10 @@ export class SiteClass extends Base {
 		// 	})
 		// })
 	}
-}
 
-export default getModelForClass(SiteClass)
+	private static _model = getModelForClass(Site)
+
+	static model() {
+		return this._model
+	}
+}

@@ -1,18 +1,25 @@
-import mongoose from 'mongoose'
-import {Base} from '@typegoose/typegoose/lib/defaultClasses'
-import {prop, getModelForClass} from '@typegoose/typegoose'
+import { getModelForClass, prop } from '@typegoose/typegoose'
+import { Base } from '@typegoose/typegoose/lib/defaultClasses'
 
-class UserClass extends Base {
+export default class User extends Base {
 	@prop({
-		trequired: true,
+		required: true,
 		lowercase: true,
 		trim: true,
 		index: true,
 		unique: true
 	})
 	public email!: string
-	public name?: string
-	public avatar?: string
-}
 
-export default getModelForClass(UserClass)
+	@prop()
+	public name?: string
+
+	@prop()
+	public avatar?: string
+
+	private static _model = getModelForClass(User)
+
+	static model() {
+		return this._model
+	}
+}

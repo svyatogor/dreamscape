@@ -11,9 +11,9 @@ export default abstract class ManagedObject<T> extends TimeStamps {
     throw new Error('Class should be accessed from context')
   }
 
-  public static model(): ModelType<any> {
-    throw new Error('Class should be accessed from context')
-  }
+  // public static model(): ReturnModelType<any> {
+  //   throw new Error('Class should be accessed from context')
+  // }
 
   public model(): ModelType<T> {
     throw new Error('Class should be accessed from context')

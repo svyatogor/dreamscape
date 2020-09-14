@@ -23,7 +23,7 @@ export default class ItemClass extends ManagedObject<any> {
     return object
   }
 
-  async toSearchableDocument(this: DocumentType<ItemClass>, locale) {
+  async toSearchableDocument(this: DocumentType<ItemClass>, locale: string) {
     const { site } = this.context()
     const schema = this.managedSchema()
     const fields = Object.keys(pickBy(schema.fields, field => ['string', 'html'].includes(field.type)))
