@@ -4,7 +4,7 @@ import {graphql, gql} from 'react-apollo'
 import {compose} from 'recompose'
 import {connect} from 'react-redux'
 import {AutoComplete} from 'material-ui'
-import common from '../../common.scss'
+import common from '../../common.module.scss'
 
 const ReferenceField = props => {
   const {dataSource = [], input, floatingLabelText, required} = props

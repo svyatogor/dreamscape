@@ -39,7 +39,7 @@ async function reindexCatalog(site, catalog) {
 }
 
 export default async function() {
-    const sites = await Site.find({})
+    const sites = await Site.model().find({})
     const catalogs = sites.map(site =>
         Object.keys(get(site, 'documentTypes', {})).map(catalog => ({site, catalog}))
     )

@@ -1,12 +1,14 @@
 import React from 'react'
 import {connect} from 'react-redux'
 import {graphql} from 'react-apollo'
-import siteQuery from '../graphql/site.gql'
+import {loader} from 'graphql.macro'
 import {logout, setLocale} from '../actions'
 import Logo from '../assets/logo_white_2x.png'
 import {AppBar, IconMenu, SelectField, MenuItem, Avatar, IconButton} from 'material-ui'
-import styles from './header.scss'
+import styles from './header.module.scss'
 import {map, get} from 'lodash'
+
+const siteQuery = loader('../graphql/site.gql')
 
 const Title = ({title}) =>
   <div style={{display: 'flex', width: '100%'}}>

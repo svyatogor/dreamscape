@@ -6,7 +6,7 @@ import {RaisedButton, List, ListItem, IconButton, TextField, Dialog, FlatButton}
 import {isEqual, last, omit, isNil, remove} from 'lodash'
 import {t} from '../../common/utils'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
-import common from '../../common.scss'
+import common from '../../common.module.scss'
 import {showNotification} from '../../actions'
 
 const icons = {

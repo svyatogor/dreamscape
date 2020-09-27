@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {DragSource, DropTarget} from 'react-dnd'
-import common from '../../common.scss'
+import common from '../../common.module.scss'
 import {compose} from 'recompose'
 
 

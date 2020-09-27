@@ -14,12 +14,14 @@ import {graphql, gql} from 'react-apollo'
 import {humanize} from 'inflection'
 import DropzoneS3Uploader from 'react-dropzone-s3-uploader'
 import {showNotification} from '../actions'
-import upsertPage from '../graphql/upsertPage.gql'
-import deletePage from '../graphql/deletePage.gql'
-import siteQuery from '../graphql/site.gql'
+import {loader} from 'graphql.macro'
 import {t} from '../common/utils'
-import common from '../common.scss'
+import common from '../common.module.scss'
 import {RedactorField as Redactor} from '../components/redactor'
+
+const upsertPage = loader('../graphql/upsertPage.gql')
+const deletePage = loader('../graphql/deletePage.gql')
+const siteQuery = loader('../graphql/site.gql')
 
 const required = value => isEmpty(value) && 'Cannot be blank'
 

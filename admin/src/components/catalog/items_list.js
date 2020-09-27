@@ -20,7 +20,8 @@ import moment from 'moment'
 import {t} from '../../common/utils'
 import {showNotification} from '../../actions'
 import Row from './dragable_row'
-import itemsQuery from '../../graphql/items.gql'
+import {loader} from 'graphql.macro'
+const itemsQuery = loader('../../graphql/items.gql')
 
 class ItemsList extends React.Component {
   constructor(props) {

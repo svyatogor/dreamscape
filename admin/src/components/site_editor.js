@@ -8,7 +8,8 @@ import {graphql} from 'react-apollo'
 import SiteTree from './site_tree'
 import SiteEditorWelcome from './site_editor_welcome'
 import PageEditor from './page_editor'
-import siteQuery from '../graphql/site.gql'
+import {loader} from 'graphql.macro'
+const siteQuery = loader('../graphql/site.gql')
 
 class SiteEditor extends React.Component {
   render() {

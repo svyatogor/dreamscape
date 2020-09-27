@@ -9,7 +9,8 @@ import {graphql, gql} from 'react-apollo'
 import SiteTreeElement from './site_tree_element'
 import {showNotification} from '../actions'
 import {t} from '../common/utils'
-import pages from '../graphql/pages.gql'
+import {loader} from 'graphql.macro'
+const pages = loader('../graphql/pages.gql')
 
 const documentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575'}} />
 const inactiveDocumentIcon = <i className="mdi mdi-file-document" style={{fontSize: 24, top: 4, color: '#757575', opacity: 0.7}} />

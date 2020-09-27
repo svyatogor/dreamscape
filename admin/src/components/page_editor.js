@@ -7,9 +7,11 @@ import PropTypes from 'prop-types'
 import {t} from '../common/utils'
 import PageMenu from './page_menu'
 import PageEditorGeneral from './page_editor_general'
-import page from '../graphql/page.gql'
+import {loader} from 'graphql.macro'
 import * as modules from './modules'
 import ItemEditor from './catalog/item_editor'
+
+const page = loader('../graphql/page.gql')
 
 const withMenu = (Module) => {
   class PageWithMenu extends React.Component {

@@ -10,10 +10,10 @@ import {DragDropContext} from 'react-dnd'
 import HTML5Backend from 'react-dnd-html5-backend'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
-import siteQuery from './graphql/site.gql'
+import {loader} from 'graphql.macro'
 import {getSession} from './actions'
 import Notification from './components/notification'
-import styles from './App.scss'
+import styles from './App.module.scss'
 import Header from './components/header'
 import Logo from './assets/logo_blue_2x.png'
 import Welcome from './components/welcome'
@@ -22,6 +22,8 @@ import SnippetsEditor from './components/snippets_editor'
 import OrdersManager from './components/eshop/orders_manager'
 import Catalog from './components/catalog'
 import Login from './components/login'
+
+const siteQuery = loader('./graphql/site.gql')
 
 class MainContainer extends React.Component {
   constructor(props) {

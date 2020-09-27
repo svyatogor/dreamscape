@@ -4,6 +4,7 @@ import fs from 'fs'
 import { humanize } from 'inflection'
 import { forEach, zipObject } from 'lodash'
 import nunjucks from 'nunjucks'
+import * as tags from '../renderers/tags'
 
 @modelOptions({
 	schemaOptions: {
@@ -55,6 +56,7 @@ export default class Site extends Base {
 
 	layoutInfo(this: Site, layout: string) {
 		if (!this.env) {
+			console.log('Creating new nunjucks env')
 			this.env = nunjucks.configure(`./data/${this.key}/layouts`)
 			this.env.addFilter('currency', () => null)
 			this.env.addFilter('initials', () => null)
@@ -110,9 +112,9 @@ export default class Site extends Base {
 		// })
 	}
 
-	private static _model = getModelForClass(Site)
-
 	static model() {
-		return this._model
+		return SiteModel
 	}
 }
+
+const SiteModel = getModelForClass(Site)

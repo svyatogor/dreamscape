@@ -8,7 +8,7 @@ const TAX_CATEGORIES = jsonic(process.env.TAX_CATEGORIES)
 
 export default class Product extends Item {
   async toContext({locale}) {
-    const site = await Site.findOne({_id: this.site}).cache(10)
+    const site = await Site.model().findOne({_id: this.site}).cache(10)
     const object = this.toObject({virtuals: true})
     const fields = site.documentTypes[this.catalog].fields
     Object.keys(pickBy(fields, {localized: true})).forEach(field => {
@@ -47,14 +47,14 @@ export default class Product extends Item {
   }
 
   get productName() {
-    return Site.findOne({_id: this.get('site')}).cache().then(site => {
+    return Site.model().findOne({_id: this.get('site')}).cache().then(site => {
       const {labelField, defaultLocale = 'en'} = site.documentTypes[this.catalog]
       return this.get(labelField)[defaultLocale]
     })
   }
 
   get productImage() {
-    return Site.findOne({_id: this.get('site')}).cache().then(site => {
+    return Site.model().findOne({_id: this.get('site')}).cache().then(site => {
       const {imageField} = site.documentTypes[this.catalog]
       if (imageField) {
         return this.get(imageField)

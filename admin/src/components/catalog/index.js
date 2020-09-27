@@ -10,8 +10,10 @@ import Search from './search'
 // import SiteTree from './site_tree'
 // import SiteEditorWelcome from './site_editor_welcome'
 // import PageEditor from './page_editor'
-import siteQuery from '../../graphql/site.gql'
+import {loader} from 'graphql.macro'
 import {TreeWrapper} from './tree'
+
+const siteQuery = loader('../../graphql/site.gql')
 
 class Catalog extends React.Component {
   get catalog() {

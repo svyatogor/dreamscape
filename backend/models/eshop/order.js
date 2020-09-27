@@ -67,7 +67,7 @@ class OrderClass {
   }
 
   async setPaymentMethod(method) {
-    const site = await Site.findOne({_id: this.site}).cache()
+    const site = await Site.model().findOne({_id: this.site}).cache()
     const paymentMethod = site.eshop.paymentMethods[method]
     if (!paymentMethod) {
       throw new Error('Unsupported payment method')
@@ -94,7 +94,7 @@ class OrderClass {
       )
     }).then(async () => {
       this.set({status: 'new'})
-      const site = (await Site.findById(this.get('site'))).toObject()
+      const site = (await Site.model().findById(this.get('site'))).toObject()
       const afterCreateHookFile = get(site, 'eshop.afterCreateOrderHook')
       if (afterCreateHookFile) {
         const afterCreateHookFilePath = `../../../data/${site.key}/modules/${afterCreateHookFile}`
@@ -124,7 +124,7 @@ class OrderClass {
 
   get availableDeliveryMethods() {
     const country = get(this.shippingAddress, 'country')
-    return Site.findOne({_id: this.site}).cache().then(site => {
+    return Site.model().findOne({_id: this.site}).cache().then(site => {
       return pickBy(site.get('eshop').deliveryMethods, method =>
         (!method.countries || includes(method.countries, country)) &&
         (!method.excludedCountries  || !includes(method.excludedCountries, country))
@@ -141,7 +141,7 @@ class OrderClass {
   }
 
   async setDefaultPaymentMethod() {
-    const site = await Site.findOne({_id: this.site}).cache()
+    const site = await Site.model().findOne({_id: this.site}).cache()
     const method = Object.keys(pickBy(site.eshop.paymentMethods, 'default'))[0]
     if (method) {
       await this.setPaymentMethod(method)

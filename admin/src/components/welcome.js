@@ -1,6 +1,7 @@
 import React from 'react'
 import {graphql} from 'react-apollo'
-import siteQuery from '../graphql/site.gql'
+import {loader} from 'graphql.macro'
+const siteQuery = loader('../graphql/site.gql')
 
 const Welcome = props => {
   if (props.data.site) {

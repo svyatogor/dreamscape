@@ -18,9 +18,11 @@ import {humanize, underscore} from 'inflection'
 import {graphql} from 'react-apollo'
 import {push} from 'react-router-redux'
 import * as modules from './modules'
-import addBlock from '../graphql/addBlock.gql'
-import removeBlock from '../graphql/removeBlock.gql'
-import site from '../graphql/site.gql'
+import {loader} from 'graphql.macro'
+
+const addBlock = loader('../graphql/addBlock.gql')
+const removeBlock = loader('../graphql/removeBlock.gql')
+const site = loader('../graphql/site.gql')
 
 let SelectableList = makeSelectable(List)
 

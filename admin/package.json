@@ -6,41 +6,30 @@
     "node": "~> 12.16.3"
   },
   "dependencies": {
-    "autoprefixer": "7.1.1",
     "bootstrap": "^3.3.7",
     "bootstrap-sass": "^3.3.7",
     "classnames": "^2.2.5",
     "codemirror": "^5.28.0",
-    "css-loader": "0.28.4",
-    "eslint": "3.19.0",
-    "eslint-config-react-app": "^1.0.5",
-    "eslint-loader": "1.7.1",
-    "eslint-plugin-flowtype": "2.34.0",
-    "eslint-plugin-graphql": "^1.2.0",
-    "eslint-plugin-import": "2.2.0",
-    "eslint-plugin-jsx-a11y": "5.0.3",
-    "eslint-plugin-react": "7.1.0",
-    "file-loader": "0.11.2",
+    "graphql": "^15.3.0",
+    "graphql.macro": "^1.4.2",
     "history": "^4.6.3",
     "inflection": "^1.12.0",
-    "jest": "20.0.4",
     "jquery": "1.11.3",
     "lodash": "^4.17.4",
     "material-ui": "^0.18.7",
     "material-ui-search-bar": "^0.4.1",
     "mdi": "^2.0.46",
     "moment-timezone": "^0.5.14",
+    "node-sass": "^4.14.1",
     "numeral": "^2.0.6",
     "object-assign": "4.1.1",
-    "postcss-flexbugs-fixes": "3.0.0",
-    "postcss-loader": "2.0.6",
-    "postcss-modules": "^3.2.2",
     "promise": "7.1.1",
     "prop-types": "^15.5.10",
     "propellerkit": "1.1.0",
     "querystring": "^0.2.0",
     "react": "^15.6.1",
     "react-apollo": "^1.4.8",
+    "react-app-rewire-inline-import-graphql-ast": "^2.0.1",
     "react-dev-utils": "^3.0.2",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
@@ -61,40 +50,39 @@
     "redux-persist": "^4.8.3",
     "redux-thunk": "^2.2.0",
     "request-promise-native": "^1.0.7",
-    "sass-loader": "^6.0.6",
     "shortid": "^2.2.8",
-    "style-loader": "0.18.2",
-    "sugar": "^2.0.4",
-    "url-loader": "0.5.9",
-    "whatwg-fetch": "2.0.3"
+    "sugar": "^2.0.4"
   },
   "scripts": {
-    "start": "parcel ./public/index.html",
-    "build": "parcel build -d ../build/admin ./public/index.html"
+    "prestart": "rimraf ./node_modules/.cache/babel-loader/",
+    "prebuild": "rimraf ./node_modules/.cache/babel-loader/",
+    "start": "react-scripts start",
+    "build": "react-scripts build"
   },
   "eslintConfig": {
-    "extends": "react-app",
-    "env": {
-      "jquery": true
-    }
+    "extends": "react-app"
   },
   "devDependencies": {
-    "@babel/core": "^7.11.4",
-    "@babel/plugin-transform-runtime": "^7.11.0",
-    "@babel/preset-react": "^7.10.4",
     "@types/inflection": "^1.5.28",
     "@types/lodash": "^4.14.158",
     "@types/react": "^16.9.48",
     "@types/react-dom": "^16.9.8",
-    "express-http-proxy": "^1.6.2",
-    "graphql-import-macro": "^1.0.0",
-    "http-proxy-middleware": "^1.0.5",
-    "node-sass": "^4.14.1",
-    "npm-run-all": "^4.0.2",
-    "parcel-bundler": "^1.12.4",
+    "babel-plugin-import-graphql": "^2.7.0",
     "prettier": "2.0.5",
-    "sass": "^1.26.10",
-    "ts-node-dev": "^1.0.0-pre.61",
+    "react-scripts": "^4.0.0-next.98",
+    "rimraf": "^3.0.2",
     "typescript": "^4.0.2"
+  },
+  "browserslist": {
+    "production": [
+      "last 5 chrome version",
+      "last 5 firefox version",
+      "last 5 safari version",
+      "last 5 edge version"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 safari version"
+    ]
   }
 }

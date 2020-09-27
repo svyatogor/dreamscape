@@ -31,7 +31,7 @@ const syncS3 = () => {}
 // 		}
 // 	})
 
-// 	Site.find().then(sites => {
+// 	Site.model().find().then(sites => {
 // 		sites.forEach(site => {
 // 			console.log(`Syncing layout for ${site.key}`)
 // 			const downloader = client.downloadDir({
@@ -82,7 +82,7 @@ export default async () => {
 						const key = record.s3.object.key
 						const [siteKey, file] = /^([^/]+)\/(.*)$/.exec(key).slice(1)
 						console.log(key, siteKey, file)
-						const site = await Site.findOne({key: siteKey})
+						const site = await Site.model().findOne({key: siteKey})
 						if (site) {
 							return site.syncFile(file)
 						} else {
@@ -102,9 +102,9 @@ export default async () => {
 		const match = req.hostname.match(regex)
 		if (match) {
 			const key = match[1].toLowerCase()
-			req.site = await Site.findOne({key}) //.cache()
+			req.site = await Site.model().findOne({key}) //.cache()
 		} else {
-			req.site = await Site.findOne({
+			req.site = await Site.model().findOne({
 				domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
 			}) //.cache()
 		}

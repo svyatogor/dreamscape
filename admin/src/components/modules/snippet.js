@@ -6,7 +6,7 @@ import {RaisedButton} from 'material-ui'
 import {AutoComplete as MUIAutoComplete} from 'material-ui'
 import {AutoComplete} from 'redux-form-material-ui'
 import {Field, reduxForm} from 'redux-form'
-import common from '../../common.scss'
+import common from '../../common.module.scss'
 import {showNotification} from '../../actions'
 
 class Snippet extends React.Component {

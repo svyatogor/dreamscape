@@ -75,8 +75,11 @@ export default class Context {
 					documentType
 				)
 					.method('context', () => this)
+					//@ts-ignore
 					.method('model', () => model)
+					//@ts-ignore
 					.method('managedSchema', () => documentDefinition)
+					//@ts-ignore
 					.method('managedSchemaRef', () => documentType)
 					.set('strict', true)
 
@@ -103,8 +106,11 @@ export default class Context {
 				const schema = buildSchema(Folder)
 					.path('parent', {type: Schema.Types.ObjectId, ref: modelName})
 					.method('context', () => this)
+					//@ts-ignore
 					.method('model', () => model)
+					//@ts-ignore
 					.method('managedSchema', () => documentDefinition)
+					//@ts-ignore
 					.method('managedSchemaRef', () => documentType)
 					.set('strict', true)
 

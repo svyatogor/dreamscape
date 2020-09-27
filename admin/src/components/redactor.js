@@ -1,7 +1,9 @@
 import React from 'react'
 import querystring from 'querystring'
 import {graphql} from 'react-apollo'
-import attachImage from '../graphql/attachImage.gql'
+import {loader} from 'graphql.macro'
+
+const attachImage = loader('../graphql/attachImage.gql')
 
 class Redactor extends React.Component {
   static id = 0

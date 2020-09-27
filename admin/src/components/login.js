@@ -1,8 +1,8 @@
 import React from 'react'
 import FontAwesome from 'react-fontawesome'
 import {Paper} from 'material-ui'
-import appStyles from '../App.scss'
-import styles from './login.scss'
+import appStyles from '../App.module.scss'
+import styles from './login.module.scss'
 import cx from 'classnames'
 import Logo from '../assets/logo_blue_2x.png'
 

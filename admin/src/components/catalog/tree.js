@@ -10,8 +10,10 @@ import {graphql, gql} from 'react-apollo'
 import Folder from '../site_tree_element'
 import {showNotification} from '../../actions'
 import {t} from '../../common/utils'
-import folders from '../../graphql/folders.gql'
+import {loader} from 'graphql.macro'
 import NewFolder from './new_folder'
+
+const folders = loader('../../graphql/folders.gql')
 
 const folderIcon = <i className="mdi mdi-folder" style={{fontSize: 24, top: 4, color: '#757575'}} />
 

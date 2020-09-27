@@ -5,7 +5,7 @@ import {connect} from 'react-redux'
 import {RaisedButton} from 'material-ui'
 import {t} from '../../common/utils'
 import Redactor from '../redactor'
-import common from '../../common.scss'
+import common from '../../common.module.scss'
 import {showNotification} from '../../actions'
 
 class StaticText extends React.Component {

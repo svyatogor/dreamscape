@@ -19,9 +19,11 @@ import {t} from '../../common/utils'
 import { isObject } from 'util'
 import {showNotification} from '../../actions'
 import {RedactorField as Redactor} from '../redactor'
-import common from '../../common.scss'
-import ITEMS from '../../graphql/items.gql'
+import common from '../../common.module.scss'
+import {loader} from 'graphql.macro'
 import ReferenceField from './reference_field';
+
+const ITEMS = loader('../../graphql/items.gql')
 
 class ItemEditor extends Component {
   onSubmit(data) {

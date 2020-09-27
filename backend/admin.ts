@@ -1,14 +1,14 @@
-import express from 'express'
-import {graphqlExpress, graphiqlExpress} from 'graphql-server-express'
-import {makeExecutableSchema, addResolveFunctionsToSchema} from 'graphql-tools'
-import path from 'path'
 import aws from 'aws-sdk'
-import shortid from 'shortid'
 import bodyParser from 'body-parser'
-import {get, last, map} from 'lodash'
-import {readFileSync} from 'fs'
+import express from 'express'
+import { readFileSync } from 'fs'
+import { graphiqlExpress, graphqlExpress } from 'graphql-server-express'
+import { addResolveFunctionsToSchema, makeExecutableSchema } from 'graphql-tools'
+import { get, last, map } from 'lodash'
+import path from 'path'
+import shortid from 'shortid'
+import { requireUser } from './auth'
 import resolvers from './resolvers'
-import {requireUser} from './auth'
 
 const typeDefs = readFileSync('./schema.gql').toString()
 const schema = makeExecutableSchema({typeDefs, resolvers})
@@ -87,8 +87,8 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.resolve(__dirname, '../build/admin/index.html'))
   })
 } else if (process.env.NODE_ENV === 'development') {
-  const { createProxyMiddleware } = require('http-proxy-middleware');
-  admin.use(createProxyMiddleware({ target: 'http://localhost:1234'}))
+  const createProxyMiddleware = require('http-proxy-middleware')
+  admin.use(createProxyMiddleware({ target: 'http://localhost:3000/'}))
 }
 
 export default admin
