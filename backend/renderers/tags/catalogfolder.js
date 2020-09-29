@@ -26,6 +26,9 @@ export class catalogfolder {
       return callback(null, '')
     }
 
+    const ItemModel = ctx.site.Item(catalog)
+    const FolderModel = ctx.site.Folder(catalog)
+
     try {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})
       const key = opts.as
@@ -40,17 +43,17 @@ export class catalogfolder {
           opts.sort = scope.sort
         }
       } else {
-        folder = await Folder.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
+        folder = await FolderModel.findById(ctx.page.params)
         if (!folder) {
           callback(null, '')
           return
         }
         folder = await folder.toContext(ctx.req)
-        q = {catalog, site: ctx.site._id, folder: ctx.page.params, deleted: false}
+        q = {folder: ctx.page.params, deleted: false}
       }
 
-      let items = Item.find(q).sort(opts.sort)
-      folder.count = await Item.count(q)
+      let items = ItemModel.find(q).sort(opts.sort)
+      folder.count = await ItemModel.count(q)
       if (opts.pageSize) {
         let page = ctx.req.query.page
         if (!page || isNaN(page)) {

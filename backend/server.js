@@ -82,7 +82,7 @@ export default async () => {
 						const key = record.s3.object.key
 						const [siteKey, file] = /^([^/]+)\/(.*)$/.exec(key).slice(1)
 						console.log(key, siteKey, file)
-						const site = await Site.model().findOne({key: siteKey})
+						const site = await Site.load(siteKey)
 						if (site) {
 							return site.syncFile(file)
 						} else {
@@ -102,11 +102,9 @@ export default async () => {
 		const match = req.hostname.match(regex)
 		if (match) {
 			const key = match[1].toLowerCase()
-			req.site = await Site.model().findOne({key}) //.cache()
+			req.site = await Site.load(key)
 		} else {
-			req.site = await Site.model().findOne({
-				domains: {$elemMatch: {$regex: new RegExp(req.hostname, 'i')}}
-			}) //.cache()
+			req.site = Site.loadByHostname(req.hostname)
 		}
 		req.site = req.site && req.site.toObject({virtuals: true})
 		if (req.site) {

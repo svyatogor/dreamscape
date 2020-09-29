@@ -7,12 +7,12 @@ import CatalogResolver from './catalog'
 export default class {
   @query
   static pages({site}) {
-    return Page.where({site: site.id}).populate('parent')
+    return site.Page.find().populate('parent')
   }
 
   @query
   static page({site}, {id}) {
-    return Page.findOne({_id: id, site: site.id}).populate('parent')
+    return site.Page.findById(id).populate('parent')
   }
 
   @mutation
@@ -36,7 +36,7 @@ export default class {
     }
 
     if (page.id) {
-      _page = await Page.findOne({_id: page.id, site: site.id}).populate('parent')
+      _page = await site.Page.findById(page.id).populate('parent')
       const {properties = {}, ...pageProperties} = clean(page, _page.layout)
       _page.set(pageProperties)
       forEach(properties, (value, key) => {
@@ -46,7 +46,7 @@ export default class {
       locale = 'en'
       _page = new Page(clean(page, page.layout))
       let position = 0
-      const lastPage = await Page.findOne({site: site._id}).sort('-position').select('position')
+      const lastPage = await site.Page.findOne().sort('-position').select('position')
       if (lastPage) {
         position = lastPage.position
       }
@@ -66,7 +66,7 @@ export default class {
 
   @mutation
   static async deletePage({site}, {id}) {
-    const page = await Page.findOne({_id: id, site: site.id})
+    const page = await site.Page.findOne({_id: id, site: site.id})
     if (!page) {
       return false
     } else {
@@ -79,7 +79,7 @@ export default class {
   @mutation
   static async addBlock({site}, {block}) {
     const {page: id, section, _type} = block
-    let page = await Page.findById(id)
+    let page = await site.Page.findById(id)
     page.sections = page.sections || {}
     page.sections[section] = page.sections[section] || []
     let objectId
@@ -101,7 +101,7 @@ export default class {
 
   @mutation
   static async removeBlock(context, {block: {page: pageId, ref}}) {
-    let page = await Page.findById(pageId)
+    let page = await site.Page.findById(pageId)
     forEach(page.sections, (section, key) => {
       if (map(section, block => String(block.ref)).includes(ref)) {
         page.sections[key] = reject(section, block => String(block.ref) === ref)
@@ -121,7 +121,7 @@ export default class {
   @mutation
   static async orderPages({site}, {pages, parent}) {
     return Promise.all(map(pages, (page, position) =>
-      Page.findOneAndUpdate({_id: page, site: site._id}, {$set: {position, parent}}, {new: true}).populate('parent')
+      site.Page.findByIdAndUpdate(page, {$set: {position, parent}}, {new: true}).populate('parent')
     ))
   }
 

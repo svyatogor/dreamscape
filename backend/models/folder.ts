@@ -1,17 +1,19 @@
-import { DocumentType, modelOptions, prop } from '@typegoose/typegoose'
+import { buildSchema, DocumentType, modelOptions, prop, Severity } from '@typegoose/typegoose'
 import { Ref } from '@typegoose/typegoose/lib/types'
 import { Dictionary } from 'lodash'
+import { Schema } from 'mongoose'
 import { t } from '../common/utils'
-import Context from '../context'
 import ManagedObject from './managed_object'
-import Site from './site'
 
 @modelOptions({
   schemaOptions: {
     timestamps: true,
-  }
+  },
+  options: {
+    allowMixed: Severity.ALLOW,
+  },
 })
-export default class Folder extends ManagedObject<any> {
+export default class Folder extends ManagedObject<Folder> {
   @prop()
   public name: Dictionary<string>
 
@@ -27,19 +29,21 @@ export default class Folder extends ManagedObject<any> {
   @prop({default: false})
   public deleted?: boolean
 
-  @prop()
+  @prop({refPath: 'modelName'})
   public parent?: Ref<Folder>
 
   async toContext(this: DocumentType<Folder>, { locale }) {
     return {
       ...this.toObject({virtuals: true}),
       name: t(this.get('name'), locale),
-      leaf: (await this.model().count({parent: this._id, deleted: false})) === 0
+      leaf: (await this.model.count({parent: this._id, deleted: false})) === 0
     }
   }
 
-  static model(site: Site, catalog: string) {
-		return Context.get(site).folders[catalog]
-	}
+  static schema(modelName: string) {
+    return buildSchema(this)
+      .set('strict', true)
+      .path('parent', {type: Schema.Types.ObjectId, ref: modelName})
+  }
 }
 

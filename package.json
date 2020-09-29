@@ -4,6 +4,7 @@
   "scripts": {
     "start": "cd build/backend; node ./scripts/server.js",
     "heroku-postbuild": "yarn workspaces run build",
-    "dev:backend": "yarn workspace backend run dev"
+    "dev:backend": "yarn workspace backend run dev",
+    "dev:admin": "yarn workspace admin start"
   }
 }

@@ -1,26 +1,14 @@
+import { buildSchema } from '@typegoose/typegoose'
 import { TimeStamps } from '@typegoose/typegoose/lib/defaultClasses'
 import { ModelType } from '@typegoose/typegoose/lib/types'
-import Context from '../context'
+import Site from './site'
 
-export default abstract class ManagedObject<T> extends TimeStamps {
-  public static context(): Context {
-    throw new Error('Class should be accessed from context')
-  }
+export default class ManagedObject<T> extends TimeStamps {
+  public site: Site
+  public model: ModelType<T>
+  public modelName: String
 
-  public context(): Context {
-    throw new Error('Class should be accessed from context')
-  }
-
-  public model(): ModelType<T> {
-    throw new Error('Class should be accessed from context')
-  }
-
-
-  public managedSchemaRef(): string {
-    throw new Error('Class should be accessed from context')
-  }
-
-  public managedSchema(): any {
-    throw new Error('Class should be accessed from context')
+  static schema(modelName: string) {
+    return buildSchema(this)
   }
 }

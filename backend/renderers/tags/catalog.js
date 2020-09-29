@@ -35,6 +35,7 @@ export class catalog {
       return callback(null, '')
     }
 
+    const ItemModel = ctx.site.Item(catalog)
     const asyncBody = Promise.promisify(body)
 
     try {
@@ -49,9 +50,7 @@ export class catalog {
       const rawFilter = opts.rawFilter ? eval(`(${opts.rawFilter})`) : {}
 
       let criteria = {
-        site: ctx.site._id,
         deleted: false,
-        catalog,
         ...filter,
         ...rawFilter,
       }
@@ -81,12 +80,12 @@ export class catalog {
       }
 
       if (opts.random) {
-        const sampleRecords = await Item.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
+        const sampleRecords = await ItemModel.aggregate().match(criteria).project({_id: 1}).sample(opts.limit)
         const ids = sampleRecords.map(e => e._id)
         criteria = {_id: {$in: ids}}
       }
       console.log(JSON.stringify(criteria))
-      let itemsQuery = Item.find(criteria)
+      let itemsQuery = ItemModel.find(criteria)
 
       if (!opts.random) {
         if (opts.limit) {
@@ -98,7 +97,7 @@ export class catalog {
         }
       }
 
-      ctx.itemsCount = await Item.count(criteria)
+      ctx.itemsCount = await ItemModel.count(criteria)
       if (opts.pageSize) {
         let page = ctx.req.query.page
         if (!page || isNaN(page)) {

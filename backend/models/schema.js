@@ -1,45 +1,5 @@
 import {Schema} from 'mongoose'
 
-const itemSchema = new Schema({
-  catalog: String,
-  deleted: Boolean,
-  position: Number,
-  folder: {type: Schema.Types.ObjectId, ref: 'Folder'},
-  site: {type: Schema.Types.ObjectId, ref: 'Site'},
-}, {strict: false, timestamps: true})
-
-const folderSchema = new Schema({
-  name: Object,
-  slug: String,
-  position: {type: Number, default: 9999},
-  parent: {type: Schema.Types.ObjectId, ref: 'Folder'},
-  site: {type: Schema.Types.ObjectId, ref: 'Site'},
-  hidden:  {type: Boolean, default: false},
-  catalog: String,
-  deleted:  {type: Boolean, default: false},
-})
-
-const pageSchema = new Schema({
-  slug: {type: String, required: "{PATH} is required"},
-  published: Boolean,
-  layout: String,
-  parent: {type: Schema.Types.ObjectId, ref: 'Page'},
-  site: {type: Schema.Types.ObjectId, ref: 'Site'},
-  title: Object,
-  sections: Object,
-  properties: Object,
-  position: {type: Number, default: 9999}
-})
-
-const staticTextSchema = new Schema({
-  content: Object,
-  images: [String],
-  site: {type: Schema.Types.ObjectId, ref: 'Site'},
-  key: String,
-  global: {type: Boolean, default: false},
-  type: String,
-})
-
 const fileSchema = new Schema({
   originalName: String,
   displayName: Object,
@@ -111,10 +71,6 @@ const orderSchema = new Schema({
 // })
 
 export {
-  pageSchema,
-  staticTextSchema,
-  itemSchema,
-  folderSchema,
   fileListSchema,
   orderSchema,
 }

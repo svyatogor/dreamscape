@@ -39,6 +39,7 @@ export class query {
       return callback(null, '')
     }
 
+    const ItemModel = ctx.site.Item(catalog)
     const opts = defaults(options, {as: 'item'})
     const key = opts.as
     const originalValue = ctx[key]
@@ -59,15 +60,13 @@ export class query {
       let filter = [
         {
           $match: {
-            $and: [
-              {site: ObjectID(ctx.req.site._id)}, {catalog}, ...where
-            ]
+            $and: where
           }
         },
       ]
       let paginate = []
       if (opts.pageSize) {
-        const countResult = await Item.collection.aggregate([...filter, {$count: 'count'}]).toArray()
+        const countResult = await ItemModel.collection.aggregate([...filter, {$count: 'count'}]).toArray()
         ctx.itemsCount = _.get(countResult, [0, 'count'], 0)
         let page = ctx.req.query.page
         if (!page || isNaN(page)) {
@@ -78,7 +77,7 @@ export class query {
         paginate = [{$skip: (page - 1) * opts.pageSize}, {$limit: opts.pageSize}]
       }
 
-      const items = await Item.collection.aggregate([
+      const items = await ItemModel.collection.aggregate([
         ...filter,
         ...sort,
         ...paginate,

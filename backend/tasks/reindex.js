@@ -4,7 +4,7 @@ import {get, flatten, flattenDeep} from 'lodash'
 import SearchService from '../services/search'
 
 async function reindexCatalog(site, catalog) {
-    const cursor = Item.find({ site: site.id, catalog, deleted: false }).batchSize(100).cursor()
+    const cursor = site.Item(catalog).find({ deleted: false }).batchSize(100).cursor()
     const schema = site.documentTypes[catalog]
     var batch = [] // declared as var on purpose
     console.error('This cose does not function anymore as toSearchbaleDocument is not asycn')
@@ -39,7 +39,7 @@ async function reindexCatalog(site, catalog) {
 }
 
 export default async function() {
-    const sites = await Site.model().find({})
+    const sites = await Site.all
     const catalogs = sites.map(site =>
         Object.keys(get(site, 'documentTypes', {})).map(catalog => ({site, catalog}))
     )

@@ -1,25 +1,25 @@
 import mongoose from 'mongoose'
-import {isEmpty, isNil, get, forEach, omit, isString, isBoolean, mapValues} from 'lodash'
+import {isEmpty, isNil, get, forEach, omit, isString, isBoolean, mapValues, trimEnd} from 'lodash'
 import crypto from 'crypto'
 import {query, mutation} from './utils'
 import SearchService from '../services/search'
 import Promise from 'bluebird'
-import Context from '../context'
 
 export default class {
   @query
   static async folders({site}, {catalog}) {
-    return Context.get(site).folders[catalog].where({deleted: false})
+
+    return site.Folder(catalog).where({deleted: false})
   }
 
   @query
   static folder({site}, {id, catalog}) {
-    return Context.get(site).folders[catalog].findOne({_id: id, deleted: false})
+    return site.Folder(catalog).findOne({_id: id, deleted: false})
   }
 
   @query
   static async item({site}, {id, catalog}) {
-    const Item = Context.get(site).models[catalog]
+    const Item = site.Item(catalog)
     const item = await Item.findById(id)
     const schema = site.documentTypes[catalog]
     const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
@@ -33,8 +33,8 @@ export default class {
 
   @query
   static async items({site}, {folder, search, catalog}) {
-    const Folder = Context.get(site).folders[catalog]
-    const Item = Context.get(site).models[catalog]
+    const Folder = site.Folder(catalog)
+    const Item = site.Item(catalog)
     const q = {deleted: false}
     if (folder) {
       const folderObject = await Folder.findById(folder)
@@ -56,7 +56,7 @@ export default class {
       acc.populate({
         path: field,
         select: site.documentTypes[schema.fields[field].documentType].labelField,
-        model: Context.get(site).modelName(schema.fields[field].documentType)
+        model: site.getModelName(schema.fields[field].documentType)
       }), Item.where(q).sort(schema.sortBy || 'position'))
     return result.map(item => {
       const label = schema.labelField ? item.get(schema.labelField) : ''
@@ -81,7 +81,7 @@ export default class {
 
   @mutation
   static async upsertFolder({site}, {folder, catalog}) {
-    const Folder = Context.get(site).folders[catalog]
+    const Folder = site.Folder(catalog)
     let {id, name, parent, locale, hidden} = folder
     if (id) {
       const folder = await Folder.findById(id)
@@ -132,10 +132,9 @@ export default class {
 
   @mutation
   static async upsertItem({site}, params) {
-    console.log(params)
     const {id, catalog, folder, locale, data = {}} = params
-    const Folder = Context.get(site).folders[catalog]
-    const Item = Context.get(site).models[catalog]
+    const Folder = site.Folder(catalog)
+    const Item = site.Item(catalog)
 
     const folderObject = folder && await Folder.findById(folder)
 
@@ -159,7 +158,6 @@ export default class {
       item = new Item({folder, position, deleted: false})
     }
 
-    console.log(documentSchema.fields)
     forEach(omit(documentSchema.fields, (_, f) => isNil(data[f])), ({localized, type, ...fieldSchema}, field) => {
       if (localized) {
         console.log(field)
@@ -224,7 +222,7 @@ export default class {
 
   @mutation
   static async moveItem({site}, {id, newPosition, catalog}) {
-    const Item = Context.get(site).models[catalog]
+    const Item = site.Item(catalog)
     const item = await Item.findByIdAndUpdate(id, {position: newPosition})
     if (newPosition === item.position) return
     if (newPosition < item.position) {
@@ -250,7 +248,7 @@ export default class {
 
   @mutation
   static async deleteItem({site}, {id, catalog}) {
-    const Item = Context.get(site).models[catalog]
+    const Item = site.Item(catalog)
     await Promise.all(
       site.supportedLanguages.map(locale =>
         SearchService.delete({
@@ -260,19 +258,20 @@ export default class {
         }).catch(() => null)
       )
     )
-    return Item.findByIdAndUpdate(id, { $set: { deleted: true }}, {new: true})
+    await Item.findByIdAndUpdate(id, {$set: {deleted: true}}, {new: true})
+    return true
   }
 
   @mutation
-  static deleteFolder({site}, {id, catalog}) {
+  static async deleteFolder({site}, {id, catalog}) {
     // TODO: Remove all nested items from search
-    const Folder = Context.get(site).folders[catalog]
-    return Folder.findByIdAndUpdate(id, {$set: {deleted: true}}, {new: true})
+    await site.Folder(catalog).findByIdAndUpdate(id, {$set: {deleted: true}}, {new: true})
+    return true
   }
 
   @mutation
   static async orderFolders({site}, {catalog, folders, parent}) {
-    const Folder = Context.get(site).folders[catalog]
+    const Folder = site.Folder(catalog)
     return Promise.map(folders, (folder, position) =>
       Folder.findByIdAndUpdate(folder, {$set: {position, parent}}, {new: true})
     )

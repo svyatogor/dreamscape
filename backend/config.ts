@@ -1,6 +1,6 @@
-import fs from 'fs'
-import dotenv from 'dotenv'
-import dotenvExpand from 'dotenv-expand'
+import dotenv from 'dotenv';
+import dotenvExpand from 'dotenv-expand';
+import fs from 'fs';
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 

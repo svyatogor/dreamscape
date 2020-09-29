@@ -63,7 +63,7 @@ async function resolvePath(path, req) {
     path = ['index']
   }
 
-  const allPages = (await Page.find({site: req.site.id, slug: {$in: path}}).populate('parent'))
+  const allPages = await req.site.Page.find({slug: {$in: path}}).populate('parent')
 
   const pages = map(path, (slug, i) =>
     find(allPages, page =>

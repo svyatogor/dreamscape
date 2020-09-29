@@ -1,9 +1,30 @@
-import { getModelForClass, modelOptions, prop } from '@typegoose/typegoose'
+import {
+	buildSchema,
+	DocumentType,
+	getModelForClass,
+	getName,
+	modelOptions,
+	post,
+	prop,
+	ReturnModelType
+} from '@typegoose/typegoose'
 import { Base } from '@typegoose/typegoose/lib/defaultClasses'
+import { AnyParamConstructor } from '@typegoose/typegoose/lib/types'
+import DataLoader from 'dataloader'
 import fs from 'fs'
-import { humanize } from 'inflection'
-import { forEach, zipObject } from 'lodash'
+import { classify, humanize, tableize } from 'inflection'
+import {
+	Dictionary,
+	forEach,
+	map,
+	mapValues,
+	pickBy,
+	toPairs,
+	zipObject
+} from 'lodash'
+import mongoose, { Schema, SchemaType, SchemaTypeOpts } from 'mongoose'
 import nunjucks from 'nunjucks'
+import { Folder, Item, Page, StaticText } from '.'
 import * as tags from '../renderers/tags'
 
 @modelOptions({
@@ -11,8 +32,21 @@ import * as tags from '../renderers/tags'
 		collection: 'sites'
 	}
 })
+@post<Site>('init', site => site.postInit())
 export default class Site extends Base {
 	private env: nunjucks.Environment | undefined
+	private siteDB!: mongoose.Connection
+	private _folderModels: Dictionary<ReturnModelType<typeof Folder>>
+	private _documentModels: Dictionary<ReturnModelType<typeof Item>>
+
+	public StaticText!: ReturnModelType<typeof StaticText>
+	public Page!: ReturnModelType<typeof Page>
+	public Folder(catalog: string) {
+		return this._folderModels[catalog]
+	}
+	public Item(catalog: string) {
+		return this._documentModels[catalog]
+	}
 
 	@prop({required: true})
 	public key!: string
@@ -34,7 +68,7 @@ export default class Site extends Base {
 
 	@prop()
 	//TODO: [TS] Define document types
-	documentTypes: {[x: string]: any}
+	documentTypes: Dictionary<any>
 
 	@prop()
 	eshop: {[x: string]: object}
@@ -57,7 +91,7 @@ export default class Site extends Base {
 	layoutInfo(this: Site, layout: string) {
 		if (!this.env) {
 			console.log('Creating new nunjucks env')
-			this.env = nunjucks.configure(`./data/${this.key}/layouts`)
+			this.env = nunjucks.configure(`../data/${this.key}/layouts`)
 			this.env.addFilter('currency', () => null)
 			this.env.addFilter('initials', () => null)
 			this.env.addFilter('setQS', () => null)
@@ -67,7 +101,7 @@ export default class Site extends Base {
 			})
 		}
 
-		if (!fs.existsSync(`./data/${this.key}/layouts/${layout}/index.html`)) {
+		if (!fs.existsSync(`../data/${this.key}/layouts/${layout}/index.html`)) {
 			return {}
 		}
 		try {
@@ -112,8 +146,197 @@ export default class Site extends Base {
 		// })
 	}
 
-	static model() {
-		return SiteModel
+	private static loaderByID = new DataLoader<
+		mongoose.Types.ObjectId | string,
+		DocumentType<Site>
+	>(
+		async ids => {
+			const sites = await SiteModel.find()
+				.where('_id')
+				.in([...ids])
+			sites.forEach(site => {
+				Site.loaderByKey.prime(site.key, site)
+				site.domains.forEach(domain =>
+					Site.loaderByHostname.prime(domain, site)
+				)
+			})
+			return ids.map(id => sites.find(s => s._id.equals(id)))
+		},
+		{
+			cacheKeyFn: String
+		}
+	)
+
+	private static loaderByKey = new DataLoader<string, DocumentType<Site>>(
+		async keys => {
+			const sites = await SiteModel.find()
+				.where('key')
+				.in([...keys])
+			sites.forEach(site => {
+				Site.loaderByID.prime(site._id, site)
+				site.domains.forEach(domain =>
+					Site.loaderByHostname.prime(domain, site)
+				)
+			})
+			return keys.map(key => sites.find(s => s.key === key))
+		}
+	)
+
+	private static loaderByHostname = new DataLoader<string, DocumentType<Site>>(
+		async ([hostname]) => {
+			const site = await SiteModel.find().findOne({
+				domains: {$elemMatch: {$regex: new RegExp(hostname, 'i')}}
+			})
+			Site.loaderByID.prime(site._id, site)
+			Site.loaderByKey.prime(site.key, site)
+			return [site]
+		},
+		{batch: false, cacheKeyFn: hostname => hostname.toLocaleLowerCase()}
+	)
+
+	static async load(idOrKey: mongoose.Types.ObjectId | string) {
+		if (
+			idOrKey instanceof mongoose.Types.ObjectId ||
+			mongoose.Types.ObjectId.isValid(idOrKey)
+		) {
+			return this.loaderByID.load(idOrKey)
+		} else {
+			return this.loaderByKey.load(idOrKey as string)
+		}
+	}
+
+	static async loadByHostname(hostname: string) {
+		return this.loaderByHostname.load(hostname)
+	}
+
+	static get all() {
+		return SiteModel.find()
+	}
+
+	reload(this: DocumentType<Site>) {
+		Site.loaderByID.clear(this.id)
+		Site.loaderByKey.clear(this.key)
+	}
+
+	private postInit(this: DocumentType<Site>) {
+		this.siteDB = mongoose.connection.useDb(this.key)
+		this.StaticText = this.buildManagedModel(StaticText)
+		this.Page = this.buildManagedModel(Page)
+
+		const catalogsWithFolders = pickBy(
+			this.documentTypes,
+			schema => schema.hasFolders
+		)
+		this._folderModels = mapValues(catalogsWithFolders, (_, documentType) =>
+			this.buildManagedModel(Folder, `${classify(documentType)}Folder`)
+		)
+
+		this._documentModels = mapValues(
+			catalogsWithFolders,
+			(documemtDefinition, documentType) =>
+				this.buildDocumentModel(documemtDefinition, documentType)
+		)
+	}
+
+	private buildManagedSchema<U extends AnyParamConstructor<any>>(
+		this: DocumentType<Site>,
+		cl: U,
+		modelName: string
+	): mongoose.Schema<U> {
+		const schema = buildSchema(cl)
+		schema.virtual('modelName').get(() => modelName)
+		schema.virtual('site').get(() => this)
+		schema.virtual('model').get(() => mongoose.model(modelName))
+
+		return schema
+	}
+
+	private buildManagedModel<U extends AnyParamConstructor<any>>(
+		this: DocumentType<Site>,
+		cl: U,
+		klassName?: string
+	): ReturnModelType<U> {
+		const baseName = klassName || getName(cl)
+		const modelName = `${classify(this.key)}::${baseName}`
+
+		return this.siteDB.model(
+			modelName,
+			this.buildManagedSchema(cl, modelName),
+			tableize(baseName)
+		) as ReturnModelType<U>
+	}
+
+	private internalTypeToMongooseType(this: DocumentType<Site>, field: any) {
+		switch (field.type) {
+			case 'string':
+			case 'image':
+			case 'html':
+				return {type: String}
+			case 'select':
+				if (field.options) {
+					return {
+						type: String,
+						enum: Object.keys(field.options)
+					}
+				} else {
+					return {
+						type: Schema.Types.ObjectId,
+						ref: `${classify(this.key)}::${classify(field.documentType)}`
+					}
+				}
+			case 'boolean':
+				return {type: Boolean}
+			case 'number':
+			case 'money': // TODO: this needs to change
+				return {type: Number}
+			case 'date':
+				return {type: Date}
+		}
+	}
+
+	private fieldToMongooseField(
+		this: DocumentType<Site>,
+		field: any
+	): SchemaTypeOpts<any> | Schema | SchemaType {
+		let mongooseType = {
+			...this.internalTypeToMongooseType(field),
+			required: !!field.required
+		}
+
+		if (field.localized) {
+			return zipObject(
+				this.supportedLanguages,
+				map(this.supportedLanguages, () => mongooseType)
+			)
+		} else {
+			return mongooseType
+		}
+	}
+
+	private buildDocumentModel(
+		this: DocumentType<Site>,
+		documentDefinition: any,
+		documentType: string
+	) {
+		const folderRef = this.getModelName(`${documentType}Folder`)
+		const modelName = this.getModelName(documentType)
+		const schema = toPairs(documentDefinition.fields)
+			.reduce(
+				(schema, [field, fieldSchema]) =>
+					schema.path(field, this.fieldToMongooseField(fieldSchema)),
+				this.buildManagedSchema(Item, modelName)
+			)
+			.path('folder', {type: Schema.Types.ObjectId, ref: folderRef})
+
+		return this.siteDB.model(
+			modelName,
+			schema,
+			tableize(documentType)
+		) as ReturnModelType<typeof Item>
+	}
+
+	getModelName(modelName: string) {
+		return `${classify(this.key)}::${classify(modelName)}`
 	}
 }
 
