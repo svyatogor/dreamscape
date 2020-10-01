@@ -8,12 +8,13 @@ import Promise from 'bluebird'
 export default class {
   @query
   static async folders({site}, {catalog}) {
-
+    if (!site.Folder(catalog)) return []
     return site.Folder(catalog).where({deleted: false})
   }
 
   @query
   static folder({site}, {id, catalog}) {
+    if (!site.Folder(catalog)) return undefined
     return site.Folder(catalog).findOne({_id: id, deleted: false})
   }
 

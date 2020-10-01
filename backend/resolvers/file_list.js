@@ -5,17 +5,17 @@ import {FileList} from '../models'
 export default class {
   @query
   static async fileList({site}, {id}) {
-    return await FileList.findOne({_id: id, site: site.id})
+    return await site.FileList.findById(id)
   }
 
   @mutation
   static async upsertFileList({site}, {input: {id, template, files}, locale}) {
+    const {FileList} = site
     let fileList
-    console.log('id', id);
     if (id) {
-      fileList = await FileList.findOne({_id: id, site: site.id})
+      fileList = await FileList.findById(id)
     } else {
-      fileList = new FileList({site: site.id})
+      fileList = new FileList()
     }
     fileList.template = template
     fileList.files = files.map(file => {

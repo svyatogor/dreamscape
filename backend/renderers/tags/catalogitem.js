@@ -33,7 +33,7 @@ export class catalogitem {
         ctx.res.redirect('/')
         return
       }
-      const item = await ctx.site.Item(catalog).findById(ctx.page.params)
+      const item = await ctx.req.site.Item(catalog).findById(ctx.page.params)
       if (!item) {
         ctx.res.redirect('/')
         return

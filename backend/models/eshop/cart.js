@@ -52,19 +52,20 @@ export default class {
   }
 
   get items() {
-    if (!this.__items)  {
-      const pricingPolicy = this.pricingPolicy
-      return pricingPolicy.bind().then(async () => {
-        const objects = await Product.find({_id: {$in: map(this._items, 'product')}})
-        objects.forEach(o => o.pricingPolicy = pricingPolicy)
-        this.__items = map(this._items, i => ({
-          ...i,
-          product: find(objects, o => String(o._id) === i.product)
-        }))
-        return this.__items
-      })
-    }
-    return this.__items
+    // if (!this.__items)  {
+    //   const pricingPolicy = this.pricingPolicy
+    //   return pricingPolicy.bind().then(async () => {
+    //     const objects = await Product.find({_id: {$in: map(this._items, 'product')}})
+    //     objects.forEach(o => o.pricingPolicy = pricingPolicy)
+    //     this.__items = map(this._items, i => ({
+    //       ...i,
+    //       product: find(objects, o => String(o._id) === i.product)
+    //     }))
+    //     return this.__items
+    //   })
+    // }
+    // return this.__items
+    return []
   }
 
   get total() {

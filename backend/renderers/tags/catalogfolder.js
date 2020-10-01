@@ -26,8 +26,8 @@ export class catalogfolder {
       return callback(null, '')
     }
 
-    const ItemModel = ctx.site.Item(catalog)
-    const FolderModel = ctx.site.Folder(catalog)
+    const ItemModel = ctx.req.site.Item(catalog)
+    const FolderModel = ctx.req.site.Folder(catalog)
 
     try {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position'})

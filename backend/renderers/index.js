@@ -8,19 +8,19 @@ import * as tags from './tags'
 
 const renderPage = async ({req, res}, page, context) => {
   const {site} = context
-  const locale = req.locale
+  const {locale} = req
   const breadcrumbs = await Promise.map(page.parents, p => p.toContext({locale, site}))
   const flash = req.flash()
   const referrer = get(flash, 'referrer.0')
 
-  require('moment').locale(req.locale)
+  require('moment').locale(locale)
   reduce(
     breadcrumbs,
     (path, page) => {
       page.path = `${path}/${page.slug}`
       return page.path
     }, "")
-  breadcrumbs[breadcrumbs.length-1].active = true
+  breadcrumbs[breadcrumbs.length - 1].active = true
   try {
     context = {
       ...context,
@@ -50,8 +50,8 @@ const renderPage = async ({req, res}, page, context) => {
       flash,
       referrer,
     }
-    console.log(context.page.fullPath)
-    const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
+
+    const env = nunjucks.configure(`../data/${site.key}/layouts`, {autoescape: false})
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())
     })
@@ -97,7 +97,7 @@ const renderEmail = async (req, template, context) => {
       },
       req
     }
-    const env = nunjucks.configure(`./data/${site.key}/layouts`, {autoescape: false})
+    const env = nunjucks.configure(`../data/${site.key}/layouts`, {autoescape: false})
     env.addFilter('currency', (str, currency, defaultValue = '-') => {
       if (isNil(currency) || isEmpty(currency)) {
         return defaultValue

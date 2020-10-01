@@ -24,7 +24,7 @@ import {
 } from 'lodash'
 import mongoose, { Schema, SchemaType, SchemaTypeOpts } from 'mongoose'
 import nunjucks from 'nunjucks'
-import { Folder, Item, Page, StaticText } from '.'
+import { FileList, Folder, Item, Page, StaticText } from '.'
 import * as tags from '../renderers/tags'
 
 @modelOptions({
@@ -40,6 +40,7 @@ export default class Site extends Base {
 	private _documentModels: Dictionary<ReturnModelType<typeof Item>>
 
 	public StaticText!: ReturnModelType<typeof StaticText>
+	public FileList!: ReturnModelType<typeof FileList>
 	public Page!: ReturnModelType<typeof Page>
 	public Folder(catalog: string) {
 		return this._folderModels[catalog]
@@ -221,6 +222,7 @@ export default class Site extends Base {
 	private postInit(this: DocumentType<Site>) {
 		this.siteDB = mongoose.connection.useDb(this.key)
 		this.StaticText = this.buildManagedModel(StaticText)
+		this.FileList = this.buildManagedModel(FileList)
 		this.Page = this.buildManagedModel(Page)
 
 		const catalogsWithFolders = pickBy(
@@ -232,7 +234,7 @@ export default class Site extends Base {
 		)
 
 		this._documentModels = mapValues(
-			catalogsWithFolders,
+			this.documentTypes,
 			(documemtDefinition, documentType) =>
 				this.buildDocumentModel(documemtDefinition, documentType)
 		)
@@ -246,7 +248,7 @@ export default class Site extends Base {
 		const schema = buildSchema(cl)
 		schema.virtual('modelName').get(() => modelName)
 		schema.virtual('site').get(() => this)
-		schema.virtual('model').get(() => mongoose.model(modelName))
+		schema.virtual('model').get(() => this.siteDB.model(modelName))
 
 		return schema
 	}
@@ -320,13 +322,17 @@ export default class Site extends Base {
 	) {
 		const folderRef = this.getModelName(`${documentType}Folder`)
 		const modelName = this.getModelName(documentType)
-		const schema = toPairs(documentDefinition.fields)
+		let schema = toPairs(documentDefinition.fields)
 			.reduce(
 				(schema, [field, fieldSchema]) =>
 					schema.path(field, this.fieldToMongooseField(fieldSchema)),
 				this.buildManagedSchema(Item, modelName)
 			)
-			.path('folder', {type: Schema.Types.ObjectId, ref: folderRef})
+
+		if (documentDefinition.hasFolders) {
+			schema = schema.path('folder', { type: Schema.Types.ObjectId, ref: folderRef })
+		}
+		schema.virtual('managedSchema').get(() => documentDefinition)
 
 		return this.siteDB.model(
 			modelName,

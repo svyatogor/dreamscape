@@ -71,7 +71,8 @@ export default class Page extends ManagedObject<Page> {
 			...omit(this.toObject({virtuals: true}), ['properties', 'title']),
 			title: t(this.title, locale),
 			path: await this.getPath(),
-			url: await this.url({locale, site}),
+			url: await this.url({ locale, site }),
+			params: (this as any).params, //TODO:
 			target: this.slug.startsWith('http') ? '_blank' : '_self',
 			...mapValues(this.properties, (prop, key) => {
 				if (localizedProperies.includes(key)) {

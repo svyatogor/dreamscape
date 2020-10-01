@@ -28,7 +28,8 @@ export class snippet {
       return callback(null, null)
     }
 
-    const props = {site: ctx.site._id, key: snippetName, global: true}
+    const {StaticText} = ctx.site
+    const props = {key: snippetName, global: true}
     return StaticText.findOne(props)
       .then(text => {
         if (text) {

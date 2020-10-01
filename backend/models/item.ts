@@ -14,9 +14,11 @@ export default class Item extends ManagedObject<any> {
   @prop({default: 0})
   position: Number
 
+  public managedSchema!: any
+
   async toContext(this: DocumentType<Item>, {locale}) {
     const object = this.toObject({virtuals: true})
-    const fields = this.managedSchema().fields
+    const fields = this.managedSchema.fields
     Object.keys(pickBy(fields, {localized: true})).forEach(field => {
       object[field] = t(object[field], locale)
     })
@@ -24,7 +26,7 @@ export default class Item extends ManagedObject<any> {
   }
 
   async toSearchableDocument(this: DocumentType<Item>, locale: string) {
-    const schema = this.managedSchema()
+    const schema = this.managedSchema
     const fields = Object.keys(pickBy(schema.fields, field => ['string', 'html'].includes(field.type)))
     const relationFields = pickBy(schema.fields, field => field.documentType)
     const keyedFields = values(mapValues(relationFields, (v, field) => ({...v, field})))

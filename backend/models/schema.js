@@ -1,19 +1,5 @@
 import {Schema} from 'mongoose'
 
-const fileSchema = new Schema({
-  originalName: String,
-  displayName: Object,
-  size: Number,
-  type: String,
-  url: String,
-})
-
-const fileListSchema = new Schema({
-  files: [fileSchema],
-  template: String,
-  site: {type: Schema.Types.ObjectId, ref: 'Site'},
-})
-
 const addressSchema = new Schema({
   country: String,
   city: String,

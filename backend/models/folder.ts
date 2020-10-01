@@ -36,7 +36,7 @@ export default class Folder extends ManagedObject<Folder> {
     return {
       ...this.toObject({virtuals: true}),
       name: t(this.get('name'), locale),
-      leaf: (await this.model.count({parent: this._id, deleted: false})) === 0
+      leaf: (await this.model.count({parent: this, deleted: false})) === 0
     }
   }
 

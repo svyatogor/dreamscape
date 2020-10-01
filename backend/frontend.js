@@ -2,7 +2,6 @@ import express from 'express'
 import cookieParser from 'cookie-parser'
 import flash from 'connect-flash'
 import session from 'express-session'
-import {Page} from './models'
 import {map, findLastIndex, isNil, get, identity, find, forEach, reject, slice} from 'lodash'
 import {renderPage} from './renderers'
 const frontend = express.Router()
@@ -76,6 +75,7 @@ async function resolvePath(path, req) {
   const pageIdx = findLastIndex(pages, identity)
   const page = pages[pageIdx]
   if (!page) return null
+  // TODO: FIX THIS!!!
   page.parents = reject(pages, isNil)
   page.path = path.join('/')
   page.params = slice(path, pageIdx + 1).join('/')

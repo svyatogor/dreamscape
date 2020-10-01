@@ -39,7 +39,7 @@ export class query {
       return callback(null, '')
     }
 
-    const ItemModel = ctx.site.Item(catalog)
+    const ItemModel = ctx.req.site.Item(catalog)
     const opts = defaults(options, {as: 'item'})
     const key = opts.as
     const originalValue = ctx[key]

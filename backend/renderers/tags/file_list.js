@@ -5,7 +5,7 @@ import fs from 'fs'
 export class file_list {
   static async render(block, context) {
     const {req, page, env, site} = context
-    const list = await FileList.findById(block.ref)
+    const list = await site.FileList.findById(block.ref)
     let fileOptions = []
     const prefix = `./data/${site.key}/layouts/`
     if (!isNil(list.template) && !isEmpty(list.template)) {

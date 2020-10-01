@@ -24,6 +24,7 @@ export class menu {
       return callback(null, '')
     }
 
+    const {Page} = ctx.req.site
     try {
       const opts = defaults(options, {as: 'page'})
       const key = opts.as

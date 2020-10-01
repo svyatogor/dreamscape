@@ -35,7 +35,7 @@ export class catalog {
       return callback(null, '')
     }
 
-    const ItemModel = ctx.site.Item(catalog)
+    const ItemModel = ctx.req.site.Item(catalog)
     const asyncBody = Promise.promisify(body)
 
     try {
