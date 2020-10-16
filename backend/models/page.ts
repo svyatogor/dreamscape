@@ -1,7 +1,6 @@
-import { DocumentType, isDocument, modelOptions, prop, Severity } from '@typegoose/typegoose'
+import { DocumentType, isDocument, modelOptions, mongoose, prop } from '@typegoose/typegoose'
 import { Ref } from '@typegoose/typegoose/lib/types'
 import { Dictionary, find, map, mapValues, omit, pickBy, reverse } from 'lodash'
-import mongoose from 'mongoose'
 import { t } from '../common/utils'
 import ManagedObject from './managed_object'
 import Site from './site'
@@ -9,9 +8,6 @@ import Site from './site'
 @modelOptions({
 	schemaOptions: {
 		timestamps: true
-  },
-  options: {
-    allowMixed: Severity.ALLOW,
   },
 })
 export default class Page extends ManagedObject<Page> {
@@ -39,7 +35,8 @@ export default class Page extends ManagedObject<Page> {
 	@prop({required: true, default: 99999})
   public position!: number
 
-  async getPath(this: DocumentType<Page>) {
+	async getPath(this: DocumentType<Page>) {
+		//TODO: This results in N+1 queries
     const allPages = await this.model.find().select(['_id', 'parent', 'slug'])
     const fullPath = [this.slug]
     let self = this

@@ -1,14 +1,18 @@
-import { DocumentType, prop } from '@typegoose/typegoose'
+import { DocumentType, modelOptions, prop } from '@typegoose/typegoose'
 import filesize from 'filesize'
-import mongoose from 'mongoose'
 import { t } from '../common/utils'
 
+@modelOptions({
+	schemaOptions: {
+		timestamps: true
+  },
+})
 class File {
 	@prop()
 	public originalName: string
 
-	@prop()
-	public displayName: mongoose.Types.Map<string>
+	@prop({type: String})
+	public displayName: Map<string, string>
 
 	@prop()
 	public size: number

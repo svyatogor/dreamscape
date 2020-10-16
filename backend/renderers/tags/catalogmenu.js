@@ -18,17 +18,16 @@ export class catalogmenu {
     return new nodes.CallExtensionAsync(this, 'run', root, [body]);
   }
 
-  async run({ctx}, catalog, options, body, callback) {
+  async run({ctx, env: {site}}, catalog, options, body, callback) {
     if (ctx.inspect) {
       return callback(null, '')
     }
 
     try {
-      const Folder = ctx.req.site.Folder(catalog)
+      const Folder = site.Folder(catalog)
       const opts = defaults(options, {as: 'folder'})
       const key = opts.as
       const originalValue = ctx[key]
-      let foldersQuery
 
       let parent
       if (isString(opts.root)) {
@@ -36,20 +35,19 @@ export class catalogmenu {
       } else if (opts.root && opts.root._id) {
         parent = opts.root._id
       }
-      foldersQuery = Folder.find({parent, deleted: false, hidden: {$ne: true}})
       const asyncBody = Promise.promisify(body)
-      return foldersQuery.sort('position').cache().then(async folders => {
-        const data = await Promise.map(folders, async folder => {
-          const contentFolder = await folder.toContext({locale: ctx.req.locale})
-          ctx[key] = {
-            ...contentFolder,
-            // active: TODO: implement
-          }
-          return await asyncBody()
-        })
-        ctx[key] = originalValue
-        return callback(null, data.join(''))
-      }).catch(err => callback(err))
+      const folders = await Folder
+        .find({parent, deleted: false, hidden: {$ne: true}})
+        .sort('position')
+        .cache()
+      const folderObjects = Promise.map(folders, folder =>
+        folder.toContext({locale: ctx.req.locale}))
+      const data = await Promise.map(folderObjects, folderObject => {
+        ctx[key] = folderObject
+        return asyncBody()
+      }, {concurrency: 1})
+      ctx[key] = originalValue
+      return callback(null, data.join(''))
     } catch (e) {
       console.log(e);
       callback(e)

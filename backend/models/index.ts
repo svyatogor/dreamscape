@@ -6,6 +6,8 @@ import Folder from './folder'
 import Item from './item'
 import FileList from './file_list'
 import Cart from './eshop/cart'
+import Product from './eshop/product'
+import Member from './auth/member'
 
 export {
   User,
@@ -16,4 +18,6 @@ export {
   Folder,
   Item,
   Cart,
+  Product,
+  Member,
 }

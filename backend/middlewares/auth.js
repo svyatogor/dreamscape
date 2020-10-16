@@ -3,7 +3,6 @@ import jwt from 'jsonwebtoken'
 import {omit, some, includes, map} from 'lodash'
 import bodyParser from 'body-parser'
 import Joi from 'joi'
-import User from '../models/auth/user'
 export const auth = express()
 
 const loginSchema = usernameField => Joi.object().keys({
@@ -41,6 +40,7 @@ auth.use((req, res, next) => {
 
 auth.post('/auth/login', async (req, res) => {
   const {site: {auth: config, key}} = req
+  const Member = site.Item(config.userModel)
   const {usernameField = 'email'} = req.site.auth
   const {value, error} = Joi.validate(req.body, loginSchema(usernameField), {abortEarly: false, stripUnknown: true})
 
@@ -58,7 +58,7 @@ auth.post('/auth/login', async (req, res) => {
         match: {site: req.site._id},
         select: req.site.documentTypes[schema.fields[field].documentType].labelField,
         model: 'Item'
-      }), User.findOne({site: req.site._id, catalog: req.site.auth.userModel, [usernameField]: value[usernameField]}))
+      }), Member.findOne({[usernameField]: value[usernameField]}))
 
   if (!user || !user.authenticate(value.password)) {
     req.flash('error', `Invalid ${usernameField} or password`)

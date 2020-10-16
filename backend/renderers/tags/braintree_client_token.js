@@ -12,11 +12,11 @@ export class braintree_client_token {
     return new nodes.CallExtensionAsync(this, 'run', args, [undefined]);
   }
 
-  run({ctx}, argx, callback) {
+  run({ctx, env: {site}}, argx, callback) {
     if (ctx.inspect) {
       return callback(null, null)
     }
-    const {braintree: {merchantId, publicKey, privateKey, environment}} = ctx.site.eshop.paymentMethods
+    const {braintree: {merchantId, publicKey, privateKey, environment}} = site.eshop.paymentMethods
     const gateway = braintree.connect({
       environment: braintree.Environment[environment],
       merchantId,

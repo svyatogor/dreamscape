@@ -9,7 +9,7 @@ import {
 	ReturnModelType
 } from '@typegoose/typegoose'
 import { Base } from '@typegoose/typegoose/lib/defaultClasses'
-import { AnyParamConstructor } from '@typegoose/typegoose/lib/types'
+import { AnyParamConstructor, ModelType } from '@typegoose/typegoose/lib/types'
 import DataLoader from 'dataloader'
 import fs from 'fs'
 import { classify, humanize, tableize } from 'inflection'
@@ -24,8 +24,9 @@ import {
 } from 'lodash'
 import mongoose, { Schema, SchemaType, SchemaTypeOpts } from 'mongoose'
 import nunjucks from 'nunjucks'
-import { FileList, Folder, Item, Page, StaticText } from '.'
+import * as models from '.'
 import * as tags from '../renderers/tags'
+import Order from './eshop/order'
 
 @modelOptions({
 	schemaOptions: {
@@ -36,17 +37,18 @@ import * as tags from '../renderers/tags'
 export default class Site extends Base {
 	private env: nunjucks.Environment | undefined
 	private siteDB!: mongoose.Connection
-	private _folderModels: Dictionary<ReturnModelType<typeof Folder>>
-	private _documentModels: Dictionary<ReturnModelType<typeof Item>>
+	private _folderModels: Dictionary<ReturnModelType<typeof models.Folder>>
+	private _documentModels: Dictionary<ReturnModelType<typeof models.Item>>
 
-	public StaticText!: ReturnModelType<typeof StaticText>
-	public FileList!: ReturnModelType<typeof FileList>
-	public Page!: ReturnModelType<typeof Page>
+	public StaticText!: ReturnModelType<typeof models.StaticText>
+	public FileList!: ReturnModelType<typeof models.FileList>
+	public Page!: ReturnModelType<typeof models.Page>
+	public Order!: ReturnModelType<typeof Order>
 	public Folder(catalog: string) {
 		return this._folderModels[catalog]
 	}
-	public Item(catalog: string) {
-		return this._documentModels[catalog]
+	public Item<T extends models.Item>(catalog: string) {
+		return this._documentModels[catalog] as ModelType<T>
 	}
 
 	@prop({required: true})
@@ -72,9 +74,10 @@ export default class Site extends Base {
 	documentTypes: Dictionary<any>
 
 	@prop()
-	eshop: {[x: string]: object}
+	eshop: {[x: string]: any}
 
 	get layouts() {
+		//TODO: Memorize this
 		const layoutNames = fs
 			.readdirSync(`../data/${this.key}/layouts`)
 			.filter(name => name.indexOf('.') !== 0)
@@ -93,6 +96,7 @@ export default class Site extends Base {
 		if (!this.env) {
 			console.log('Creating new nunjucks env')
 			this.env = nunjucks.configure(`../data/${this.key}/layouts`)
+			this.env.site = this
 			this.env.addFilter('currency', () => null)
 			this.env.addFilter('initials', () => null)
 			this.env.addFilter('setQS', () => null)
@@ -221,16 +225,17 @@ export default class Site extends Base {
 
 	private postInit(this: DocumentType<Site>) {
 		this.siteDB = mongoose.connection.useDb(this.key)
-		this.StaticText = this.buildManagedModel(StaticText)
-		this.FileList = this.buildManagedModel(FileList)
-		this.Page = this.buildManagedModel(Page)
+		this.StaticText = this.buildManagedModel(models.StaticText)
+		this.FileList = this.buildManagedModel(models.FileList)
+		this.Page = this.buildManagedModel(models.Page)
+		this.Order = this.buildManagedModel(Order)
 
 		const catalogsWithFolders = pickBy(
 			this.documentTypes,
 			schema => schema.hasFolders
 		)
 		this._folderModels = mapValues(catalogsWithFolders, (_, documentType) =>
-			this.buildManagedModel(Folder, `${classify(documentType)}Folder`)
+			this.buildManagedModel(models.Folder, `${classify(documentType)}Folder`)
 		)
 
 		this._documentModels = mapValues(
@@ -245,7 +250,7 @@ export default class Site extends Base {
 		cl: U,
 		modelName: string
 	): mongoose.Schema<U> {
-		const schema = buildSchema(cl)
+		const schema = buildSchema.bind(this)(cl)
 		schema.virtual('modelName').get(() => modelName)
 		schema.virtual('site').get(() => this)
 		schema.virtual('model').get(() => this.siteDB.model(modelName))
@@ -322,11 +327,16 @@ export default class Site extends Base {
 	) {
 		const folderRef = this.getModelName(`${documentType}Folder`)
 		const modelName = this.getModelName(documentType)
+		const klassName = classify(documentType)
+		const klass =
+			models[klassName] && models[klassName].prototype instanceof models.Item
+				? models[klassName]
+				: models.Item
 		let schema = toPairs(documentDefinition.fields)
 			.reduce(
 				(schema, [field, fieldSchema]) =>
 					schema.path(field, this.fieldToMongooseField(fieldSchema)),
-				this.buildManagedSchema(Item, modelName)
+				this.buildManagedSchema(klass, modelName)
 			)
 
 		if (documentDefinition.hasFolders) {
@@ -338,11 +348,11 @@ export default class Site extends Base {
 			modelName,
 			schema,
 			tableize(documentType)
-		) as ReturnModelType<typeof Item>
+		) as ReturnModelType<typeof models.Item>
 	}
 
 	getModelName(modelName: string) {
-		return `${classify(this.key)}::${classify(modelName)}`
+		return `${classify(modelName)}`
 	}
 }
 

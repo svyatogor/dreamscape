@@ -2,7 +2,6 @@ import mongoose from 'mongoose'
 import {isEmpty, isNil, get, forEach, omit, isString, isBoolean, mapValues, trimEnd} from 'lodash'
 import crypto from 'crypto'
 import {query, mutation} from './utils'
-import SearchService from '../services/search'
 import Promise from 'bluebird'
 
 export default class {
@@ -44,21 +43,17 @@ export default class {
     if (folder) q.folder = folder
 
     const schema = site.documentTypes[catalog]
+    const projection = search ? {score: {$meta: "textScore"}} : undefined
+    const sort = search ? {score: {$meta: "textScore"}} : (schema.sortBy || 'position')
 
     if (search) {
-      const ids = await SearchService.simple_search(search, `${catalog}-${site.id}`, '*')
-      q['_id'] = {$in: ids}
+      q['$text'] = {$search: search}
     }
     const referenceFields = Object.keys(schema.fields).filter(f =>
       schema.fields[f].type === 'select' && schema.fields[f].documentType
     )
     const hiddenFields = Object.keys(schema.fields).filter(f => schema.fields[f].type === 'password')
-    const result = await referenceFields.reduce((acc, field) =>
-      acc.populate({
-        path: field,
-        select: site.documentTypes[schema.fields[field].documentType].labelField,
-        model: site.getModelName(schema.fields[field].documentType)
-      }), Item.where(q).sort(schema.sortBy || 'position'))
+    const result = await referenceFields.reduce((acc, field) => acc.populate(field), Item.find(q, projection).sort(sort))
     return result.map(item => {
       const label = schema.labelField ? item.get(schema.labelField) : ''
       return {
@@ -200,19 +195,6 @@ export default class {
     })
 
     await item.save()
-    try {
-      await Promise.map(site.supportedLanguages, async locale => {
-        const body = await item.toSearchableDocument(documentSchema, site, locale)
-        await SearchService.index({
-          index: locale,
-          type: `${catalog}-${site.id}`,
-          id: item.id,
-          body,
-        })
-      })
-    } catch (e) {
-      console.error(e)
-    }
 
     return {
       id: item.id,
@@ -250,15 +232,6 @@ export default class {
   @mutation
   static async deleteItem({site}, {id, catalog}) {
     const Item = site.Item(catalog)
-    await Promise.all(
-      site.supportedLanguages.map(locale =>
-        SearchService.delete({
-          index: locale,
-          type: `${catalog}-${site.id}`,
-          id,
-        }).catch(() => null)
-      )
-    )
     await Item.findByIdAndUpdate(id, {$set: {deleted: true}}, {new: true})
     return true
   }

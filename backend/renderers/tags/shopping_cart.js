@@ -37,13 +37,13 @@ export class shopping_cart {
     return new nodes.CallExtensionAsync(this, 'run', args, [body, checkoutForm, paymentBlock, finalBlock]);
   }
 
-  async run({ctx}, body, checkoutForm, paymentBlock, finalBlock, callback) {
+  async run({ctx, env: {site}}, body, checkoutForm, paymentBlock, finalBlock, callback) {
     if (ctx.inspect) {
       return callback(null, null)
     }
 
     const cart = new Cart(ctx.req)
-    await cart.items
+    await cart.load()
 
     const items = await Promise.map(cart.items, async item => {
       return {
@@ -65,7 +65,7 @@ export class shopping_cart {
     const thankyouUrlMath = ctx.page.params.match(/thankyou\/(.+)/)
     if (thankyouUrlMath && finalBlock) {
       const orderId = thankyouUrlMath[1]
-      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId}).then(order => order.toContext(ctx.req))
+      ctx.order = await Order.findOne({site: site._id, _id: orderId}).then(order => order.toContext(ctx.req))
       finalBlock(callback)
       return
     }
@@ -73,7 +73,7 @@ export class shopping_cart {
     const completeUrlMatch = ctx.page.params.match(/complete\/(.+)/)
     if (completeUrlMatch && paymentBlock) {
       const orderId = completeUrlMatch[1]
-      ctx.order = await Order.findOne({site: ctx.site._id, _id: orderId}).then(order => order.toContext(ctx.req))
+      ctx.order = await Order.findOne({site: site._id, _id: orderId}).then(order => order.toContext(ctx.req))
       paymentBlock(callback)
       return
     }

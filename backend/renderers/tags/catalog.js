@@ -2,7 +2,6 @@ import {defaults, map, isEmpty, sortBy} from 'lodash'
 import Promise from 'bluebird'
 import {Item} from '../../models'
 import jsonic from 'jsonic'
-import SearchService from '../../services/search'
 const s = require('sugar')
 const _ = require('lodash')
 
@@ -30,7 +29,7 @@ export class catalog {
     return new nodes.CallExtensionAsync(this, 'run', catalog, [body, elseBody]);
   }
 
-  async run({ctx}, catalog, options, body, elseBody, callback) {
+  async run({ctx, env: {site}}, catalog, options, body, elseBody, callback) {
     if (ctx.inspect) {
       return callback(null, '')
     }
@@ -54,16 +53,12 @@ export class catalog {
         ...filter,
         ...rawFilter,
       }
+      let projection = undefined
 
       if (!isEmpty(opts.search) && opts.search.toString().length > 2) {
         if (opts.fullText) {
-          const ids = await SearchService.simple_search(
-            opts.search.toString(),
-            `${catalog}-${ctx.site._id}`,
-            ctx.req.locale,
-            opts.search_fields ? opts.search_fields.split(',') : null,
-          )
-          criteria['_id'] = {$in: ids}
+          criteria['$text'] = {$search: opts.search}
+          projection = { score: { $meta: "textScore" } }
         } else if (opts.search_fields) {
           const searchFields = opts.search_fields.split(',')
           const safeRegex = opts.search.match(/[^\s]+|"[^"]+"/g).map(t => t.trim().replace(/"/g, '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
@@ -84,15 +79,16 @@ export class catalog {
         const ids = sampleRecords.map(e => e._id)
         criteria = {_id: {$in: ids}}
       }
-      console.log(JSON.stringify(criteria))
-      let itemsQuery = ItemModel.find(criteria)
+      let itemsQuery = ItemModel.find(criteria, projection)
 
       if (!opts.random) {
         if (opts.limit) {
           itemsQuery = itemsQuery.limit(opts.limit)
         }
 
-        if (opts.sort) {
+        if (opts.search) {
+          itemsQuery = itemsQuery.sort({score: {$meta: "textScore"}})
+        } else {
           itemsQuery = itemsQuery.sort(opts.sort)
         }
       }

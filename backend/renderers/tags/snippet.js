@@ -18,7 +18,7 @@ export class snippet {
     return new nodes.CallExtensionAsync(this, 'run', args, [body]);
   }
 
-  run({ctx}, snippetName, options, body, callback) {
+  run({ctx, env: {site: {StaticText}}}, snippetName, options, body, callback) {
     if (typeof options === 'function') {
       callback = body
       body = options
@@ -28,7 +28,6 @@ export class snippet {
       return callback(null, null)
     }
 
-    const {StaticText} = ctx.site
     const props = {key: snippetName, global: true}
     return StaticText.findOne(props)
       .then(text => {

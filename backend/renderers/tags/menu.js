@@ -32,16 +32,16 @@ export class menu {
       let pagesQuery
 
       if (root === 'self') {
-        pagesQuery = Page.find({published: true, site: ctx.site._id, parent: ctx.page._id})
+        pagesQuery = Page.find({published: true, parent: ctx.page._id})
       } else if (root === 'parent') {
-        pagesQuery = Page.find({published: true, site: ctx.site._id, parent: ctx.page.parent})
+        pagesQuery = Page.find({published: true, parent: ctx.page.parent})
       } else if (root === 'root') {
-        pagesQuery = Page.find({published: true, site: ctx.site._id, parent: null})
+        pagesQuery = Page.find({published: true, parent: null})
       } else if (isString(root)) {
         const {id: parent} = await resolvePath(root, {...ctx.req})
-        pagesQuery = Page.find({published: true, site: ctx.site._id, parent})
+        pagesQuery = Page.find({published: true, parent})
       } else if (root._id) {
-        pagesQuery = Page.find({published: true, site: ctx.site._id, parent: root._id})
+        pagesQuery = Page.find({published: true, parent: root._id})
       } else {
         callback(new Error(`Invalid menu root object ${root}`), null)
         return
@@ -51,7 +51,7 @@ export class menu {
         return Promise.all(map(pages, async page => {
           const active = String(page._id) === String(ctx.page._id) ||
             includes(map(ctx.page.parents, p => String(p._id)), String(page._id))
-          const contextPage = await page.toContext({site: ctx.site, locale: ctx.req.locale})
+          const contextPage = await page.toContext({site: ctx.req.site, locale: ctx.req.locale})
           ctx[key] = {
             ...contextPage,
             active,

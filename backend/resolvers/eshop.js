@@ -44,7 +44,7 @@ const annotate = site => order => {
 export default class {
   @query
   static async eshopOrders({site}, {search, limit, offset}) {
-    let orders = Order.find({site: site._id}).populate({path: 'lines.product', model: 'Item'})
+    let orders = site.Order.find().populate('lines.product')
     // if (status) {
     //   orders = orders.where({status})
     // }
@@ -69,7 +69,7 @@ export default class {
 
   @mutation
   static async updateOrderStatus({site}, {order: _id, status}) {
-    const order = await Order.findOne({site: site._id, _id})
+    const order = await site.Order.findById(_id)
     if (['draft', 'completed', 'canceled'].includes(order.status)) {
       return order
     }

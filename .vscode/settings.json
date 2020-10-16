@@ -1,0 +1,11 @@
+
+{
+  "mongoRunner": {
+    "connections": [
+        {
+            "name": "localhost",
+            "url": "mongodb://localhost:27017"
+        }
+    ]
+}
+}

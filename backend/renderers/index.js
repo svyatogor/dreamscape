@@ -51,7 +51,9 @@ const renderPage = async ({req, res}, page, context) => {
       referrer,
     }
 
+    //TODO: Create one env per site
     const env = nunjucks.configure(`../data/${site.key}/layouts`, {autoescape: false})
+    env.site = req.site
     forEach(tags, (tag, name) => {
       env.addExtension(name, new tag())
     })
@@ -70,16 +72,8 @@ const renderPage = async ({req, res}, page, context) => {
       qs.stringify({...query, ...zipObject(filter(params, (_, i) => i % 2 === 0), filter(params, (_, i) => i % 2 === 1))})
     )
     env.addFilter('date', require('nunjucks-date-filter'))
-    return new Promise((resolve, reject) => {
-      env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {
-        if (err) {
-          console.log(err)
-          return reject(err)
-        }
-        res.send(result)
-        resolve()
-      })
-    })
+    const render = Promise.promisify(env.render, {context: env})
+    res.send(await render(`${page.layout}/index.html`, context))
   } catch(e) {
     console.log(e)
     return Promise.reject(e)

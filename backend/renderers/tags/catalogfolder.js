@@ -35,7 +35,7 @@ export class catalogfolder {
       const originalValue = ctx[key]
       let folder
       let q
-      const scope = get(ctx.site.documentTypes, [catalog, 'scopes', ctx.page.params])
+      const scope = get(ctx.req.site.documentTypes, [catalog, 'scopes', ctx.page.params])
       if (scope) {
         folder = {name: t(scope.label, ctx.req.locale)}
         q = eval(`(${scope.filter})`)
