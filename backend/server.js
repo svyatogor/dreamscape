@@ -12,7 +12,7 @@ import frontend from './frontend'
 
 import './models'
 mongoose.Promise = require('bluebird')
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect(process.env.DB_URI)
 mongoose.set('debug', process.env.NODE_ENV === 'development')
 cachegoose(mongoose)
 
