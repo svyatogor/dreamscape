@@ -56,12 +56,21 @@ const renderPage = async ({req, res}, page, context) => {
       env.addExtension(name, new tag())
     })
     // TODO: Refactor me
-    env.addFilter('currency', (str, currency, defaultValue = '-') => {
+    env.addFilter('currency', (str, currency, defaultValue = '-', zeroCents = undefined) => {
       if (isNil(currency) || isEmpty(currency)) {
         return defaultValue
       }
+      // eslint-disable-next-line eqeqeq
+      const hasCents = parseInt(str, 10) != parseFloat(str)
       const val = parseFloat(str).toLocaleString(locale, {style: 'currency', currency})
-      return isNaN(val) ? defaultValue : val
+      const res = isNaN(val) ? defaultValue : val
+      if (!zeroCents || hasCents) {
+        return res
+      } else {
+        if (/[,\.]\d{2}$/.test(res)) {
+          return res.replace(/\d{2}$/, '-')
+        }
+      }
     })
     env.addFilter('initials', (str) =>
       str.split(' ').slice(0, 2).map(p => p.charAt(0).toUpperCase()).join('')
