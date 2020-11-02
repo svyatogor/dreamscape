@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import {sumBy, some, isNil, get, includes, pickBy, pick, mapValues, find} from 'lodash'
+import {sumBy, some, isNil, get, includes, pickBy, pick, mapValues} from 'lodash'
 import Promise from 'bluebird'
 import {orderSchema} from '../schema'
 import Product from './product'
@@ -148,6 +148,7 @@ class OrderClass {
     }
   }
 }
+
 orderSchema.pre('save', function(next) {
   if (this.number) {
     next()
