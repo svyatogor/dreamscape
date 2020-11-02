@@ -83,7 +83,7 @@ class OrderClass {
   finalize(completePayment) {
     return lock.acquire('eshop-stock-reduce', async () => {
       const products = await Promise.map(this.lines, async line => {
-        return Product.findOne({_id: line.product, site: this.site, $where: `this.stock >= ${line.count}`})
+        return Product.findOne({_id: line.product, site: this.site, stock: {$gte: line.count}})
       })
       if (some(products, isNil)) {
         throw new Error("Not enough stock")
