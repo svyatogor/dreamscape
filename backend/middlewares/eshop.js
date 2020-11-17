@@ -6,6 +6,7 @@ import bodyParser from 'body-parser'
 import {get, isEmpty, isNumber} from 'lodash'
 import fetch from 'node-fetch'
 import numeral from 'numeral'
+import stripe from 'stripe'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
 import braintree from 'braintree'
@@ -72,7 +73,6 @@ eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
 
 eshop.post('/eshop/set_cart_count/:id', async (req, res, next) => {
   const cart = new Cart(req)
-  console.log(req.body)
   const count = Number(get(req.body, 'count'))
   if (!isNumber(count)) {
     res.sendStatus(400).end()
@@ -81,6 +81,14 @@ eshop.post('/eshop/set_cart_count/:id', async (req, res, next) => {
   await cart.set(req.params.id, count)
   res.cookie('cart', cart.serialize())
   req.flash('info', 'eshop.info.product_added')
+  res.redirect(get(req.site, 'eshop.cartPage'))
+})
+
+eshop.post('/eshop/setDeliveryMethod', async (req, res, next) => {
+  const {deliveryMethod} = req.body
+  const cart = new Cart(req)
+  cart.setDelivery(deliveryMethod, null)
+  res.cookie('cart', cart.serialize())
   res.redirect(get(req.site, 'eshop.cartPage'))
 })
 
@@ -151,7 +159,68 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
   }
 })
 
-eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res, next) => {
+eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
+  if (!('stripe' in req.site.eshop.paymentMethods)) {
+    res.sendStatus(500)
+    return
+  }
+
+  try {
+    const cart = new Cart(req)
+    const deliveryMethodSpec = get(req.site.eshop.deliveryMethods, cart.delivery.method)
+    const {stripe: {taxRate, secretKey}} = req.site.eshop.paymentMethods
+    const cartPage = get(req.site, 'eshop.cartPage')
+    await cart.items
+    const line_items = cart.items.map(item => {
+      return {
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: t(item.name, req.locale),
+            images: [item.image]
+          },
+          unit_amount_decimal: item.finalPrice * 100,
+        },
+        ...(taxRate ? {tax_rates: [taxRate]} : undefined),
+        quantity: item.count,
+      }
+    })
+    if (cart.deliveryCost > 0) {
+      line_items.push({
+        price_data: {
+          currency: 'eur',
+          product_data: {
+            name: `Delivery ${cart.deliveryMethodLabel}`,
+          },
+          unit_amount_decimal: cart.deliveryCost * 100,
+        },
+        quantity: 1,
+      })
+    }
+    const session = await stripe(secretKey).checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items,
+      mode: 'payment',
+      //TODO: Support  excludedCountries
+      ...(deliveryMethodSpec.countries ?
+        {
+          shipping_address_collection: {
+            allowed_countries: deliveryMethodSpec.countries,
+          },
+        } : undefined),
+      locale: req.locale,
+      success_url: `${req.protocol}://${req.hostname}${cartPage}/thankyou`,
+      cancel_url: `${req.protocol}://${req.hostname}${cartPage}`,
+    });
+
+    res.json({id: session.id});
+  } catch (e) {
+    console.error(e.message)
+    res.sendStatus(500)
+  }
+})
+
+eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res) => {
   const order = await Order.findOne({_id: req.params.order, site: req.site._id, status: 'draft'})
   if (!order) {
     res.sendStatus(404)

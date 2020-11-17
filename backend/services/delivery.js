@@ -13,7 +13,7 @@ export function byKgs(options, order) {
     return 0
   } else {
     const {maxWeight = 99999, price, overweightSurcharge = 0} = options
-    const orderWeight = sum(map(order.items, 'weight'))
+    const orderWeight = sum(map(order.items, 'weight')) || 0
     return Math.min(maxWeight, orderWeight) * price + Math.max(0, maxWeight - orderWeight) * overweightSurcharge
   }
 }

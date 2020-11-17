@@ -43,19 +43,7 @@ export class shopping_cart {
     }
 
     const cart = new Cart(ctx.req)
-    await cart.items
-
-    const items = await Promise.map(cart.items, async item => {
-      return {
-        ...item,
-        product: await item.product.toContext(ctx.req)
-      }
-    })
-    ctx.cart = {
-      total: cart.total,
-      count: cart.count,
-      items
-    }
+    ctx.cart = await cart.toContext()
 
     if (ctx.page.params === 'checkout' && checkoutForm) {
       checkoutForm(callback)
