@@ -74,6 +74,14 @@ export default class {
     }
   }
 
+  async checkStock() {
+    const items = await this.items
+    const lowStock = items.filter(({count, product}) => count > product.stock)
+    if (isEmpty(lowStock)) return true
+    else if (lowStock.length === 1) throw new Error(lowStock[0].name + ' is sold out.')
+    else throw new Error(lowStock.map(i => i.name).join(', ') + ' are sold out.')
+  }
+
   get count() {
     return this._items.length;
   }
@@ -104,7 +112,7 @@ export default class {
   }
 
   get taxTotal() {
-    sumBy(this.items, item => item.product.taxAmount * item.count)
+    return sumBy(this.items, item => item.product.taxAmount * item.count)
   }
 
   get total() {
@@ -117,10 +125,14 @@ export default class {
   }
 
   serialize() {
-    return JSON.stringify({
+    return JSON.stringify(this.toObject())
+  }
+
+  toObject() {
+    return {
       items: this._items,
       delivery: this.delivery,
-    })
+    }
   }
 
   get pricingPolicy() {

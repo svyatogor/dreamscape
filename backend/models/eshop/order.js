@@ -57,7 +57,9 @@ class OrderClass {
     })
   }
 
-  async setDeliveryMethod(key, method) {
+  async setDeliveryMethod(key) {
+    const allMethods = await this.availableDeliveryMethods
+    const method = allMethods[key]
     const deliveryCost = deliveryMethods[method.policy](method, this)
     this.set({
       deliveryMethod: key,
@@ -122,13 +124,18 @@ class OrderClass {
     )
   }
 
+  _availableDeliveryMethods = undefined
   get availableDeliveryMethods() {
+    if (this._availableDeliveryMethods) {
+      return this._availableDeliveryMethods
+    }
     const country = get(this.shippingAddress, 'country')
     return Site.findOne({_id: this.site}).cache().then(site => {
-      return pickBy(site.get('eshop').deliveryMethods, method =>
+      this._availableDeliveryMethods = pickBy(site.get('eshop').deliveryMethods, method =>
         (!method.countries || includes(method.countries, country)) &&
         (!method.excludedCountries  || !includes(method.excludedCountries, country))
       )
+      return this._availableDeliveryMethods
     })
   }
 
@@ -136,7 +143,7 @@ class OrderClass {
     const methods = await this.availableDeliveryMethods
     const method = Object.keys(pickBy(methods, 'default'))[0]
     if (method) {
-      await this.setDeliveryMethod(method, methods[method])
+      await this.setDeliveryMethod(method)
     }
   }
 

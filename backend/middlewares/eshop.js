@@ -3,10 +3,10 @@ import BaseJoi from 'joi'
 import JoiPhoneNumberExtensions from 'joi-phone-number-extensions'
 import {form as  joiToForms} from 'joi-errors-for-forms'
 import bodyParser from 'body-parser'
-import {get, isEmpty, isNumber} from 'lodash'
+import {get, isEmpty, isNumber, pick} from 'lodash'
 import fetch from 'node-fetch'
 import numeral from 'numeral'
-import stripe from 'stripe'
+import Stripe from 'stripe'
 import Cart from '../models/eshop/cart'
 import Order from '../models/eshop/order'
 import braintree from 'braintree'
@@ -29,10 +29,10 @@ const addressSchema = site => Joi.object().keys({
 })
 
 const orderSchema = site => Joi.object().keys({
-  billingAddress: addressSchema(site).required(),
-  shippingAddress: addressSchema(site).optional(),
+  billingAddress: addressSchema(site),
+  shippingAddress: addressSchema(site),
   // deliveryMethod: Joi.string().required().only(Object.keys(site.eshop.deliveryMethods)),
-})
+}).or('billingAddress', 'shippingAddress')
 
 export const eshop = express()
 eshop.use(bodyParser.urlencoded({extended: true}))
@@ -131,7 +131,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     order.shippingAddress = value.shippingAddress || value.billingAddress
   }
   await order.addItemsFromCart(cart)
-  await order.setDefaultDeliveryMethod()
+  await order.setDeliveryMethod(this.delivery.method)
   await order.setDefaultPaymentMethod()
 
   try {
@@ -160,64 +160,139 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
 })
 
 eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
-  if (!('stripe' in req.site.eshop.paymentMethods)) {
-    res.sendStatus(500)
+  if (req.body.orderId) {
+    const {stripe: {secretKey}} = req.site.eshop.paymentMethods
+    const stripe = await Stripe(secretKey)
+    const order = await Order.findById(req.body.orderId)
+    const {stripePaymentIntent, _id: id, number} = order.toObject()
+    if (stripePaymentIntent) {
+      const paymentIntent = await stripe.paymentIntents.retrieve(stripePaymentIntent)
+      if (paymentIntent.status === 'requires_payment_method') {
+        return res.json({secret: paymentIntent.client_secret, order: {id, number}})
+      } else {
+        res.status(409).json({error: 'Payment is being processed or oder is already paid'})
+      }
+    } else {
+      res.status(400).json({error: 'Invalid order. Please contact support.'})
+    }
+  }
+
+  const cart = new Cart(req)
+  try {
+    await cart.checkStock()
+  } catch (e) {
+    res.status(422).json({error: e.message})
+  }
+  if (cart.count < 1) {
+    res.status(422).json({error: 'Cart is empty'})
     return
   }
 
-  try {
-    const cart = new Cart(req)
-    const deliveryMethodSpec = get(req.site.eshop.deliveryMethods, cart.delivery.method)
-    const {stripe: {taxRate, secretKey}} = req.site.eshop.paymentMethods
-    const cartPage = get(req.site, 'eshop.cartPage')
-    await cart.items
-    const line_items = cart.items.map(item => {
-      return {
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: t(item.name, req.locale),
-            images: [item.image]
-          },
-          unit_amount_decimal: item.finalPrice * 100,
-        },
-        ...(taxRate ? {tax_rates: [taxRate]} : undefined),
-        quantity: item.count,
-      }
-    })
-    if (cart.deliveryCost > 0) {
-      line_items.push({
-        price_data: {
-          currency: 'eur',
-          product_data: {
-            name: `Delivery ${cart.deliveryMethodLabel}`,
-          },
-          unit_amount_decimal: cart.deliveryCost * 100,
-        },
-        quantity: 1,
-      })
-    }
-    const session = await stripe(secretKey).checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items,
-      mode: 'payment',
-      //TODO: Support  excludedCountries
-      ...(deliveryMethodSpec.countries ?
-        {
-          shipping_address_collection: {
-            allowed_countries: deliveryMethodSpec.countries,
-          },
-        } : undefined),
-      locale: req.locale,
-      success_url: `${req.protocol}://${req.hostname}${cartPage}/thankyou`,
-      cancel_url: `${req.protocol}://${req.hostname}${cartPage}`,
-    });
-
-    res.json({id: session.id});
-  } catch (e) {
-    console.error(e.message)
-    res.sendStatus(500)
+  if (req.site.eshop.requireValidUser && !req.viewer) {
+    res.status(401)
+    return
   }
+
+  const order = new Order({site: req.site._id, status: 'draft'})
+  if (req.viewer) {
+    order.user = req.viewer._id
+  }
+
+  if (req.site.eshop.requireValidUser && req.viewer && get(req.site.eshop, 'copyDetailsFromUser', true) === true) {
+    order.comments = req.body.comments
+    order.billingAddress = {
+      email: req.viewer.email,
+    }
+    order.shippingAddress = {
+      email: req.viewer.email,
+    }
+  } else {
+    const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
+    if (error) {
+      res.status(400).json({error: joiToForms()(error)})
+      return
+    }
+
+    order.comments = value.comments
+    order.billingAddress = value.billingAddress || value.shippingAddress
+    order.shippingAddress = value.shippingAddress || value.billingAddress
+  }
+  await order.addItemsFromCart(cart)
+  await order.setDeliveryMethod(cart.delivery.method)
+  await order.setPaymentMethod('stripe')
+
+  try {
+    const {stripe: {secretKey}} = req.site.eshop.paymentMethods
+    const stripe = await Stripe(secretKey)
+    await order.save()
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: order.total * 100,
+      currency: 'eur',
+      receipt_email: order.billingAddress.email,
+      shipping: {
+        address: {
+          line1: order.shippingAddress.streetAddress,
+          country: order.shippingAddress.country,
+          postal_code: order.shippingAddress.postalCode,
+          city: order.shippingAddress.city,
+        },
+        name: order.shippingAddress.name,
+        phone: order.shippingAddress.phone,
+      },
+      metadata: {orderId: order.id},
+      description: `#${order.number}`,
+    })
+    order.set({
+      stripePaymentIntent: paymentIntent.id,
+    })
+    await order.save()
+    res.json({secret: paymentIntent.client_secret, order: pick(order, ['id', 'number'])})
+  } catch (e) {
+    console.log(e)
+    res.status(500).json({error: 'Cannot create payment request'})
+    return
+  }
+})
+
+eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), async (req, res, next) => {
+  const {stripe: {secretKey, webhookSecret}} = req.site.eshop.paymentMethods
+  const stripe = await Stripe(secretKey)
+
+  const payload = req.body;
+  const sig = req.headers['stripe-signature'];
+
+  let event
+  try {
+    event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
+  } catch (err) {
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  if (event.type === 'payment_intent.succeeded') {
+    try {
+      const {metadata: {orderId}, id} = event.data.object
+      const order = await Order.findById(orderId)
+      console.log(order.stripePaymentIntent, id)
+      if (order.stripePaymentIntent !== id) {
+        res.status(400).send('Invalid order id. Payment intent doesnt match')
+      }
+
+      if (order.status !== 'draft') {
+        res.status(400).send('Order already processed')
+      }
+
+      await order.finalize(() => true)
+      order.set({paymentStatus: 'paid'})
+      await order.save()
+      await sendOrderNotificatin(req, order)
+      res.status(200)
+    } catch (e) {
+      console.error(e)
+      res.status(500)
+    }
+  }
+
+  res.status(400).send('Unsupported event')
 })
 
 eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res) => {
@@ -233,7 +308,7 @@ eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res) => {
     return
   }
 
-  await order.setDeliveryMethod(delivery_method, allowedMethods[delivery_method])
+  await order.setDeliveryMethod(delivery_method)
   await order.save()
   res.redirect(req.get('Referrer'))
 })
@@ -429,7 +504,6 @@ eshop.post('/eshop/order/:order/completeWithPayPal', async (req, res, next) => {
             await sendOrderNotificatin(req, order)
             await order.save()
             res.cookie('cart', [])
-            console.log(receipt)
             res.json(receipt)
 
           } else {
