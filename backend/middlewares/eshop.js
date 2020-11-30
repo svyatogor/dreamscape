@@ -131,7 +131,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     order.shippingAddress = value.shippingAddress || value.billingAddress
   }
   await order.addItemsFromCart(cart)
-  await order.setDeliveryMethod(this.delivery.method)
+  await order.setDeliveryMethod(cart.delivery.method)
   await order.setDefaultPaymentMethod()
 
   try {
