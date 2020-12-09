@@ -1,5 +1,5 @@
 import Product from './product'
-import Order from './Order'
+import Order from './order'
 
 export {
   Product, Order
