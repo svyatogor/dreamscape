@@ -28,7 +28,7 @@ export class catalogitem {
       const opts = defaults(options, {as: 'item'})
       const key = opts.as
       const originalValue = ctx[key]
-      const klass = get(models, opts.klass)
+      const klass = get(models, opts.klass, models.Item)
 
       if (!mongoose.Types.ObjectId.isValid(ctx.page.params)) {
         ctx.res.redirect('/')
