@@ -1,5 +1,5 @@
-import {defaults, map} from 'lodash'
-import {Item} from '../../models'
+import {defaults, get} from 'lodash'
+import * as models from '../../models'
 import mongoose from 'mongoose'
 
 export class catalogitem {
@@ -28,12 +28,13 @@ export class catalogitem {
       const opts = defaults(options, {as: 'item'})
       const key = opts.as
       const originalValue = ctx[key]
+      const klass = get(models, opts.klass)
 
       if (!mongoose.Types.ObjectId.isValid(ctx.page.params)) {
         ctx.res.redirect('/')
         return
       }
-      const item = await Item.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
+      const item = await klass.findOne({catalog, site: ctx.site._id, _id: ctx.page.params})
       if (!item) {
         ctx.res.redirect('/')
         return

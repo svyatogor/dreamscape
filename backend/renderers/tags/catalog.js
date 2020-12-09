@@ -1,6 +1,6 @@
-import {defaults, map, isEmpty, sortBy} from 'lodash'
+import {defaults, map, isEmpty, sortBy, get} from 'lodash'
 import Promise from 'bluebird'
-import {Item} from '../../models'
+import * as models from '../../models'
 import jsonic from 'jsonic'
 import SearchService from '../../services/search'
 const s = require('sugar')
@@ -39,6 +39,7 @@ export class catalog {
 
     try {
       const opts = defaults(options, {as: 'item', filter: '{}', sort: 'position', fullText: true})
+      const Item = get(models, opts.klass, models.Item)
       if (opts.sort === 'random') {
         delete opts.sort
         opts.random = true

@@ -1,3 +1,5 @@
+
+import moment from 'moment-timezone'
 import {get, pickBy} from 'lodash'
 import jsonic from 'jsonic'
 import {Site} from '../index'
@@ -17,11 +19,8 @@ export default class Product extends Item {
     object.finalPrice = this.finalPrice
     object.priceWithoutTaxes = this.priceWithoutTaxes
     object.taxAmount = this.taxAmount
+    object.discountedPrice = this.calculatedDiscountedPrice
     return object
-  }
-
-  bind(req) {
-    this.req = req
   }
 
   get finalPrice() {
@@ -32,13 +31,20 @@ export default class Product extends Item {
     } catch (e) {
       console.log(e)
     }
+    const discountedPrice = this.calculatedDiscountedPrice
+    return discountedPrice > 0 ? discountedPrice : this.get('price')
+  }
+
+  get calculatedDiscountedPrice() {
     const discountedPrice = this.get('discountedPrice') || 0
-    return discountedPrice > 0 ? this.get('discountedPrice') : this.get('price')
+    if (this.get('discountedPriceValidUntil') && moment(this.get('discountedPriceValidUntil')).diff(moment()) <= 0) {
+      return 0
+    }
+    return discountedPrice
   }
 
   get priceWithoutTaxes() {
     const tax = this.tax / 100.0
-    console.log(this.tax, tax, Math.round(this.finalPrice / (1 + tax) * 100) / 100)
     return Math.round(this.finalPrice / (1 + tax) * 100) / 100
   }
 

@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {map, get, isEmpty, mapValues, sortBy, isString, omitBy, isNil} from 'lodash'
-import {humanize} from 'inflection'
+import {humanize, underscore} from 'inflection'
 import moment from 'moment-timezone'
 import {reduxForm, Field, SubmissionError, getFormValues} from 'redux-form'
 import {graphql, gql} from 'react-apollo'
@@ -69,7 +69,7 @@ class ItemEditor extends Component {
         name={key}
         key={key}
         component={TextField}
-        floatingLabelText={humanize(key)}
+        floatingLabelText={humanize(underscore(key))}
         fullWidth floatingLabelFixed
         required={key === this.props.catalog.labelField}
         className={common.formControl}
@@ -84,7 +84,7 @@ class ItemEditor extends Component {
         key={key}
         component={TextField}
         type='password'
-        floatingLabelText={humanize(key)}
+        floatingLabelText={humanize(underscore(key))}
         fullWidth floatingLabelFixed
         className={common.formControl}
       />
@@ -97,7 +97,7 @@ class ItemEditor extends Component {
         name={key}
         key={key}
         component={TextField}
-        floatingLabelText={humanize(key)}
+        floatingLabelText={humanize(underscore(key))}
         fullWidth floatingLabelFixed
         required={key === this.props.catalog.labelField}
         className={common.formControl}
@@ -111,7 +111,7 @@ class ItemEditor extends Component {
         name={key}
         key={key}
         component={TextField}
-        floatingLabelText={humanize(key)}
+        floatingLabelText={humanize(underscore(key))}
         fullWidth floatingLabelFixed
         required={key === this.props.catalog.labelField}
         className={common.formControl}
@@ -132,10 +132,25 @@ class ItemEditor extends Component {
           }
         }
         autoOk
-        floatingLabelText={humanize(key)}
+        floatingLabelText={humanize(underscore(key))}
         fullWidth floatingLabelFixed
         required={key === this.props.catalog.labelField}
         className={common.formControl}
+      />
+    )
+  }
+
+  datetimeRender(key, field) {
+    return (
+      <Field
+        name={key}
+        key={key}
+        component={TextField}
+        floatingLabelText={humanize(underscore(key))}
+        fullWidth floatingLabelFixed
+        required={key === this.props.catalog.labelField}
+        className={common.formControl}
+        type="datetime-local"
       />
     )
   }
@@ -147,7 +162,7 @@ class ItemEditor extends Component {
           name={key}
           key={key}
           component={args => <ReferenceField {...args} field={field} />}
-          floatingLabelText={humanize(key)}
+          floatingLabelText={humanize(underscore(key))}
           required={key === this.props.catalog.labelField}
         />
       )
@@ -157,7 +172,7 @@ class ItemEditor extends Component {
           name={key}
           key={key}
           component={SelectField}
-          floatingLabelText={humanize(key)}
+          floatingLabelText={humanize(underscore(key))}
           fullWidth floatingLabelFixed
           required={key === this.props.catalog.labelField}
           className={common.formControl}
@@ -169,17 +184,17 @@ class ItemEditor extends Component {
   }
 
   booleanRender(key, field) {
-    return <Field key={key} name={key} component={Toggle} label={humanize(key)} className={common.formControl} />
+    return <Field key={key} name={key} component={Toggle} label={humanize(underscore(key))} className={common.formControl} />
   }
 
   htmlRender(key, field) {
-    return <Field key={key} name={key} component={Redactor} label={humanize(key)} />
+    return <Field key={key} name={key} component={Redactor} label={humanize(underscore(key))} />
   }
 
   imageRender(key, field) {
     const val = get(this.props.formValues, key)
     return (<div key={key} className={common.formControl}>
-      <label htmlFor="">{humanize(key)}</label>
+      <label htmlFor="">{humanize(underscore(key))}</label>
       <DropzoneS3Uploader
         style={{width: '100%', border: '1px dashed #ccc', backgroundColor: '#f8f8f8'}}
         onFinish={params => {
@@ -211,7 +226,7 @@ class ItemEditor extends Component {
   fileRender(key, field) {
     const val = get(this.props.formValues, key)
     return (<div key={key} className={common.formControl}>
-      <label htmlFor="">{humanize(key)}</label>
+      <label htmlFor="">{humanize(underscore(key))}</label>
       <DropzoneS3Uploader
         onFinish={params => {
           this.props.change(key, {
@@ -276,8 +291,14 @@ const mapStateToProps = ({app, ...state}, ownProps) => {
   initialValues.id = get(ownProps, 'data.item.id')
   const castTypes = data =>
     mapValues(data, (value, field) => {
-      if (get(catalog.fields, [field, 'type']) === 'date') {
-        return isString(value) ? new Date(value) : new Date()
+      const type = get(catalog.fields, [field, 'type'])
+      switch (type) {
+        case 'date':
+          return isString(value) ? new Date(value) : new Date()
+        case 'datetime':
+          return moment(value).format('YYYY-MM-DDTHH:mm')
+        default:
+          break;
       }
 
       return value

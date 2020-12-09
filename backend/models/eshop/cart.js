@@ -7,8 +7,8 @@ import * as deliveryMethods from '../../services/delivery'
 class DefaultPricingPolicy {
   bind() { return new Promise(resolve => resolve())}
   price(product) {
-    const discountedPrice = product.get('discountedPrice') || 0
-    return discountedPrice > 0 ? product.get('discountedPrice') : product.get('price')
+    const discountedPrice = product.calculatedDiscountedPrice
+    return discountedPrice > 0 ? discountedPrice : product.get('price')
   }
 }
 

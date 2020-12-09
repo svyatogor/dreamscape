@@ -91,6 +91,10 @@ class ItemsList extends React.Component {
       return data ? moment(data).format('ll') : '-'
     }
 
+    if (type === 'datetime') {
+      return data ? moment(data).format('L LT') : '-'
+    }
+
     return t(data, this.props.locale)
   }
 
