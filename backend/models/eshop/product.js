@@ -19,7 +19,8 @@ export default class Product extends Item {
     object.finalPrice = this.finalPrice
     object.priceWithoutTaxes = this.priceWithoutTaxes
     object.taxAmount = this.taxAmount
-    object.discountedPrice = this.calculatedDiscountedPrice
+    object.discountedPrice = this.calculatedDiscountedPrice && this.calculatedDiscountedPrice > 0 ?
+      this.calculatedDiscountedPrice : null
     return object
   }
 
@@ -32,13 +33,13 @@ export default class Product extends Item {
       console.log(e)
     }
     const discountedPrice = this.calculatedDiscountedPrice
-    return discountedPrice > 0 ? discountedPrice : this.get('price')
+    return discountedPrice ? discountedPrice : this.get('price')
   }
 
   get calculatedDiscountedPrice() {
-    const discountedPrice = this.get('discountedPrice') || 0
+    const discountedPrice = this.get('discountedPrice')
     if (this.get('discountedPriceValidUntil') && moment(this.get('discountedPriceValidUntil')).diff(moment()) <= 0) {
-      return 0
+      return null
     }
     return discountedPrice
   }
