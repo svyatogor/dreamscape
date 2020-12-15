@@ -85,9 +85,10 @@ eshop.post('/eshop/set_cart_count/:id', async (req, res, next) => {
 })
 
 eshop.post('/eshop/setDeliveryMethod', async (req, res, next) => {
-  const {deliveryMethod} = req.body
+  const {deliveryMethod, shippingAddress} = req.body
+  console.log(req.body)
   const cart = new Cart(req)
-  cart.setDelivery(deliveryMethod, null)
+  cart.setDelivery(deliveryMethod, shippingAddress)
   res.cookie('cart', cart.serialize())
   res.redirect(get(req.site, 'eshop.cartPage'))
 })
@@ -131,7 +132,7 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
     order.shippingAddress = value.shippingAddress || value.billingAddress
   }
   await order.addItemsFromCart(cart)
-  await order.setDeliveryMethod(cart.delivery.method)
+  await order.setDeliveryMethod(cart.deliveryMethod)
   await order.setDefaultPaymentMethod()
 
   try {
@@ -218,7 +219,7 @@ eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
     order.shippingAddress = value.shippingAddress || value.billingAddress
   }
   await order.addItemsFromCart(cart)
-  await order.setDeliveryMethod(cart.delivery.method)
+  await order.setDeliveryMethod(cart.deliveryMethod)
   await order.setPaymentMethod('stripe')
 
   try {

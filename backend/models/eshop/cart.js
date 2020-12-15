@@ -1,8 +1,8 @@
 import Promise from 'bluebird'
 import Product from './product'
-import {pickBy, pick, isEmpty, findIndex, map, find, sumBy, reject, get, isArray, isObject, mapValues} from 'lodash'
+import {pickBy, isEmpty, findIndex, map, find, sumBy, reject, get, isArray, isObject, mapValues} from 'lodash'
 import {t} from '../../common/utils'
-import * as deliveryMethods from '../../services/delivery'
+import * as deliveryConstFunctions from '../../services/delivery'
 
 class DefaultPricingPolicy {
   bind() { return new Promise(resolve => resolve())}
@@ -26,24 +26,26 @@ export default class {
         if (isArray(json)) {
           this._items = json
         } else if (isObject(json)) {
-          const {items, delivery} = json
+          const {items, deliveryMethod, shippingAddress} = json
           this._items = items
-          this.delivery = pick(delivery, ['method', 'options'])
+          this.deliveryMethod = deliveryMethod
+          this.shippingAddress = shippingAddress
         }
       } catch (e) {
       }
     }
 
-    if (!(get(this.delivery, 'method') in this.availableDeliveryMethods)) {
-      this.delivery = {
-        method: defaultDeliveryMethod
-      }
+    if (!(this.deliveryMethod in this.availableDeliveryMethods)) {
+      this.deliveryMethod = defaultDeliveryMethod
     }
   }
 
-  setDelivery(method, options) {
+  setDelivery(method, shippingAddress) {
     if (method in this.availableDeliveryMethods) {
-      this.delivery = {method, options}
+      this.deliveryMethod = method
+      this.shippingAddress = shippingAddress
+    } else {
+      throw new Error('Invalid deivery method')
     }
   }
 
@@ -108,7 +110,7 @@ export default class {
   }
 
   get subtotal() {
-    sumBy(this.items, item => item.product.priceWithoutTaxes * item.count)
+    return sumBy(this.items, item => item.product.priceWithoutTaxes * item.count)
   }
 
   get taxTotal() {
@@ -120,8 +122,23 @@ export default class {
   }
 
   get deliveryCost() {
-    const method = this.availableDeliveryMethods[this.delivery.method]
-    return deliveryMethods[method.policy](method, this)
+    const method = this.availableDeliveryMethods[this.deliveryMethod]
+    if (method.policy in deliveryConstFunctions) {
+      return deliveryConstFunctions[method.policy](method, this)
+    }
+
+    const siteKey = get(this.req, 'site.key')
+    const delveryMethodFile = `../../../data/${siteKey}/modules/${method.policy}`
+    try {
+      const deliveryCostFunction = require(delveryMethodFile).default
+      if (deliveryCostFunction) {
+        return deliveryCostFunction(method, this)
+      } else {
+        throw new Error('Invalid delivery method configuration')
+      }
+    } catch (e) {
+      console.log(e)
+    }
   }
 
   serialize() {
@@ -131,7 +148,8 @@ export default class {
   toObject() {
     return {
       items: this._items,
-      delivery: this.delivery,
+      deliveryMethod: this.deliveryMethod,
+      shippingAddress: this.shippingAddress,
     }
   }
 
@@ -154,7 +172,7 @@ export default class {
 
   get deliveryMethodLabel() {
     const {locale} = this.req
-    return t(get(this.availableDeliveryMethods, [this.delivery.method, 'label'], this.delivery.method), locale)
+    return t(get(this.availableDeliveryMethods, [this.deliveryMethod, 'label'], this.deliveryMethod), locale)
   }
 
   async toContext() {
@@ -171,9 +189,10 @@ export default class {
       items,
       total: this.total,
       deliveryCost: this.deliveryCost,
+      shippingAddress: this.shippingAddress,
       taxTotal: this.taxTotal,
       subtotal: this.subtotal,
-      deliveryMethod: this.delivery.method,
+      deliveryMethod: this.deliveryMethod,
       deliveryMethodLabel: this.deliveryMethodLabel,
       availableDeliveryMethods: mapValues(this.availableDeliveryMethods, method => ({...method, label: t(method.label, locale)}))
     }
