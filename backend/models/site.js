@@ -38,6 +38,7 @@ class SiteClass {
   layoutInfo(layout) {
     if (!this.env) {
       this.env = nunjucks.configure(`./data/${this.key}/layouts`)
+      this.env.addFilter('postalCodeToCity', () => null)
       this.env.addFilter('currency', () => null)
       this.env.addFilter('initials', () => null)
       this.env.addFilter('setQS', () => null)

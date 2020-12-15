@@ -79,6 +79,14 @@ const renderPage = async ({req, res}, page, context) => {
       qs.stringify({...query, ...zipObject(filter(params, (_, i) => i % 2 === 0), filter(params, (_, i) => i % 2 === 1))})
     )
     env.addFilter('date', require('nunjucks-date-filter'))
+    env.addFilter('postalCodeToCity', (code) => {
+      if (code <= 2999) return 'Nicosia'
+      if (code <= 4999) return 'Limassol'
+      if (code <= 5999) return 'Famagusta'
+      if (code <= 7999) return 'Larnaca'
+      if (code <= 8999) return 'Paphos'
+      if (code <= 9999) return 'Kyrenia'
+    })
     return new Promise((resolve, reject) => {
       env.render(`${page.layout}/index.html`, {...context, env}, (err, result) => {
         if (err) {
