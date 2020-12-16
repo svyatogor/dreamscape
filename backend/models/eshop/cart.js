@@ -122,6 +122,7 @@ export default class {
   }
 
   get deliveryCost() {
+    if (isEmpty(this.items)) return 0;
     const method = this.availableDeliveryMethods[this.deliveryMethod]
     if (method.policy in deliveryConstFunctions) {
       return deliveryConstFunctions[method.policy](method, this)
