@@ -62,9 +62,9 @@ eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
 eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
   const cart = new Cart(req)
   if (req.params.action_cart_count === 'inc_cart_count') {
-    cart.inc(req.params.id, 1)
+    await cart.inc(req.params.id, 1)
   } else if (req.params.action_cart_count === 'dec_cart_count') {
-    cart.inc(req.params.id, -1)
+    await cart.inc(req.params.id, -1)
   }
   res.cookie('cart', cart.serialize())
   req.flash('info', 'eshop.info.product_added')

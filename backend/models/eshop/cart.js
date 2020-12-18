@@ -62,16 +62,25 @@ export default class {
     this._items = reject(this._items, {product})
   }
 
-  inc(product, count) {
+  async inc(product, count) {
     const idx = findIndex(this._items, {product})
+    await this.items
     if (idx >= 0) {
-      this._items[idx].count += count
+      const newCount = this._items[idx].count + count
+      if (newCount === 0) {
+        this.remove(product)
+        return
+      }
+      this._items[idx].count = Math.max(Math.min(this.items[idx].product.stock, newCount), 0)
     }
   }
 
   async set(product, count) {
     const idx = findIndex(this._items, {product})
     if (idx >= 0) {
+      if (count === 0) {
+        this.remove(product)
+      }
       this._items[idx].count = Math.min((await this.items)[idx].product.stock, count)
     }
   }
