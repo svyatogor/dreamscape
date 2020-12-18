@@ -274,7 +274,6 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
     try {
       const {metadata: {orderId}, id} = event.data.object
       const order = await Order.findById(orderId)
-      console.log(order.get('stripePaymentIntent'), id, order.status)
       if (order.get('stripePaymentIntent') !== id) {
         console.error('Invalid order id. Payment intent doesnt match', id)
         res.status(400).send('Invalid order id. Payment intent doesnt match')
@@ -283,7 +282,7 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
 
       if (order.status !== 'draft') {
         console.error(`Order ${id} is not draft`)
-        res.status(400).send('Order already processed')
+        res.sendStatus(200)
         return
       }
 
@@ -291,7 +290,7 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
       order.set({paymentStatus: 'paid'})
       await order.save()
       await sendOrderNotificatin(req, order)
-      res.status(200)
+      res.sendStatus(200)
     } catch (e) {
       console.error(e.message, e.bac)
       res.sendStatus(500)
