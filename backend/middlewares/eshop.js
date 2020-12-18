@@ -266,6 +266,7 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
   try {
     event = stripe.webhooks.constructEvent(payload, sig, webhookSecret);
   } catch (err) {
+    console.error(err)
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
@@ -291,9 +292,9 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
       console.error(e)
       res.status(500)
     }
+  } else {
+    res.status(400).send('Unsupported event')
   }
-
-  res.status(400).send('Unsupported event')
 })
 
 eshop.post('/eshop/order/:order/setDeliveryMethod', async (req, res) => {
