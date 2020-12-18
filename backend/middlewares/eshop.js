@@ -277,10 +277,12 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
       console.log(order.stripePaymentIntent, id)
       if (order.stripePaymentIntent !== id) {
         res.status(400).send('Invalid order id. Payment intent doesnt match')
+        return
       }
 
       if (order.status !== 'draft') {
         res.status(400).send('Order already processed')
+        return
       }
 
       await order.finalize(() => true)
