@@ -64,19 +64,15 @@ class OrderClass {
 
     if (method.policy in deliveryMethods) {
       deliveryCost = deliveryMethods[method.policy](method, this)
-    }
-
-    const {key: siteKey} = await Site.findOne({_id: this.site}).cache()
-    const delveryMethodFile = `../../../data/${siteKey}/modules/${method.policy}`
-    try {
+    } else {
+      const {key: siteKey} = await Site.findOne({_id: this.site}).cache()
+      const delveryMethodFile = `../../../data/${siteKey}/modules/${method.policy}`
       const deliveryCostFunction = require(delveryMethodFile).default
       if (deliveryCostFunction) {
         deliveryCost = deliveryCostFunction(method, this)
       } else {
         throw new Error('Invalid delivery method configuration')
       }
-    } catch (e) {
-      console.log(e)
     }
 
     this.set({
