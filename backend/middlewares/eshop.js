@@ -230,16 +230,18 @@ eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
       amount: order.total * 100,
       currency: 'eur',
       receipt_email: order.billingAddress.email,
-      shipping: {
-        address: {
-          line1: order.shippingAddress.streetAddress,
-          country: order.shippingAddress.country,
-          postal_code: order.shippingAddress.postalCode,
-          city: order.shippingAddress.city,
+      ...(isEmpty(order.shippingAddress.streetAddress) ? {} : {
+        shipping: {
+          address: {
+            line1: order.shippingAddress.streetAddress,
+            country: order.shippingAddress.country,
+            postal_code: order.shippingAddress.postalCode,
+            city: order.shippingAddress.city,
+          },
+          name: order.shippingAddress.name,
+          phone: order.shippingAddress.phone,
         },
-        name: order.shippingAddress.name,
-        phone: order.shippingAddress.phone,
-      },
+      }),
       metadata: {orderId: order.id},
       description: `#${order.number}`,
     })
@@ -530,7 +532,6 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
     return
   }
   const cartPage = get(req.site, 'eshop.cartPage')
-  const streetAddress = get(order.shippingAddress, 'streetAddress', order.billingAddress.streetAddress)
   const payload = {
     intent: "sale",
     redirect_urls: {
@@ -559,16 +560,14 @@ eshop.post('/eshop/order/:order/createPayPalPayment', async (req, res, next) => 
             price: numeral(0.01).format('0.00'),
             currency: 'EUR',
           })),
-          ...(isEmpty(streetAddress) ? {} : {
-            shipping_address: {
-              recipient_name: get(order.shippingAddress, 'name', order.billingAddress.name),
-              line1: streetAddress,
-              city: get(order.shippingAddress, 'city', order.billingAddress.city),
-              country_code: get(order.shippingAddress, 'country', order.billingAddress.country || 'CY'),
-              postal_code: get(order.shippingAddress, 'postalCode', order.billingAddress.postalCode),
-              phone: get(order.shippingAddress, 'phone', order.billingAddress.phone),
-            }
-          })
+          shipping_address: {
+            recipient_name: get(order.shippingAddress, 'name', order.billingAddress.name),
+            line1: get(order.shippingAddress, 'streetAddress', order.billingAddress.streetAddress),
+            city: get(order.shippingAddress, 'city', order.billingAddress.city),
+            country_code: get(order.shippingAddress, 'country', order.billingAddress.country || 'CY'),
+            postal_code: get(order.shippingAddress, 'postalCode', order.billingAddress.postalCode),
+            phone: get(order.shippingAddress, 'phone', order.billingAddress.phone),
+          }
         },
         description: `Payment for order #${order.number} at ${req.site.eshop.legalName}`,
         invoice_number: order.number,
