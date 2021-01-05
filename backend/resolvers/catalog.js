@@ -186,7 +186,8 @@ export default class {
           item.set(field, new Date(data[field]))
         } else if (type === 'datetime') {
           const dateValue = new Date(data[field])
-          if (dateValue.getTime() < 24 * 3600 * 1000) {
+          console.log(data[field], dateValue.getTime())
+          if (isNaN(dateValue.getTime()) || dateValue.getTime() < 24 * 3600 * 1000) {
             item.set(field, null)
           } else {
             item.set(field, dateValue)
