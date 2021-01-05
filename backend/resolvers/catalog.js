@@ -185,7 +185,12 @@ export default class {
         } else if (type === 'date') {
           item.set(field, new Date(data[field]))
         } else if (type === 'datetime') {
-          item.set(field, new Date(data[field]))
+          const dateValue = new Date(data[field])
+          if (dateValue.getTime() < 24 * 3600 * 1000) {
+            item.set(field, null)
+          } else {
+            item.set(field, dateValue)
+          }
         } else if (type === 'password') {
           if (!isEmpty(data[field])) {
             const hash = crypto
