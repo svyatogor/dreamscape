@@ -87,7 +87,7 @@ export default class {
 
   async checkStock() {
     const items = await this.items
-    const lowStock = items.filter(({count, product}) => count > product.stock)
+    const lowStock = items.filter(({count, product}) => count > product.stock && !product.get('byOrder'))
     if (isEmpty(lowStock)) return true
     else if (lowStock.length === 1) throw new Error(lowStock[0].name + ' is sold out.')
     else throw new Error(lowStock.map(i => i.name).join(', ') + ' are sold out.')
