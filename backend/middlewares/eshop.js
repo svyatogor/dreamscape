@@ -227,7 +227,7 @@ eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
     const stripe = await Stripe(secretKey)
     await order.save()
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: order.total * 100,
+      amount: Math.round(order.total * 100),
       capture_method: 'manual',
       currency: 'eur',
       receipt_email: order.billingAddress.email,
@@ -273,7 +273,7 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
-  if (event.type === 'payment_intent.succeeded') {
+  if (event.type === 'payment_intent.succeeded' || event.type === 'charge.succeeded') {
     try {
       const {metadata: {orderId}, id} = event.data.object
       const order = await Order.findById(orderId)
