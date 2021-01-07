@@ -275,7 +275,8 @@ eshop.post('/eshop/stripeWebhook', bodyParser.raw({type: 'application/json'}), a
 
   if (event.type === 'payment_intent.succeeded' || event.type === 'charge.succeeded') {
     try {
-      const {metadata: {orderId}, id} = event.data.object
+      const {metadata: {orderId}} = event.data.object
+      const id = event.type === 'payment_intent.succeeded' ? event.data.object.id : event.data.object.payment_intent
       const order = await Order.findById(orderId)
       if (order.get('stripePaymentIntent') !== id) {
         console.error('Invalid order id. Payment intent doesnt match', id)
