@@ -228,6 +228,7 @@ eshop.post('/eshop/checkoutWithStripe', async (req, res, next) => {
     await order.save()
     const paymentIntent = await stripe.paymentIntents.create({
       amount: order.total * 100,
+      capture_method: 'manual',
       currency: 'eur',
       receipt_email: order.billingAddress.email,
       ...(isEmpty(order.shippingAddress.streetAddress) ? {} : {
