@@ -22,6 +22,8 @@ const ordersQuery = gql`
       lines {
         name
         price
+        total
+        taxAmount
         count
         product {
           id

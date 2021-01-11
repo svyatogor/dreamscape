@@ -139,6 +139,7 @@ type OrderLine {
   count: Int!
   price: Float
   total: Float
+  taxAmount: Float
 }
 
 type Address {

@@ -72,6 +72,7 @@ class Order extends React.Component {
                 <TableHeaderColumn>Name</TableHeaderColumn>
                 <TableHeaderColumn>Quantity</TableHeaderColumn>
                 <TableHeaderColumn>Price</TableHeaderColumn>
+                <TableHeaderColumn>TAX</TableHeaderColumn>
                 <TableHeaderColumn style={{textAlign: 'right'}}>Total</TableHeaderColumn>
               </TableRow>
             </TableHeader>
@@ -80,7 +81,8 @@ class Order extends React.Component {
                 <TableRowColumn>{isEmpty(item.name) ? get(item, 'product.data.name', 'DELETED') : item.name}</TableRowColumn>
                 <TableRowColumn>{item.count}</TableRowColumn>
                 <TableRowColumn>{numeral(item.price).format('0.00')}</TableRowColumn>
-                <TableRowColumn style={{textAlign: 'right'}}>{numeral(item.price * item.count).format('0.00')}</TableRowColumn>
+                <TableRowColumn>{numeral(item.taxAmount).format('0.00')}</TableRowColumn>
+                <TableRowColumn style={{textAlign: 'right'}}>{numeral(item.total).format('0.00')}</TableRowColumn>
               </TableRow>))}
               <TableRow>
                 <TableRowColumn style={{textAlign: 'right', fontSize: 18}} colSpan={4}>
