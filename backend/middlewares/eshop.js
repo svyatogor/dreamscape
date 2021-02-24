@@ -611,6 +611,7 @@ const sendOrderNotificatin = async (req, order) => {
     ...order.toObject(),
     id: order._id,
     deliveryMethodLabel: t(get(site.eshop.deliveryMethods, [order.deliveryMethod, 'label'], order.deliveryMethod), locale),
+    paymentMethodLabel: t(get(site.eshop.paymentMethods, [order.paymentMethod, 'label'], order.paymentMethod), locale),
     user: viewer,
   }
   await renderEmail({site}, 'email_order_confirmation', {order: orderData}).then(({body, subject}) => {
