@@ -97,7 +97,7 @@
     "querystring": "^0.2.0",
     "react": "^15.6.1",
     "react-apollo": "^1.4.8",
-    "react-dev-utils": "^3.0.2",
+    "react-dev-utils": "^11.0.4",
     "react-dnd": "^2.4.0",
     "react-dnd-html5-backend": "^2.4.1",
     "react-dnd-scrollzone": "^4.0.0",
