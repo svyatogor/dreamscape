@@ -36,6 +36,7 @@ const orderSchema = site => Joi.object().keys({
 
 export const eshop = express()
 eshop.use(bodyParser.urlencoded({extended: true}))
+eshop.use(bodyParser.json())
 eshop.use(auth)
 eshop.use((req, res, next) => {
   req.flash('referrer', req.get('Referrer'))
@@ -43,45 +44,62 @@ eshop.use((req, res, next) => {
   next()
 })
 
+eshop.get('/eshop/cart', async (req, res, next) => {
+  const cart = new Cart(req)
+  if (req.accepts('html')) {
+    res.redirect(get(req.site, 'eshop.cartPage'))
+  } else {
+    res.json(await cart.toContext())
+  }
+})
+
 eshop.get('/eshop/add_to_cart/:id', async (req, res, next) => {
   const cart = new Cart(req)
   cart.add(req.params.id)
   res.cookie('cart', cart.serialize())
-  req.flash('info', 'eshop.info.product_added')
-  res.redirect(get(req.site, 'eshop.cartPage'))
+  if (req.accepts('html')) {
+    req.flash('info', 'eshop.info.product_added')
+    res.redirect(get(req.site, 'eshop.cartPage'))
+  } else {
+    res.json(await cart.toContext())
+  }
 })
 
-eshop.get('/eshop/remove_from_cart/:id', async (req, res, next) => {
+eshop.all('/eshop/remove_from_cart/:id', async (req, res, next) => {
   const cart = new Cart(req)
   cart.remove(req.params.id)
   res.cookie('cart', cart.serialize())
-  req.flash('info', 'eshop.info.product_added')
-  res.redirect(get(req.site, 'eshop.cartPage'))
+  if (req.accepts('html')) {
+    req.flash('info', 'eshop.info.product_added')
+    res.redirect(get(req.site, 'eshop.cartPage'))
+  } else {
+    res.json(await cart.toContext())
+  }
 })
 
-eshop.get('/eshop/:action_cart_count/:id', async (req, res, next) => {
+eshop.all('/eshop/:action_cart_count/:id', bodyParser.json(), async (req, res, next) => {
   const cart = new Cart(req)
   if (req.params.action_cart_count === 'inc_cart_count') {
     await cart.inc(req.params.id, 1)
   } else if (req.params.action_cart_count === 'dec_cart_count') {
     await cart.inc(req.params.id, -1)
+  } else if (req.params.action_cart_count === 'set_cart_count') {
+    console.log('BODY', req.body)
+    const count = Number(get(req.body, 'count'))
+    console.log(count, isNumber(count))
+    if (!count || !isNumber(count)) {
+      res.sendStatus(400).end()
+      return
+    }
+    await cart.set(req.params.id, count)
   }
   res.cookie('cart', cart.serialize())
-  req.flash('info', 'eshop.info.product_added')
-  res.redirect(get(req.site, 'eshop.cartPage'))
-})
-
-eshop.post('/eshop/set_cart_count/:id', async (req, res, next) => {
-  const cart = new Cart(req)
-  const count = Number(get(req.body, 'count'))
-  if (!isNumber(count)) {
-    res.sendStatus(400).end()
-    return
+  if (req.accepts('html')) {
+    req.flash('info', 'eshop.info.product_added')
+    res.redirect(get(req.site, 'eshop.cartPage'))
+  } else {
+    res.json(await cart.toContext())
   }
-  await cart.set(req.params.id, count)
-  res.cookie('cart', cart.serialize())
-  req.flash('info', 'eshop.info.product_added')
-  res.redirect(get(req.site, 'eshop.cartPage'))
 })
 
 eshop.post('/eshop/setDeliveryMethod', async (req, res, next) => {
@@ -121,9 +139,14 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
   } else {
     const {value, error} = Joi.validate(req.body, orderSchema(req.site), {abortEarly: false, stripUnknown: true})
     if (error) {
+      const e = joiToForms()(error)
       console.log(error)
-      req.flash('validation', joiToForms()(error))
-      res.redirect(get(req.site, 'eshop.cartPage') || req.get('Referrer'))
+      if (req.accepts('html')) {
+        req.flash('validation', e)
+        res.redirect(get(req.site, 'eshop.cartPage') || req.get('Referrer'))
+      } else {
+        res.status(400).json({validation: e})
+      }
       return
     }
 
@@ -143,20 +166,31 @@ eshop.post('/eshop/checkout', async (req, res, next) => {
         await order.save()
         await sendOrderNotificatin(req, order)
         res.cookie('cart', [])
-        res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
+        if (req.accepts('html')) {
+          res.redirect(get(req.site, 'eshop.cartPage') + `/thankyou/${order.id}`)
+        } else {
+          res.json(order)
+        }
       } catch (e) {
         console.log(e)
-        req.flash('error', 'eshop.errors.generic_checkout_error')
-        res.redirect(req.get('Referrer'))
+        if (req.accepts('html')) {
+          req.flash('error', 'eshop.errors.generic_checkout_error')
+          res.redirect(req.get('Referrer'))
+        } else {
+          res.status(400).json({error: 'Ooops, something went wrong'})
+        }
       }
     } else {
       res.redirect(get(req.site, 'eshop.cartPage') + '/complete/' + order._id)
     }
   } catch (e) {
     console.log(e)
-    req.flash('error', 'eshop.errors.generic_checkout_error')
-    res.redirect(req.get('Referrer'))
-    return
+    if (req.accepts('html')) {
+      req.flash('error', 'eshop.errors.generic_checkout_error')
+      res.redirect(req.get('Referrer'))
+    } else {
+      res.status(400).json({error: 'Ooops, something went wrong'})
+    }
   }
 })
 

@@ -55,11 +55,13 @@ export default class {
       this._items[idx].count++
     } else {
       this._items.push({product, count: 1})
+      this.__items = null
     }
   }
 
   remove(product) {
     this._items = reject(this._items, {product})
+    this.__items = null
   }
 
   async inc(product, count) {
@@ -72,6 +74,7 @@ export default class {
         return
       }
       this._items[idx].count = Math.max(Math.min(this.items[idx].product.stock, newCount), 0)
+      this.__items = null
     }
   }
 
@@ -82,6 +85,7 @@ export default class {
         this.remove(product)
       }
       this._items[idx].count = Math.min((await this.items)[idx].product.stock, count)
+      this.__items = null
     }
   }
 
@@ -198,6 +202,7 @@ export default class {
     return {
       items,
       total: this.total,
+      count: items.length,
       deliveryCost: this.deliveryCost,
       shippingAddress: this.shippingAddress,
       taxTotal: this.taxTotal,
