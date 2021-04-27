@@ -111,7 +111,7 @@
     "react-tap-event-plugin": "^2.0.1",
     "react-ui-tree": "^3.0.0",
     "recompose": "^0.24.0",
-    "redis": "^2.7.1",
+    "redis": "^3.1.1",
     "redux": "^3.7.2",
     "redux-form": "^7.0.2",
     "redux-form-material-ui": "^4.2.0",
