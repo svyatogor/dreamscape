@@ -1,6 +1,6 @@
 import Promise from 'bluebird'
 import Product from './product'
-import {pickBy, isEmpty, findIndex, map, find, sumBy, reject, get, isArray, isObject, mapValues} from 'lodash'
+import {pickBy, isEmpty, findIndex, map, find, sumBy, reject, get, isArray, isObject, mapValues, some} from 'lodash'
 import {t} from '../../common/utils'
 import * as deliveryConstFunctions from '../../services/delivery'
 
@@ -196,11 +196,13 @@ export default class {
     const items = await Promise.map(this.items, async item => {
       return {
         ...item,
+        notEnoughStock: item.count > item.product.get('stock'),
         product: await item.product.toContext(this.req)
       }
     })
     return {
       items,
+      notEnoughStock: some(items, 'notEnoughStock'),
       total: this.total,
       count: items.length,
       deliveryCost: this.deliveryCost,
